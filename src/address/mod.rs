@@ -1,3 +1,3 @@
-mod address;
+pub mod address;
 
 pub use address::*;

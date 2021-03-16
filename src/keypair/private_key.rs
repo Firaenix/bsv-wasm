@@ -1,6 +1,6 @@
 use crate::keypair::public_key::PublicKey;
-use std::borrow::Borrow;
-
+use std::{borrow::Borrow, io::Read, str::FromStr};
+use bitcoin_hashes::{Hash, hex::{FromHex, ToHex}};
 use wasm_bindgen::prelude::*;
 use k256::SecretKey;
 use rand_core::OsRng;
@@ -11,7 +11,7 @@ use rand_core::OsRng;
 pub struct PrivateKey {
   secret_key: SecretKey
 }
-
+ 
 #[wasm_bindgen]
 impl PrivateKey {
   #[wasm_bindgen(js_name = fromRandom)]
@@ -51,5 +51,35 @@ impl PrivateKey {
     PublicKey{
       pub_key
     }
+  }
+
+  pub fn to_wif(&self) -> String {
+    // 1. Get Private Key hex
+    let priv_key_hex = self.to_hex();
+
+    // 2. Add 0x80 in front + 0x01 to end if compressed pub key
+    let padded_hex = format!("80{}", priv_key_hex);
+
+    // 3. SHA256d
+    let bytes =  match hex::decode(padded_hex.clone()) {
+      Ok(v) => v,
+      Err(e) => wasm_bindgen::throw_str(&e.to_string())
+    };
+
+    let shad_hex = bitcoin_hashes::sha256d::Hash::hash(&bytes);
+
+    // 4. Take first 4 bytes as checksum
+    let checksum = shad_hex.to_vec()[0..4].to_hex();
+
+    // 5. Add checksum to end of padded private key
+    let extended_key = format!("{}{}", padded_hex, checksum);
+
+    // 6 Base58 Result
+    let extended_key_bytes = match hex::decode(extended_key) {
+      Ok(v) => v,
+      Err(e) => wasm_bindgen::throw_str(&e.to_string())
+    };
+
+    bs58::encode(extended_key_bytes).into_string()
   }
 }
