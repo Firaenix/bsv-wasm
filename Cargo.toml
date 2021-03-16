@@ -8,19 +8,19 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.7.2", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
+k256 = { version = "0.8.0-pre", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
 wasm-bindgen = "0.2.70"
-# The `console_error_panic_hook` crate provides better debugging of panics by
-# logging them with `console.error`. This is great for development, but requires
-# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
-# code size when deploying.
+hex = "0.4.2"
+thiserror = "1.0.23"
 console_error_panic_hook = { version = "0.1.1", optional = true }
+anyhow = "1.0.38"
 
 [dependencies.rand_core]
-version = "0.5"
+version = "0.6.2"
 features = ["getrandom"]
 
 [dependencies.getrandom]
+version = "0.2.2"
 features = ["js"]
 
 [dev-dependencies]
