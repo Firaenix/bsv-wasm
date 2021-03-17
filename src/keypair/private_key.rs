@@ -1,7 +1,7 @@
 use crate::keypair::public_key::PublicKey;
 use std::{borrow::Borrow, io::Read, str::FromStr};
 use bitcoin_hashes::{Hash, hex::{FromHex, ToHex}};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, throw_str};
 use k256::SecretKey;
 use rand_core::OsRng;
 
@@ -30,18 +30,18 @@ impl PrivateKey {
   }
   
   #[wasm_bindgen(js_name = fromHex)]
-  pub fn from_hex(hex_str: String) -> Option<PrivateKey> {
+  pub fn from_hex(hex_str: String) -> Result<PrivateKey, JsValue> {
     let bytes = match hex::decode(hex_str) {
       Ok(bytes) => bytes,
-      Err(e) => return None
+      Err(e) => throw_str(&e.to_string())
     };
  
     let secret_key = match SecretKey::from_bytes(bytes) {
       Ok(key) => key,
-      Err(e) => return None
+      Err(e) => throw_str(&e.to_string())
     };
 
-    Some(PrivateKey{
+    Ok(PrivateKey{
       secret_key
     })
   }
@@ -53,12 +53,15 @@ impl PrivateKey {
     }
   }
 
-  pub fn to_wif(&self) -> String {
+  pub fn to_wif(&self, compressed: bool) -> String {
     // 1. Get Private Key hex
     let priv_key_hex = self.to_hex();
 
     // 2. Add 0x80 in front + 0x01 to end if compressed pub key
-    let padded_hex = format!("80{}", priv_key_hex);
+    let padded_hex = match compressed {
+      true => format!("80{}01", priv_key_hex),
+      false => format!("80{}", priv_key_hex)
+    };
 
     // 3. SHA256d
     let bytes =  match hex::decode(padded_hex.clone()) {
