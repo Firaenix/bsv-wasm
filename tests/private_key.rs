@@ -32,7 +32,7 @@ mod tests {
 
   #[test]
   #[wasm_bindgen_test]
-  fn wif_to_private_key() {
+  fn wif_to_private_key_uncompressed() {
     let wif = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ";
 
     let key = PrivateKey::from_wif(wif.into()).unwrap();
@@ -40,6 +40,18 @@ mod tests {
     let private_key_hex = key.to_hex();
 
     assert_eq!(private_key_hex, "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D".to_lowercase())
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn wif_to_private_key_compressed() {
+    let wif = "L5EZftvrYaSudiozVRzTqLcHLNDoVn7H5HSfM9BAN6tMJX8oTWz6";
+
+    let key = PrivateKey::from_wif(wif.into()).unwrap();
+
+    let private_key_hex = key.to_hex();
+
+    assert_eq!(private_key_hex, "ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".to_lowercase())
   }
 }
 

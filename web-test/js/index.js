@@ -1,29 +1,56 @@
-import {PrivKey} from "bsv";
+import {Hash} from "bsv";
+import greenlet from 'greenlet';
+
+
 (async () => {
-  const {PrivateKey, PublicKey, P2PKHAddress} = await import('../../pkg/bsv_rs.js');
+  const {hash} = await import('../../pkg');
+
+  let target = "00";
 
   console.log("Running WASM")
-  const start = Date.now();
-  let count = 0;
-  while (count < 1000000) {
-    PrivateKey.fromRandom();
-    count++;
-  }
+  
+  let getWASMPOW = async () => {
+    let nonce = 0;
+    while (true) {
+      let hashed = hash(new Uint8Array([nonce]));
+  
+      if (hashed.startsWith(target)) {
+        return hashed;
+      }
+      nonce++;
+    }
+  };
 
+  const start = Date.now();
+  console.log(await getWASMPOW());
   const end = Date.now();
 
-  console.log("Total time to mine 1mil private keys in WASM:", end - start)
-
+  let wasmTag = document.createElement("p");
+  wasmTag.innerHTML = (`Total time to mine ${target} in WASM: ${end - start}ms`);;
+  document.body.appendChild(wasmTag);
 
   console.log("Running BSVJS")
-  const start2 = Date.now();
-  let count2 = 0;
-  while (count2 < 1000000) {
-    PrivKey.fromRandom();
-    count2++;
+  
+
+  let getJSPOW = async() => {
+    let nonce = 0;
+    
+    while (true) {
+      let hashed = Hash.sha256(Buffer.from([nonce]));
+  
+      if (hashed.toString('hex').startsWith(target)) {
+        return hashed;
+      }
+
+      nonce++;
+    }
   }
 
+  const start2 = Date.now();
+  console.log(await getJSPOW());
   const end2 = Date.now();
 
-  console.log("Total time to mine 1mil private keys in BSV2 (JS):", end2 - start2)
+  let bsvTag = document.createElement("p");
+  bsvTag.innerHTML = (`Total time to mine ${target} in BSV2: ${end2 - start2}ms`);
+  document.body.appendChild(bsvTag);
 })()
