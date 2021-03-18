@@ -29,5 +29,17 @@ mod tests {
 
     assert_eq!(wif, "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
   }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn wif_to_private_key() {
+    let wif = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ";
+
+    let key = PrivateKey::from_wif(wif.into()).unwrap();
+
+    let private_key_hex = key.to_hex();
+
+    assert_eq!(private_key_hex, "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D".to_lowercase())
+  }
 }
 
