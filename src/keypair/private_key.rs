@@ -96,7 +96,7 @@ impl PrivateKey {
   #[wasm_bindgen(js_name = fromWIF)]
   pub fn from_wif(wif_string: String) -> Result<PrivateKey, JsValue> {
     // 0. Check if compressed
-    let is_compressed = wif_string.starts_with("5");
+    let is_compressed = !wif_string.starts_with("5");
 
     // 1. Decode from Base58
     let wif_bytes = match bs58::decode(wif_string).into_vec() {
@@ -117,7 +117,7 @@ impl PrivateKey {
 
     // 3. Check if compressed public key, return private key string
     let private_key_hex = match is_compressed {
-      true => wif_without_checksum[1..].to_hex(),
+      true => wif_without_checksum[1..wif_without_checksum.len()-1].to_hex(),
       false => wif_without_checksum[1..].to_hex()
     };
 
