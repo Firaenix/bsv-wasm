@@ -18,6 +18,7 @@ bs58 = "0.4.0"
 bitcoin_hashes = "0.9.4"
 js-sys = "0.3.47"
 wasm-bindgen-test = "0.3.20"
+snafu = "0.6.10"
 
 [dependencies.elliptic-curve]
 version = "0.9"
@@ -44,3 +45,7 @@ cargo-web = "0.6.26"
 
 [profile.release]
 opt-level = "s"
+
+[profile.test]
+opt-level = 3
+debug = false

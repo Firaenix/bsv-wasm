@@ -5,12 +5,35 @@ use wasm_bindgen::throw_str;
 use wasm_bindgen::prelude::*;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
-
+use crate::Signature;
+use k256::{
+  ecdsa::{SigningKey, Signature as SecpSignature, signature::Signer}
+};
+use crate::types::Result;
 
 #[wasm_bindgen]
 #[derive(Debug)]
 pub struct PrivateKey {
   secret_key: SecretKey
+}
+
+/**
+ * Instance methods
+ */
+#[wasm_bindgen]
+impl PrivateKey {
+  pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature> {
+    let thingo = SigningKey::from_bytes(&self.secret_key.to_bytes()).unwrap();
+
+    // let signing_key = SigningKey::random(&mut OsRng); // Serialize with `::to_bytes()`
+    let message = &msg;
+
+    // Note: the signature type must be annotated or otherwise inferrable as
+    // `Signer` has many impls of the `Signer` trait (for both regular and
+    // recoverable signature types).
+    let signature: SecpSignature = thingo.sign(message);
+    Signature::from_der(signature.to_der().as_bytes().to_vec())
+  }
 }
  
 /**
@@ -77,7 +100,7 @@ impl PrivateKey {
   }
 
   #[wasm_bindgen(js_name = fromHex)]
-  pub fn from_hex(hex_str: String) -> Result<PrivateKey, JsValue> {
+  pub fn from_hex(hex_str: String) -> crate::types::Result<PrivateKey> {
     let bytes = match hex::decode(hex_str) {
       Ok(bytes) => bytes,
       Err(e) => throw_str(&e.to_string())
@@ -94,7 +117,7 @@ impl PrivateKey {
   }
 
   #[wasm_bindgen(js_name = fromWIF)]
-  pub fn from_wif(wif_string: String) -> Result<PrivateKey, JsValue> {
+  pub fn from_wif(wif_string: String) -> crate::types::Result<PrivateKey> {
     // 1. Decode from Base58
     let wif_bytes = match bs58::decode(wif_string).into_vec() {
       Ok(v) => v,

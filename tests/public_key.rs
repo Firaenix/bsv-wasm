@@ -31,5 +31,6 @@ mod tests {
     // Assert
     assert_eq!(pub_key_hex, "02588d202afcc1ee4ab5254c7847ec25b9a135bbda0f2bc69ee1a714749fd77dc9")
   }
+
 }
 

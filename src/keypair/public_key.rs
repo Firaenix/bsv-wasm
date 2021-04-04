@@ -6,7 +6,6 @@ use elliptic_curve::sec1::*;
 
 use crate::PrivateKey;
 
-
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
 pub struct PublicKey {
@@ -25,7 +24,7 @@ impl PublicKey {
   }
 
   #[wasm_bindgen(js_name = toHex)]
-  pub fn to_hex(&self) -> Result<String, JsValue> {
+  pub fn to_hex(&self) -> crate::types::Result<String> {
     return match self.to_bytes() {
       Ok(v) => Ok(hex::encode(v)),
       Err(e) => Err(e)
@@ -33,7 +32,7 @@ impl PublicKey {
   }
 
   #[wasm_bindgen(js_name = toBytes)]
-  pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
+  pub fn to_bytes(&self) -> crate::types::Result<Vec<u8>> {
     let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(&self.point.clone()) {
       Ok(v) => v,
       Err(e) => throw_str(&e.to_string())
@@ -42,7 +41,7 @@ impl PublicKey {
   }
 
   #[wasm_bindgen(js_name = fromBytes)]
-  pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, JsValue> {
+  pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> crate::types::Result<PublicKey> {
     let point_bytes = bytes;
     let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(point_bytes) {
       Ok(v) => v,
@@ -56,7 +55,7 @@ impl PublicKey {
   }
 
   #[wasm_bindgen(js_name = fromHex)]
-  pub fn from_hex(hex_str: String, compress: bool) -> Result<PublicKey, JsValue> {
+  pub fn from_hex(hex_str: String, compress: bool) -> crate::types::Result<PublicKey> {
     let point_bytes = match hex::decode(hex_str) {
       Ok(v) => v,
       Err(e) => throw_str(&e.to_string())
@@ -64,4 +63,6 @@ impl PublicKey {
 
     PublicKey::from_bytes(point_bytes, compress)
   }
+
+  
 }

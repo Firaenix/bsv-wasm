@@ -1,10 +1,10 @@
 use std::borrow::Borrow;
 
-use crate::PublicKey;
 use anyhow::private::kind::TraitKind;
 use bitcoin_hashes::{Hash, hex::{FromHex, ToHex}};
 use js_sys::Error;
 use wasm_bindgen::{prelude::*, throw_str};
+use crate::PublicKey;
 
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ impl P2PKHAddress {
   }
 
   #[wasm_bindgen(js_name=fromPubKey)]
-  pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, JsValue> { 
+  pub fn from_pubkey(pub_key: &PublicKey) -> crate::types::Result<P2PKHAddress> { 
     let pub_key_hex = match pub_key.to_hex() {
       Ok(v) => v,
       Err(e) => return Err(e)
@@ -39,7 +39,7 @@ impl P2PKHAddress {
   }
 
   #[wasm_bindgen(js_name=toString)]
-  pub fn to_address_string(&self) -> Result<String, JsValue> {
+  pub fn to_address_string(&self) -> crate::types::Result<String> {
     let mut pub_key_hash_bytes = self.pubkey_hash.clone();
     
     let mut address_bytes: Vec<u8> = vec![00];
