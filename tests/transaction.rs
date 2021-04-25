@@ -30,6 +30,16 @@ mod tests {
     assert_eq!(tx_in_1.get_script_sig().len(), 0x8b);
     assert_eq!(tx_in_1.get_script_sig(), hex::decode("48304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c50141042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442").unwrap());
     assert_eq!(tx_in_1.get_sequence(), 4294967295);
+
+    let tx_out_0 = tx.get_output(0).unwrap();
+    assert_eq!(tx_out_0.get_satoshi_value(), 1076000);
+    assert_eq!(tx_out_0.get_script_pub_key_size(), 25);
+    assert_eq!(tx_out_0.get_script_pub_key(), hex::decode("76a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac").unwrap());
+
+    let tx_out_1 = tx.get_output(1).unwrap();
+    assert_eq!(tx_out_1.get_satoshi_value(), 117488);
+    assert_eq!(tx_out_1.get_script_pub_key_size(), 25);
+    assert_eq!(tx_out_1.get_script_pub_key(), hex::decode("76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac").unwrap());
   }
 
   #[test]

@@ -8,7 +8,7 @@ use snafu::*;
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Transaction {
   version: u32,
   ninputs: u64,
@@ -82,17 +82,49 @@ impl Transaction {
     }
 
     // Out Counter - 1-9 bytes
+    let noutputs = match cursor.read_varint() {
+      Ok(v) => v,
+      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+    };
 
     // List of  Outputs
+    let mut outputs: Vec<TxOut> = Vec::with_capacity(ninputs as usize);
+    for _i in 0..noutputs {
+      // Satoshi Value - 8 bytes
+      let satoshis = match cursor.read_i64::<LittleEndian>() {
+        Ok(v) => v,
+        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
+      };
+
+      // Script Pub Key Size - 1-9 bytes
+      let script_pub_key_size = match cursor.read_varint() {
+        Ok(v) => v,
+        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+      };
+
+      // Script Pub Key
+      let mut script_pub_key = vec![0; script_pub_key_size as usize];
+      match cursor.read(&mut script_pub_key) {
+        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+        _ => () 
+      };
+
+      outputs.push(TxOut::new(satoshis, script_pub_key_size, script_pub_key));
+    }
+
     // nLocktime - 4 bytes
+    let nlocktime = match cursor.read_u32::<LittleEndian>() {
+      Ok(v) => v,
+      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
+    };
 
     Ok(Transaction {
       version,
       ninputs,
       inputs,
-      noutputs: 0,
-      outputs: [].to_vec(),
-      nlocktime: 0,
+      noutputs,
+      outputs,
+      nlocktime,
     })
   }
 
@@ -106,6 +138,10 @@ impl Transaction {
 
   pub(crate) fn get_input_impl(&self, index: usize) -> Option<TxIn> {
     self.inputs.get(index).and_then(|x| Some(x.clone()) )
+  }
+
+  pub(crate) fn get_output_impl(&self, index: usize) -> Option<TxOut> {
+    self.outputs.get(index).and_then(|x| Some(x.clone()) )
   }
 }
 
@@ -134,6 +170,11 @@ impl Transaction {
   pub fn get_input(&self, index: usize) -> Option<TxIn> {
     Transaction::get_input_impl(&self, index)
   }
+
+  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutput))]
+  pub fn get_output(&self, index: usize) -> Option<TxOut> {
+    Transaction::get_output_impl(&self, index)
+  }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -156,5 +197,10 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn get_input(&self, index: usize) -> Option<TxIn> {
     Transaction::get_input_impl(&self, index)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn get_output(&self, index: usize) -> Option<TxOut> {
+    Transaction::get_output_impl(&self, index)
   }
 }
