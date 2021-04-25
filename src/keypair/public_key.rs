@@ -8,7 +8,7 @@ use wasm_bindgen::{prelude::*, throw_str, JsStatic};
 use crate::PrivateKey;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey {
     point: Vec<u8>,
     is_compressed: bool,

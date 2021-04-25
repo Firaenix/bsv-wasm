@@ -9,7 +9,7 @@ use wasm_bindgen::JsValue;
 use crate::PublicKey;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct P2PKHAddress {
   pubkey_hash: Vec<u8>
 }

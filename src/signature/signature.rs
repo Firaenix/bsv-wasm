@@ -4,7 +4,7 @@ use k256::{Secp256k1, ecdsa::Signature as SecpSignature, Scalar, ecdsa::{Verifyi
 use elliptic_curve::sec1::*;
 
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
   sig: k256::ecdsa::Signature
 }
