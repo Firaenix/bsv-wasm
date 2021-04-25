@@ -1,3 +1,4 @@
+use crate::{PublicKeyErrors};
 use hex::FromHexError;
 use snafu::*;
 
@@ -26,6 +27,11 @@ pub enum SignatureErrors {
     #[snafu(display("{}", error))]
     SecpError {
       error: k256::ecdsa::Error
+    },
+
+    #[snafu(display("{}", error))]
+    PublicKeyError {
+      error: PublicKeyErrors
     },
 
     #[snafu(display("Something went wrong: {}", message))]

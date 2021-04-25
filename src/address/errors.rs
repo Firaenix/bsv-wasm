@@ -1,7 +1,7 @@
 use hex::FromHexError;
 use snafu::*;
 
-use crate::KeyPairError;
+use crate::{PublicKeyErrors};
 
 #[derive(Debug, Snafu)]
 pub enum AddressErrors {
@@ -13,7 +13,7 @@ pub enum AddressErrors {
 
     #[snafu(display("{}", error))]
     PublicKeyError {
-      error: KeyPairError
+      error: PublicKeyErrors
     },
 
     #[snafu(display("Could not parse hex {}: {}", hex, error))]

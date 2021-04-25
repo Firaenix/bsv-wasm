@@ -1,9 +1,9 @@
-use crate::SignatureErrors;
 use hex::FromHexError;
 use snafu::*;
 
+
 #[derive(Debug, Snafu)]
-pub enum PrivateKeyErrors {
+pub enum PublicKeyErrors {
     #[snafu(display("Could not decode Base58 string: {} {}", string, message))]
     Base58Decode {
       message: String,
@@ -23,10 +23,6 @@ pub enum PrivateKeyErrors {
     #[snafu(display("Invalid Point: {}", error))]
     InvalidPoint {
       error: elliptic_curve::Error
-    },
-
-    SignatureError {
-      error: SignatureErrors
     },
 
     #[snafu(display("Something went wrong: {}", message))]

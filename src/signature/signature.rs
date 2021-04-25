@@ -14,7 +14,7 @@ pub struct Signature {
  * Implementation Methods
  */
 impl Signature {
-  fn from_der_impl(bytes: Vec<u8>) -> Result<Signature, SignatureErrors> {
+  pub(crate) fn from_der_impl(bytes: Vec<u8>) -> Result<Signature, SignatureErrors> {
     let sig = match SecpSignature::from_der(&bytes) {
       Ok(v) => v,
       Err(e) => return Err(SignatureErrors::SecpError{ error: e })
@@ -26,7 +26,7 @@ impl Signature {
   }
 
   
-  fn from_hex_der_impl(hex: String) -> Result<Signature, SignatureErrors> {
+  pub(crate) fn from_hex_der_impl(hex: String) -> Result<Signature, SignatureErrors> {
     let bytes = match hex::decode(hex) {
       Ok(v) => v,
       Err(e) => return Err(SignatureErrors::ParseHex{ error: e })
@@ -43,22 +43,22 @@ impl Signature {
   }
 
   
-  fn to_hex_impl(&self) -> String {
+  pub(crate) fn to_hex_impl(&self) -> String {
     let bytes = self.sig.to_der();
 
     hex::encode(bytes)
   }
 
-  fn to_der_bytes_impl(&self) -> Vec<u8> {
+  pub(crate) fn to_der_bytes_impl(&self) -> Vec<u8> {
     let bytes = self.sig.to_der();
 
     bytes.as_bytes().to_vec()
   }
 
-  fn verify_impl(&self, message: Vec<u8>, pub_key: &PublicKey) -> Result<bool, SignatureErrors> {
-    let pub_key_bytes = match pub_key.to_bytes() {
+  pub(crate) fn verify_impl(&self, message: Vec<u8>, pub_key: &PublicKey) -> Result<bool, SignatureErrors> {
+    let pub_key_bytes = match pub_key.to_bytes_impl() {
       Ok(v) => v,
-      Err(e) => return Err(SignatureErrors::Other{message: e.to_string()})
+      Err(e) => return Err(SignatureErrors::PublicKeyError{ error: e })
     };
 
     let point = match EncodedPoint::from_bytes(pub_key_bytes) {
@@ -105,7 +105,7 @@ impl Signature {
   }
 
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toDER))]
-  fn to_der_bytes(&self) -> Vec<u8> {
+  pub fn to_der_bytes(&self) -> Vec<u8> {
     Signature::to_der_bytes_impl(&self)
   }
 

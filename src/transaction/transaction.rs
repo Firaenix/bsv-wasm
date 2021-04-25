@@ -29,7 +29,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
- fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionError> {
+  pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionError> {
    let tx_bytes =  match hex::decode(&hex_str) {
      Ok(v) => v,
      Err(e) => return Err(TransactionError::ParseHex{ message: e.to_string() })

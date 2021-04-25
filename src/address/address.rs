@@ -5,6 +5,7 @@ use anyhow::private::kind::TraitKind;
 use bitcoin_hashes::{Hash, hex::{FromHex, ToHex}};
 use js_sys::Error;
 use wasm_bindgen::{prelude::*, throw_str};
+use wasm_bindgen::JsValue;
 use crate::PublicKey;
 
 #[wasm_bindgen]
@@ -23,7 +24,7 @@ impl P2PKHAddress {
 
   
   fn from_pubkey_impl(pub_key: &PublicKey) ->  Result<P2PKHAddress, AddressErrors> { 
-    let pub_key_hex = match pub_key.to_hex() {
+    let pub_key_hex = match pub_key.to_hex_impl() {
       Ok(v) => v,
       Err(e) => return Err(AddressErrors::PublicKeyError{ error: e })
     };
@@ -68,14 +69,14 @@ impl P2PKHAddress {
     P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
   }
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPubKey))]
-  pub fn from_pubkey(pub_key: &PublicKey) ->  Result<P2PKHAddress, AddressErrors> {
+  pub fn from_pubkey(pub_key: &PublicKey) ->  Result<P2PKHAddress, JsValue> {
     match P2PKHAddress::from_pubkey_impl(pub_key) {
       Ok(v) => Ok(v),
         Err(e) => throw_str(&e.to_string())
     }
   }
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
-  pub fn to_address_string(&self) ->  Result<String, AddressErrors> {
+  pub fn to_address_string(&self) ->  Result<String, JsValue> {
     match P2PKHAddress::to_address_string_impl(&self) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string())

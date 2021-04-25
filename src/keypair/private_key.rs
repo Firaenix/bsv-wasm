@@ -1,5 +1,4 @@
-use crate::KeyPairError;
-use std::borrow::Borrow;
+use crate::PrivateKeyErrors;
 
 use crate::Signature;
 use bitcoin_hashes::{hex::ToHex, Hash};
@@ -19,10 +18,10 @@ pub struct PrivateKey {
  * Internal Methods
  */
 impl PrivateKey {
-    fn sign_message_impl(&self, msg: Vec<u8>) -> Result<Signature, KeyPairError> {
+  pub(crate) fn sign_message_impl(&self, msg: Vec<u8>) -> Result<Signature, PrivateKeyErrors> {
         let thingo = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
           Ok(v) => v,
-          Err(e) => return Err(KeyPairError::ByteDecode{ message: e.to_string() })
+          Err(e) => return Err(PrivateKeyErrors::ByteDecode{ message: e.to_string() })
         };
 
         // let signing_key = SigningKey::random(&mut OsRng); // Serialize with `::to_bytes()`
@@ -32,24 +31,24 @@ impl PrivateKey {
         // `Signer` has many impls of the `Signer` trait (for both regular and
         // recoverable signature types).
         let signature: SecpSignature = thingo.sign(message);
-        match Signature::from_der(signature.to_der().as_bytes().to_vec()) {
+        match Signature::from_der_impl(signature.to_der().as_bytes().to_vec()) {
           Ok(v) => Ok(v),
-          Err(e) => Err(KeyPairError::Other{ message: e.to_string() })
+          Err(e) => Err(PrivateKeyErrors::SignatureError{ error: e })
         }
     }
 
-    fn to_hex_impl(&self) -> String {
+    pub(crate) fn to_hex_impl(&self) -> String {
         let secret_key_bytes = self.secret_key.to_bytes().to_vec();
         hex::encode(secret_key_bytes)
     }
 
-    fn get_point_impl(&self, compressed: bool) -> Vec<u8> {
+    pub(crate) fn get_point_impl(&self, compressed: bool) -> Vec<u8> {
         EncodedPoint::from_secret_key(&self.secret_key, compressed)
             .as_bytes()
             .into()
     }
 
-    fn to_wif_impl(&self, compressed: bool) -> String {
+    pub(crate) fn to_wif_impl(&self, compressed: bool) -> String {
         // 1. Get Private Key hex
         let priv_key_hex = self.to_hex_impl();
 
@@ -82,13 +81,13 @@ impl PrivateKey {
         bs58::encode(extended_key_bytes).into_string()
     }
 
-    fn from_random_impl() -> PrivateKey {
+    pub(crate) fn from_random_impl() -> PrivateKey {
         let secret_key = k256::SecretKey::random(&mut OsRng);
 
         PrivateKey { secret_key }
     }
 
-    fn from_hex_impl(hex_str: String) -> Result<PrivateKey, KeyPairError> {
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
         let bytes = match hex::decode(hex_str) {
             Ok(bytes) => bytes,
             Err(e) => throw_str(&e.to_string()),
@@ -102,7 +101,7 @@ impl PrivateKey {
         Ok(PrivateKey { secret_key })
     }
 
-    fn from_wif_impl(wif_string: String) -> Result<PrivateKey, KeyPairError> {
+    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
         // 1. Decode from Base58
         let wif_bytes = match bs58::decode(wif_string).into_vec() {
             Ok(v) => v,
@@ -154,6 +153,11 @@ impl PrivateKey {
       self.to_hex_impl()
     }
 
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toWIF))]
+    pub fn to_wif(&self, compressed: bool) -> String {
+      PrivateKey::to_wif_impl(&self, compressed)
+    }
+
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromWIF))]
     pub fn from_wif(wif_string: String) -> Result<PrivateKey, JsValue> {
       match PrivateKey::from_wif_impl(wif_string) {
@@ -175,9 +179,9 @@ impl PrivateKey {
       }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
     pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, JsValue> {
-      match self.sign_message_impl(msg) {
+      match PrivateKey::sign_message_impl(&self, msg) {
         Ok(v) => Ok(v),
         Err(e) => throw_str(&e.to_string())
       }
@@ -185,7 +189,7 @@ impl PrivateKey {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPoint))]
     pub fn get_point(&self, compressed: bool) -> Vec<u8> { 
-      self.get_point(compressed)
+      PrivateKey::get_point_impl(&self, compressed)
     }
 }
 
@@ -200,7 +204,12 @@ impl PrivateKey {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_wif(wif_string: String) -> Result<PrivateKey, KeyPairError> {
+    pub fn to_wif(&self, compressed: bool) -> String {
+      PrivateKey::to_wif_impl(&self, compressed)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn from_wif(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
       PrivateKey::from_wif_impl(wif_string)
     }
 
@@ -210,17 +219,17 @@ impl PrivateKey {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex(hex_str: String) -> Result<PrivateKey, KeyPairError> {
+    pub fn from_hex(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
       PrivateKey::from_hex_impl(hex_str)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, KeyPairError> {
-      self.sign_message_impl(msg)
+    pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, PrivateKeyErrors> {
+      PrivateKey::sign_message_impl(&self, msg)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn get_point(&self, compressed: bool) -> Vec<u8> { 
-      self.get_point(compressed)
+      PrivateKey::get_point_impl(&self, compressed)
     }
 }
