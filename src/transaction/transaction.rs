@@ -4,11 +4,11 @@ use std::io::Read;
 use crate::{TransactionErrors, TxIn, TxOut, VarIntReader};
 use anyhow::*;
 use byteorder::*;
-use snafu::*;
-use wasm_bindgen::{prelude::*, throw_str};
+use wasm_bindgen::{prelude::*, throw_str, JsValue};
+use serde::*;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Transaction {
   version: u32,
   ninputs: u64,
@@ -143,6 +143,13 @@ impl Transaction {
   pub(crate) fn get_output_impl(&self, index: usize) -> Option<TxOut> {
     self.outputs.get(index).and_then(|x| Some(x.clone()) )
   }
+
+  pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
+    match serde_json::to_string(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TransactionErrors::Serialise{error: anyhow!(e) })
+    } 
+  }
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
@@ -175,6 +182,14 @@ impl Transaction {
   pub fn get_output(&self, index: usize) -> Option<TxOut> {
     Transaction::get_output_impl(&self, index)
   }
+
+  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
+  pub fn to_json(&self) -> Result<String, JsValue> {
+    match Transaction::to_json_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -202,5 +217,10 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn get_output(&self, index: usize) -> Option<TxOut> {
     Transaction::get_output_impl(&self, index)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<String, TransactionErrors> {
+    Transaction::to_json_impl(&self)
   }
 }

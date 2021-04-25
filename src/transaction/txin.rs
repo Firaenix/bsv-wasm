@@ -1,14 +1,20 @@
+
+use crate::utils::to_hex;
 use wasm_bindgen::prelude::*;
+use serde::*;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct TxIn {
+  #[serde(serialize_with = "to_hex")]
   prev_tx_id: Vec<u8>,
   vout: u32,
   script_sig_size: u64,
+  #[serde(serialize_with = "to_hex")]
   script_sig: Vec<u8>,
   sequence: u32,
 }
+
 
 impl TxIn {
   pub fn new(

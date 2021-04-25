@@ -1,10 +1,13 @@
+use crate::utils::to_hex;
 use wasm_bindgen::prelude::*;
+use serde::*;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize)]
 pub struct TxOut {
   value: i64,
   script_pub_key_size: u64,
+  #[serde(serialize_with = "to_hex")]
   script_pub_key: Vec<u8>,
 }
 

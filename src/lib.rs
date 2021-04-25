@@ -1,7 +1,10 @@
 use bitcoin_hashes::{Hash, hex::ToHex};
 use wasm_bindgen::prelude::*;
 
+pub mod utils;
+
 pub mod keypair;
+
 pub use keypair::*;
 
 pub mod signature;
