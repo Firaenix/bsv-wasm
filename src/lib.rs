@@ -19,6 +19,9 @@ pub use address::*;
 pub mod types;
 pub use types::*;
 
+pub mod transaction;
+pub use transaction::*;
+
 
 #[wasm_bindgen]
 pub fn hash(input: Vec<u8>) -> String {

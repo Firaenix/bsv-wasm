@@ -18,7 +18,8 @@ bs58 = "0.4.0"
 bitcoin_hashes = "0.9.4"
 js-sys = "0.3.47"
 wasm-bindgen-test = "0.3.20"
-snafu = "0.6.10"
+snafu = { version = "0.6.10", default-features = false }
+byteorder = "1.4.3"
 
 [dependencies.elliptic-curve]
 version = "0.9"
