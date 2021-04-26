@@ -1,28 +1,43 @@
 use std::{io::Cursor};
 use std::io::Read;
 
-use crate::{TransactionErrors, TxIn, TxOut, VarIntReader};
+use crate::{TxIn, TxOut, VarIntReader};
 use anyhow::*;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
-use serde::*;
+use serde::Serialize;
+use snafu::*;
+use anyhow::*;
+
+#[derive(Debug, Snafu)]
+pub enum TransactionErrors {
+    #[snafu(display("Error deserialising transaction field {:?}: {}", field, error))]
+    Deserialise {
+      field: Option<String>,
+      error: anyhow::Error
+    },
+    #[snafu(display("Error serialising transaction: {}", error))]
+    Serialise {
+      error: anyhow::Error
+    }
+}
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Transaction {
   version: u32,
-  ninputs: u64,
+  n_inputs: u64,
   inputs: Vec<TxIn>,
-  noutputs: u64,
+  n_outputs: u64,
   outputs: Vec<TxOut>,
-  nlocktime: u32,
+  n_locktime: u32,
 }
 
 impl Transaction {
-  pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
+  pub(crate) fn from_hex_impl<'f>(hex_str: String) -> Result<Transaction, TransactionErrors> {
     let tx_bytes = match hex::decode(&hex_str) {
       Ok(v) => v,
-      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+      Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
     };
 
     let mut cursor = Cursor::new(tx_bytes);
@@ -30,101 +45,56 @@ impl Transaction {
     // Version - 4 bytes
     let version = match cursor.read_u32::<LittleEndian>() {
       Ok(v) => v,
-      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+      Err(e) => return Err(TransactionErrors::Deserialise { field: Some("version".to_string()), error: anyhow!(e) }),
     };
 
     // In Counter - 1-9 tx_bytes
-    let ninputs = match cursor.read_varint() {
+    let n_inputs = match cursor.read_varint() {
       Ok(v) => v,
-      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+      Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_inputs".to_string()), error: anyhow!(e) }),
     };
 
-    let mut inputs: Vec<TxIn> = Vec::with_capacity(ninputs as usize);
+    let mut inputs: Vec<TxIn> = Vec::with_capacity(n_inputs as usize);
 
     // List of Inputs
-    for _i in 0..ninputs {
-      // PrevTxId - 32 bytes
-      let mut prev_tx_id = vec![0; 32];
-      match cursor.read(&mut prev_tx_id) {
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
-        Ok(0) => return Err(TransactionErrors::Deserialise { error: anyhow!("Read zero bytes for Prev TX Id!") }),
-        Ok(v) => ()
-      };
-      // Error in the original bitcoin client means that all txids in TxIns are reversed
-      prev_tx_id.reverse();
-
-      // VOut - 4 bytes
-      let vout = match cursor.read_u32::<LittleEndian>() {
+    for i in 0..n_inputs {
+      let tx_in = match TxIn::read_in(&mut cursor) {
         Ok(v) => v,
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
+        Err(e) => return Err(TransactionErrors::Deserialise { field: Some(format!("tx_in {}", i)), error: anyhow!(e) })
       };
-
-      // Script Sig Size - VarInt
-      let script_sig_size = match cursor.read_varint() {
-        Ok(v) => v,
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
-      };
-
-      // Script Sig
-      let mut script_sig = vec![0; script_sig_size as usize];
-      match cursor.read(&mut script_sig) {
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
-        _ => () 
-      };
-
-      // Sequence - 4 bytes
-      let sequence = match cursor.read_u32::<LittleEndian>() {
-        Ok(v) => v,
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
-      };
-
-      inputs.push(TxIn::new(prev_tx_id, vout, script_sig_size, script_sig, sequence))
+      inputs.push(tx_in);
     }
 
     // Out Counter - 1-9 bytes
-    let noutputs = match cursor.read_varint() {
+    let n_outputs = match cursor.read_varint() {
       Ok(v) => v,
-      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
+      Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_outputs".to_string()), error: anyhow!(e) }),
     };
 
     // List of  Outputs
-    let mut outputs: Vec<TxOut> = Vec::with_capacity(ninputs as usize);
-    for _i in 0..noutputs {
-      // Satoshi Value - 8 bytes
-      let satoshis = match cursor.read_i64::<LittleEndian>() {
+    let mut outputs: Vec<TxOut> = Vec::with_capacity(n_outputs as usize);
+    for i in 0..n_outputs {
+      let tx_out = match TxOut::read_in(&mut cursor) {
         Ok(v) => v,
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
+        Err(e) => return Err(TransactionErrors::Deserialise { field: Some(format!("tx_out {}", i)), error: anyhow!(e) })
       };
 
-      // Script Pub Key Size - 1-9 bytes
-      let script_pub_key_size = match cursor.read_varint() {
-        Ok(v) => v,
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
-      };
-
-      // Script Pub Key
-      let mut script_pub_key = vec![0; script_pub_key_size as usize];
-      match cursor.read(&mut script_pub_key) {
-        Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) }),
-        _ => () 
-      };
-
-      outputs.push(TxOut::new(satoshis, script_pub_key_size, script_pub_key));
+      outputs.push(tx_out);
     }
 
     // nLocktime - 4 bytes
-    let nlocktime = match cursor.read_u32::<LittleEndian>() {
+    let n_locktime = match cursor.read_u32::<LittleEndian>() {
       Ok(v) => v,
-      Err(e) => return Err(TransactionErrors::Deserialise { error: anyhow!(e) })
+      Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_locktime".to_string()), error: anyhow!(e) })
     };
 
     Ok(Transaction {
       version,
-      ninputs,
+      n_inputs,
       inputs,
-      noutputs,
+      n_outputs,
       outputs,
-      nlocktime,
+      n_locktime,
     })
   }
 
@@ -133,7 +103,7 @@ impl Transaction {
   }
 
   pub(crate) fn get_ninputs_impl(&self) -> u64 {
-    self.ninputs
+    self.n_inputs
   }
 
   pub(crate) fn get_input_impl(&self, index: usize) -> Option<TxIn> {

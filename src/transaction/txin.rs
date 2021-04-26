@@ -1,7 +1,25 @@
 
+use std::io::Cursor;
+use std::io::Read;
+
 use crate::utils::to_hex;
 use wasm_bindgen::prelude::*;
 use serde::*;
+
+use crate::{VarIntReader};
+
+use snafu::*;
+use anyhow::*;
+use byteorder::*;
+
+#[derive(Debug, Snafu)]
+pub enum TxInErrors {
+  #[snafu(display("Error deserialising transaction field {:?}: {}", field, error))]
+  Deserialise {
+    field: Option<String>,
+    error: anyhow::Error
+  },
+}
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -31,6 +49,53 @@ impl TxIn {
       script_sig,
       sequence,
     }
+  }
+
+  pub fn read_in(
+     cursor: &mut Cursor<Vec<u8>>
+  ) -> Result<TxIn, TxInErrors> {
+    // PrevTxId - 32 bytes
+    let mut prev_tx_id = vec![0; 32];
+    match cursor.read(&mut prev_tx_id) {
+      Err(e) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
+      Ok(0) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Read zero bytes for Prev TX Id!") }),
+      Ok(v) => ()
+    };
+    // Error in the original bitcoin client means that all txids in TxIns are reversed
+    prev_tx_id.reverse();
+
+    // VOut - 4 bytes
+    let vout = match cursor.read_u32::<LittleEndian>() {
+      Ok(v) => v,
+      Err(e) => return Err(TxInErrors::Deserialise { field: Some("vout".to_string()), error: anyhow!(e) })
+    };
+
+    // Script Sig Size - VarInt
+    let script_sig_size = match cursor.read_varint() {
+      Ok(v) => v,
+      Err(e) => return Err(TxInErrors::Deserialise { field: Some("script_sig_size".to_string()), error: anyhow!(e) }),
+    };
+
+    // Script Sig
+    let mut script_sig = vec![0; script_sig_size as usize];
+    match cursor.read(&mut script_sig) {
+      Err(e) => return Err(TxInErrors::Deserialise { field: Some("script_sig".to_string()), error: anyhow!(e) }),
+      _ => () 
+    };
+
+    // Sequence - 4 bytes
+    let sequence = match cursor.read_u32::<LittleEndian>() {
+      Ok(v) => v,
+      Err(e) => return Err(TxInErrors::Deserialise { field: Some("sequence".to_string()), error: anyhow!(e) })
+    };
+    
+    Ok(TxIn {
+      prev_tx_id,
+      vout,
+      script_sig_size,
+      script_sig,
+      sequence,
+    })
   }
 
   pub(crate) fn get_prev_tx_id_impl(&self) -> Vec<u8> {
