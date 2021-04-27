@@ -12,3 +12,9 @@
 
 ## Will not do:
 - Mnemonics
+
+
+### Thanks
+- Brenton Gunning (rust-sv)
+- Moneybutton Team (bsv.js)
+- Bitping Team

@@ -25,6 +25,9 @@ pub use types::*;
 pub mod transaction;
 pub use transaction::*;
 
+pub mod script;
+pub use script::*;
+
 
 #[wasm_bindgen]
 pub fn hash(input: Vec<u8>) -> String {

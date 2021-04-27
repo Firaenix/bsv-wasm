@@ -1,9 +1,6 @@
-use crate::AddressErrors;
-use std::borrow::Borrow;
+use crate::{AddressErrors, OpCodes};
 
-use anyhow::private::kind::TraitKind;
-use bitcoin_hashes::{Hash, hex::{FromHex, ToHex}};
-use js_sys::Error;
+use bitcoin_hashes::Hash;
 use wasm_bindgen::{prelude::*, throw_str};
 use wasm_bindgen::JsValue;
 use crate::PublicKey;
