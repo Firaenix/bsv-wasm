@@ -1,7 +1,7 @@
 use std::{io::Cursor};
 use std::io::Read;
 
-use crate::{TxIn, TxOut, VarIntReader};
+use crate::{TxIn, TxOut, VarInt};
 use anyhow::*;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
@@ -105,6 +105,10 @@ impl Transaction {
       n_locktime,
     })
   }
+
+  // pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
+    
+  // }
 
   pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
     match serde_json::to_string(self) {
