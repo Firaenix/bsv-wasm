@@ -26,15 +26,25 @@ pub enum TransactionErrors {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Transaction {
   version: u32,
-  n_inputs: u64,
   inputs: Vec<TxIn>,
-  n_outputs: u64,
   outputs: Vec<TxOut>,
   n_locktime: u32,
 }
 
 impl Transaction {
-  pub(crate) fn from_hex_impl<'f>(hex_str: String) -> Result<Transaction, TransactionErrors> {
+  pub(crate) fn new_impl(version: u32,
+    inputs: Vec<TxIn>,
+    outputs: Vec<TxOut>,
+    n_locktime: u32) -> Transaction {
+      Transaction{
+        version,
+        inputs,
+        outputs,
+        n_locktime
+      }
+    }
+
+  pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
     let tx_bytes = match hex::decode(&hex_str) {
       Ok(v) => v,
       Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
@@ -90,28 +100,10 @@ impl Transaction {
 
     Ok(Transaction {
       version,
-      n_inputs,
       inputs,
-      n_outputs,
       outputs,
       n_locktime,
     })
-  }
-
-  pub(crate) fn get_version_impl(&self) -> u32 {
-    self.version
-  }
-
-  pub(crate) fn get_ninputs_impl(&self) -> u64 {
-    self.n_inputs
-  }
-
-  pub(crate) fn get_input_impl(&self, index: usize) -> Option<TxIn> {
-    self.inputs.get(index).and_then(|x| Some(x.clone()) )
-  }
-
-  pub(crate) fn get_output_impl(&self, index: usize) -> Option<TxOut> {
-    self.outputs.get(index).and_then(|x| Some(x.clone()) )
   }
 
   pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
@@ -122,10 +114,69 @@ impl Transaction {
   }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
+/**
+ * Platform Agnostic Functions
+ * ie. Don't need Result<T, E>
+ */
+#[wasm_bindgen]
 impl Transaction {
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
+  #[wasm_bindgen(js_name = getVersion)]
+  pub fn get_version(&self) -> u32 {
+    self.version
+  }
+
+  #[wasm_bindgen(js_name = getInputsCount)]
+  pub fn get_ninputs(&self) -> u64 {
+    self.inputs.len() as u64
+  }
+
+  #[wasm_bindgen(js_name = getOutputsCount)]
+  pub fn get_noutputs(&self) -> u64 {
+    self.outputs.len() as u64
+  }
+
+  #[wasm_bindgen(js_name = getInput)]
+  pub fn get_input(&self, index: usize) -> Option<TxIn> {
+    self.inputs.get(index).and_then(|x| Some(x.clone()) )
+  }
+
+  #[wasm_bindgen(js_name = getOutput)]
+  pub fn get_output(&self, index: usize) -> Option<TxOut> {
+    self.outputs.get(index).and_then(|x| Some(x.clone()) )
+  }
+
+  #[wasm_bindgen(js_name = getNLocktime)]
+  pub fn get_n_locktime(&self) -> u32 {
+    self.n_locktime
+  }
+
+  /**
+   * Creates a new empty transaction where you need to add inputs and outputs
+   * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)
+   */
+  #[wasm_bindgen(constructor)]
+  pub fn new(version: u32, n_locktime: u32) -> Transaction {
+    Transaction{ version, n_locktime, inputs: vec![], outputs: vec![] }
+  }
+
+  #[wasm_bindgen(js_name = addInput)]
+  pub fn add_input(&mut self, input: &TxIn) -> () {
+    self.inputs.push(input.clone());
+  }
+
+  #[wasm_bindgen(js_name = addOutput)]
+  pub fn add_output(&mut self, output: &TxOut) -> () {
+    self.outputs.push(output.clone());
+  }
+}
+
+/**
+ * WASM Specific Functions
+ */
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl Transaction { 
+  #[wasm_bindgen(js_name = fromHex)]
   pub fn from_hex(hex_str: String) -> Result<Transaction, JsValue> {
     return match Transaction::from_hex_impl(hex_str) {
       Ok(v) => Ok(v),
@@ -133,27 +184,7 @@ impl Transaction {
     };
   }
 
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getVersion))]
-  pub fn get_version(&self) -> u32 {
-    Transaction::get_version_impl(&self)
-  }
-
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInputsCount))]
-  pub fn get_ninputs(&self) -> u64 {
-    Transaction::get_ninputs_impl(&self)
-  }
-
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInput))]
-  pub fn get_input(&self, index: usize) -> Option<TxIn> {
-    Transaction::get_input_impl(&self, index)
-  }
-
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutput))]
-  pub fn get_output(&self, index: usize) -> Option<TxOut> {
-    Transaction::get_output_impl(&self, index)
-  }
-
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
+  #[wasm_bindgen(js_name = toJSON)]
   pub fn to_json(&self) -> Result<String, JsValue> {
     match Transaction::to_json_impl(&self) {
       Ok(v) => Ok(v),
@@ -162,31 +193,14 @@ impl Transaction {
   }
 }
 
+/**
+ * Native Specific Functions
+ */
 #[cfg(not(target_arch = "wasm32"))]
 impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
     return Transaction::from_hex_impl(hex_str);
-  }
-
-  #[cfg(not(target_arch = "wasm32"))]
-  pub fn get_version(&self) -> u32 {
-    Transaction::get_version_impl(&self)
-  }
-
-  #[cfg(not(target_arch = "wasm32"))]
-  pub fn get_ninputs(&self) -> u64 {
-    Transaction::get_ninputs_impl(&self)
-  }
-
-  #[cfg(not(target_arch = "wasm32"))]
-  pub fn get_input(&self, index: usize) -> Option<TxIn> {
-    Transaction::get_input_impl(&self, index)
-  }
-
-  #[cfg(not(target_arch = "wasm32"))]
-  pub fn get_output(&self, index: usize) -> Option<TxOut> {
-    Transaction::get_output_impl(&self, index)
   }
 
   #[cfg(not(target_arch = "wasm32"))]

@@ -40,7 +40,7 @@ mod tests {
     assert_eq!(tx_out_1.get_script_pub_key_size(), 25);
     assert_eq!(tx_out_1.get_script_pub_key(), hex::decode("76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac").unwrap());
 
-    assert_eq!(tx.to_json().unwrap(), "{\"version\":1,\"n_inputs\":2,\"inputs\":[{\"prev_tx_id\":\"3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e\",\"vout\":0,\"script_sig_size\":140,\"script_sig\":\"493046022100e9318720bee5425378b4763b0427158b1051eec8b08442ce3fbfbf7b30202a44022100d4172239ebd701dae2fbaaccd9f038e7ca166707333427e3fb2a2865b19a7f27014104510c67f46d2cbb29476d1f0b794be4cb549ea59ab9cc1e731969a7bf5be95f7ad5e7f904e5ccf50a9dc1714df00fbeb794aa27aaff33260c1032d931a75c56f2\",\"sequence\":4294967295},{\"prev_tx_id\":\"6f653a93e7ff01c3317ee9eb9b75c85d4881684f8117f73f4765b61a7a5e19a3\",\"vout\":2,\"script_sig_size\":139,\"script_sig\":\"48304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c50141042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442\",\"sequence\":4294967295}],\"n_outputs\":2,\"outputs\":[{\"value\":1076000,\"script_pub_key_size\":25,\"script_pub_key\":\"76a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac\"},{\"value\":117488,\"script_pub_key_size\":25,\"script_pub_key\":\"76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac\"}],\"n_locktime\":0}")
+    assert_eq!(tx.to_json().unwrap(), "{\"version\":1,\"inputs\":[{\"prev_tx_id\":\"3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e\",\"vout\":0,\"script_sig_size\":140,\"script_sig\":\"493046022100e9318720bee5425378b4763b0427158b1051eec8b08442ce3fbfbf7b30202a44022100d4172239ebd701dae2fbaaccd9f038e7ca166707333427e3fb2a2865b19a7f27014104510c67f46d2cbb29476d1f0b794be4cb549ea59ab9cc1e731969a7bf5be95f7ad5e7f904e5ccf50a9dc1714df00fbeb794aa27aaff33260c1032d931a75c56f2\",\"sequence\":4294967295},{\"prev_tx_id\":\"6f653a93e7ff01c3317ee9eb9b75c85d4881684f8117f73f4765b61a7a5e19a3\",\"vout\":2,\"script_sig_size\":139,\"script_sig\":\"48304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c50141042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442\",\"sequence\":4294967295}],\"outputs\":[{\"value\":1076000,\"script_pub_key\":\"76a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac\"},{\"value\":117488,\"script_pub_key\":\"76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac\"}],\"n_locktime\":0}")
   }
 
   #[test]
@@ -49,5 +49,56 @@ mod tests {
     let tx = Transaction::from_hex(tx_hex.to_string()); 
 
     assert_eq!(tx.is_err(), true);
-  } 
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn new_transaction() {
+    let tx = Transaction::new(1, 4);
+
+    assert_eq!(tx.get_n_locktime(), 4);
+    assert_eq!(tx.get_version(), 1);
+    assert_eq!(tx.get_ninputs(), 0);
+    assert_eq!(tx.get_input(0), None);
+    assert_eq!(tx.get_noutputs(), 0);
+    assert_eq!(tx.get_output(0), None);
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn add_input_to_transaction() {
+    let mut tx = Transaction::new(1, 4);
+
+    assert_eq!(tx.get_n_locktime(), 4);
+    assert_eq!(tx.get_version(), 1);
+    assert_eq!(tx.get_ninputs(), 0);
+    assert_eq!(tx.get_input(0), None);
+    assert_eq!(tx.get_noutputs(), 0);
+    assert_eq!(tx.get_output(0), None);
+
+    let input = TxIn::new(vec![], 0, 0, vec![], 0);
+
+    tx.add_input(&input);
+    assert_eq!(tx.get_ninputs(), 1);
+    assert_eq!(tx.get_input(0), Some(input));
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn add_output_to_transaction() {
+    let mut tx = Transaction::new(1, 4);
+
+    assert_eq!(tx.get_n_locktime(), 4);
+    assert_eq!(tx.get_version(), 1);
+    assert_eq!(tx.get_ninputs(), 0);
+    assert_eq!(tx.get_input(0), None);
+    assert_eq!(tx.get_noutputs(), 0);
+    assert_eq!(tx.get_output(0), None);
+
+    let output = TxOut::new(0, vec![]);
+
+    tx.add_output(&output);
+    assert_eq!(tx.get_noutputs(), 1);
+    assert_eq!(tx.get_output(0), Some(output));
+  }
 }

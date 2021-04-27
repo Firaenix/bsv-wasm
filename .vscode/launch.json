@@ -1,0 +1,122 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'bsv-rs'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "bsv-rs",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'transaction'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=transaction",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "transaction",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'private_key'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=private_key",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "private_key",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'address'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=address",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "address",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'signature'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=signature",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "signature",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'public_key'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=public_key",
+          "--package=bsv-rs"
+        ],
+        "filter": {
+          "name": "public_key",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

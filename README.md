@@ -8,6 +8,7 @@
 ## TODO:
 [ ] BIP32
 [ ] BIP44
+[ ] Nicer way to pass an array of TxIn and TxOut into things (currenly limited by https://github.com/rustwasm/wasm-bindgen/issues/111)
 
 ## Will not do:
 - Mnemonics

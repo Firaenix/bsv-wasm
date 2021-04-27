@@ -1,4 +1,5 @@
-use serde::Serializer;
+use serde::{Deserialize, Deserializer, Serializer};
+use std::str::FromStr;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -18,4 +19,10 @@ pub fn to_hex<S>(vec: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
   let hex = hex::encode(vec);
 
   serializer.serialize_str(&hex)
+}
+
+pub fn from_hex<'de, D>(deserialiser: D) -> Result<Vec<u8>, D::Error> where D: Deserializer<'de> {
+  let buf = String::deserialize(deserialiser)?;
+
+  hex::decode(buf).map_err(serde::de::Error::custom)
 }
