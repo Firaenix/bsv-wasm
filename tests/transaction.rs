@@ -112,7 +112,6 @@ mod tests {
   }
 
   #[test]
-  #[wasm_bindgen_test]
   fn txin_to_hex_fail() {
     let txin_hex = "4baf2100000000001976a914db4d1141d0048b1ed15839d0b7a4c488cd368b0e88ac";
     let txin = TxIn::from_hex(txin_hex.to_string());

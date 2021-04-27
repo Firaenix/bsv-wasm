@@ -3,6 +3,7 @@ use std::io::Read;
 
 use crate::{VarInt, utils::{to_hex, from_hex}};
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::throw_str;
 use serde::*;
 
 use snafu::*;
@@ -32,14 +33,6 @@ pub struct TxOut {
   script_pub_key: Vec<u8>,
 }
 
-impl From<JsValue> for TxOut {
-  fn from(x: JsValue) -> Self {
-      match x.into_serde::<TxOut>() {
-        Ok(v) => v,
-        Err(_) => TxOut{script_pub_key: vec![], value: 0}
-      }
-  }
-}
 
 impl TxOut {
 
