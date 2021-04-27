@@ -1,5 +1,6 @@
 use std::{io::Cursor};
 use std::io::Read;
+use std::io::Write;
 
 use crate::{TxIn, TxOut, VarInt};
 use anyhow::*;
@@ -16,10 +17,11 @@ pub enum TransactionErrors {
       field: Option<String>,
       error: anyhow::Error
     },
-    #[snafu(display("Error serialising transaction: {}", error))]
-    Serialise {
-      error: anyhow::Error
-    }
+    #[snafu(display("Error serialising TxIn field {:?}: {}", field, error))]
+  Serialise {
+    field: Option<String>,
+    error: anyhow::Error
+  },
 }
 
 #[wasm_bindgen]
@@ -106,14 +108,79 @@ impl Transaction {
     })
   }
 
-  // pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
-    
-  // }
+  pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TransactionErrors> {
+    let mut cursor = Cursor::new(Vec::new());
+
+    // Version - 4 bytes
+    match cursor.write_u32::<LittleEndian>(self.version) {
+      Ok(_) => (),
+      Err(e) => return Err(TransactionErrors::Serialise { field: Some("version".to_string()), error: anyhow!(e) }),
+    };
+
+    // In Counter - 1-9 tx_bytes
+    match cursor.write_varint(self.get_ninputs()) {
+      Ok(_) => (),
+      Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_inputs".to_string()), error: anyhow!(e) }),
+    };
+
+    // Inputs
+    for i in 0..self.get_ninputs() {
+      let input = &self.inputs[i as usize];
+      let input_bytes = match input.to_bytes_impl() {
+        Ok(v) => v,
+        Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
+      };
+
+      match cursor.write(&input_bytes) {
+        Ok(_) => (),
+        Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
+      };
+    }
+
+    // Out Counter - 1-9 tx_bytes
+    match cursor.write_varint(self.get_noutputs()) {
+      Ok(_) => (),
+      Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_outputs".to_string()), error: anyhow!(e) }),
+    };
+
+    // Outputs
+    for i in 0..self.get_noutputs() {
+      let output = &self.outputs[i as usize];
+      let output_bytes = match output.to_bytes_impl() {
+        Ok(v) => v,
+        Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
+      };
+
+      match cursor.write(&output_bytes) {
+        Ok(_) => (),
+        Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
+      };
+    }
+
+    // nLocktime - 4 bytes
+    match cursor.write_u32::<LittleEndian>(self.n_locktime) {
+      Ok(v) => v,
+      Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_locktime".to_string()), error: anyhow!(e) })
+    };
+
+    // Write out bytes
+    let mut bytes: Vec<u8> = Vec::new();
+    cursor.set_position(0);
+    match cursor.read_to_end(&mut bytes) {
+      Err(e) => return Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) }),
+      _ => ()
+    };
+    Ok(bytes)
+  }
+
+  pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
+    Ok(hex::encode(&self.to_bytes_impl()?))
+  }
 
   pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
     match serde_json::to_string(self) {
       Ok(v) => Ok(v),
-      Err(e) => Err(TransactionErrors::Serialise{error: anyhow!(e) })
+      Err(e) => Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) })
     } 
   }
 }
@@ -195,6 +262,22 @@ impl Transaction {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = toBuffer)]
+  pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
+    match Transaction::to_bytes_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toHex)]
+  pub fn to_hex(&self) -> Result<String, JsValue> {
+    match Transaction::to_hex_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 /**
@@ -210,5 +293,15 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn to_json(&self) -> Result<String, TransactionErrors> {
     Transaction::to_json_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_bytes(&self) -> Result<Vec<u8>, TransactionErrors> {
+    Transaction::to_bytes_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_hex(&self) -> Result<String, TransactionErrors> {
+    Transaction::to_hex_impl(&self)
   }
 }
