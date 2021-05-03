@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate num_derive;
+
 use bitcoin_hashes::{Hash, hex::ToHex};
 use wasm_bindgen::prelude::*;
 

@@ -1,3 +1,5 @@
+use std::fmt;
+use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
 
 /**
@@ -9,7 +11,8 @@ use wasm_bindgen::prelude::*;
 // --------------------------------------------------------------------------------------------
 
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString)]
+#[allow(non_camel_case_types)]
 pub enum OpCodes {
   /// Pushes 0 onto the stack
   OP_0 = 0,
@@ -289,4 +292,12 @@ pub enum OpCodes {
   OP_2MUL = 141,
   /// The input is divided by 2
   OP_2DIV = 142,
+}
+
+impl fmt::Display for OpCodes {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+      write!(f, "{:?}", self)
+      // or, alternatively:
+      // fmt::Debug::fmt(self, f)
+  }
 }

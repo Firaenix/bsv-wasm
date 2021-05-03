@@ -3,7 +3,7 @@ use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
 
-use crate::{VarInt, utils::{to_hex, from_hex}};
+use crate::{Script, VarInt, utils::{to_hex, from_hex}};
 use wasm_bindgen::{JsValue, prelude::*, throw_str};
 use serde::*;
 
@@ -32,8 +32,7 @@ pub struct TxIn {
   #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
   prev_tx_id: Vec<u8>,
   vout: u32,
-  #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
-  script_sig: Vec<u8>,
+  script_sig: Script,
   sequence: u32,
 }
 
@@ -41,7 +40,7 @@ impl From<JsValue> for TxIn {
     fn from<'a>(x: JsValue) -> Self {
         match x.into_serde::<TxIn>() {
           Ok(v) => v,
-          Err(_) => TxIn{prev_tx_id: vec![], script_sig: vec![], sequence: 0, vout:0}
+          Err(_) => TxIn{prev_tx_id: vec![], script_sig: Script::default(), sequence: 0, vout:0}
         }
     }
 }
@@ -99,7 +98,7 @@ impl TxIn {
     Ok(TxIn {
       prev_tx_id,
       vout,
-      script_sig,
+      script_sig: Script(script_sig),
       sequence,
     })
   }
@@ -130,7 +129,7 @@ impl TxIn {
     };
 
     // Script Sig
-    match cursor.write(&self.script_sig) {
+    match cursor.write(&self.script_sig.0) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("script_sig".to_string()), error: anyhow!(e) }),
       _ => () 
     };
@@ -172,7 +171,7 @@ impl TxIn {
     TxIn {
       prev_tx_id,
       vout,
-      script_sig,
+      script_sig: Script(script_sig),
       sequence,
     }
   }
@@ -194,17 +193,17 @@ impl TxIn {
 
   #[wasm_bindgen(js_name = getScriptSigSize)]
   pub fn get_script_sig_size(&self) -> u64 {
-    self.script_sig.len() as u64
+    self.script_sig.0.len() as u64
   }
 
   #[wasm_bindgen(js_name = getScriptSig)]
-  pub fn get_script_sig(&self) -> Vec<u8> {
+  pub fn get_script_sig(&self) -> Script {
     self.script_sig.clone()
   }
 
   #[wasm_bindgen(js_name = getScriptSigHex)]
   pub fn get_script_sig_hex(&self) -> String {
-    hex::encode(self.script_sig.clone())
+    hex::encode(self.script_sig.0.clone())
   }
 
   #[wasm_bindgen(js_name = getSequence)]
