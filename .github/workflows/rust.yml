@@ -69,10 +69,8 @@ jobs:
       with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-    - name: Publish Rust Package
-      run: cargo publish
-
     - name: Publish Node Package
       run: make publish-node
+      
     - name: Publish Web Package
       run: make publish-web
