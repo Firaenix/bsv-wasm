@@ -44,9 +44,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: cd ./examples/node-test
       - run: yarn
+        working-directory: examples/node-test
       - run: yarn test
+        working-directory: examples/node-test
 
   publish:
     runs-on: ubuntu-latest
