@@ -13,5 +13,5 @@ publish-node:
 
 publish-web:
 	wasm-pack build --release --target web
-	sed -i '' "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
+	sed -i "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
 	wasm-pack publish ./pkg
