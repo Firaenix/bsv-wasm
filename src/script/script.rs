@@ -65,16 +65,35 @@ impl Script {
             }
         };
 
+        let current_pos = cursor.position();
+
+        let maybe_next_byte = match cursor.read_u8() {
+            Ok(v) => Some(v),
+            Err(e) => None
+        };
+
+        cursor.set_position(current_pos);
+
         if let Some(special_opcode) = Script::get_special_opcode(byte, extended, cursor)? {
             new_str.push_str(&special_opcode);
             return Script::read_opcodes(&self, cursor, new_str, extended);
         }
 
         let opcode_str = match FromPrimitive::from_u8(byte) {
-            // Some(v @ OpCodes::OP_0) => match extended {
-            //     true => v.to_string(),
-            //     false => 0.to_string(),
-            // },
+            Some(v @ OpCodes::OP_0) => match extended {
+                true => v.to_string(),
+                false => {
+                    // If there is a next byte and it is an OP_RETURN byte
+                    if maybe_next_byte != None && maybe_next_byte == OpCodes::OP_RETURN.to_u8() {
+                        0.to_string()
+                    }
+                    else {
+                        v.to_string()
+                    }
+
+                    
+                },
+            },
             Some(v @ OpCodes::OP_PUSHDATA1) => Script::format_pushdata_string(cursor, v, extended)?,
             Some(v @ OpCodes::OP_PUSHDATA2) => Script::format_pushdata_string(cursor, v, extended)?,
             Some(v @ OpCodes::OP_PUSHDATA4) => Script::format_pushdata_string(cursor, v, extended)?,

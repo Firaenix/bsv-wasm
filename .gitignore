@@ -19,3 +19,5 @@ Cargo.lock
 
 node_modules
 web-test
+
+examples/node-test/node.mjs

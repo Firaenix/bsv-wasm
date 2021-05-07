@@ -5,6 +5,7 @@ authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2018"
 description = "A Bitcoin SV library with WASM in mind."
 license = "MIT"
+categories = ['no-std']
 
 [lib]
 crate-type = ["cdylib", "rlib"]

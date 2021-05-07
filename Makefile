@@ -4,11 +4,8 @@ build-web:
 build-nodejs:
 	CC=emcc wasm-pack build --release --target nodejs
 
-build-deno:
-	CC=emcc wasm-pack build --release --target deno
-
-build:
-	CC=emcc cargo web build --target=wasm32-unknown-unknown
+test-node:
+	make build-nodejs && pushd ./examples/node-test && yarn test ; popd
 
 publish-node:
 	wasm-pack build --release --target nodejs
