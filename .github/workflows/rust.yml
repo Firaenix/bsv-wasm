@@ -50,8 +50,9 @@ jobs:
         working-directory: examples/node-test
 
   publish:
-    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == 'true'
 
+    runs-on: ubuntu-latest
     needs: [test, node-test]
 
     steps:
@@ -71,6 +72,14 @@ jobs:
 
     - name: Publish Node Package
       run: make publish-node
-      
+      env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CI: true
+
     - name: Publish Web Package
       run: make publish-web
+      env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CI: true
