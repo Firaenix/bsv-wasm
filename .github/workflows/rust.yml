@@ -13,10 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x, 14.x, 15.x]
-
     steps:
     - uses: actions/checkout@v2
     - uses: jetli/wasm-pack-action@v0.3.0
@@ -28,16 +24,32 @@ jobs:
     - name: Run WASM tests
       run: wasm-pack test --node
 
-    - run: make build-nodejs
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: cd ./examples/node-test && yarn test
+  node-test:
+      runs-on: ubuntu-latest
 
+      strategy:
+        matrix:
+          node-version: [10.x, 12.x, 14.x, 15.x]
+
+      steps:
+      - uses: actions/checkout@v2
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: 'latest'
+
+      - run: make build-nodejs
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: cd ./examples/node-test && yarn test
 
   publish:
     runs-on: ubuntu-latest
+
+    needs: [test, node-test]
 
     steps:
     - uses: actions/checkout@v2
@@ -45,7 +57,7 @@ jobs:
       with:
         # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
         version: 'latest'
-        
+
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
