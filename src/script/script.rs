@@ -65,15 +65,6 @@ impl Script {
             }
         };
 
-        let current_pos = cursor.position();
-
-        let maybe_next_byte = match cursor.read_u8() {
-            Ok(v) => Some(v),
-            Err(e) => None
-        };
-
-        cursor.set_position(current_pos);
-
         if let Some(special_opcode) = Script::get_special_opcode(byte, extended, cursor)? {
             new_str.push_str(&special_opcode);
             return Script::read_opcodes(&self, cursor, new_str, extended);
@@ -83,15 +74,7 @@ impl Script {
             Some(v @ OpCodes::OP_0) => match extended {
                 true => v.to_string(),
                 false => {
-                    // If there is a next byte and it is an OP_RETURN byte
-                    if maybe_next_byte != None && maybe_next_byte == OpCodes::OP_RETURN.to_u8() {
-                        0.to_string()
-                    }
-                    else {
-                        v.to_string()
-                    }
-
-                    
+                    0.to_string()
                 },
             },
             Some(v @ OpCodes::OP_PUSHDATA1) => Script::format_pushdata_string(cursor, v, extended)?,
@@ -149,21 +132,30 @@ impl Script {
         }
     }
 
+    /**
+     * OpCodes such as OP_PUSH or the numerical OpCodes (OP_1-OP_16)
+     */
     fn get_special_opcode(
         byte: u8,
         extended: bool,
         cursor: &mut Cursor<Vec<u8>>,
     ) -> Result<Option<String>, ScriptErrors> {
-        Ok(match byte {
+        let code = match byte {
             size @ 0x01..=0x4b => {
                 let pushdata = Script::get_pushdata(cursor, size as usize)?;
                 match extended {
                     true => Some(format!("OP_PUSH {} {}", size, pushdata)),
                     false => Some(pushdata),
                 }
-            }
+            },
+
+            v @ 82..=96 => match OpCodes::from_u8(v) {
+                Some(num_opcode) => Some(num_opcode.to_string()),
+                None => None
+            },
             _ => None,
-        })
+        };
+        Ok(code)
     }
 
     fn format_pushdata_string(

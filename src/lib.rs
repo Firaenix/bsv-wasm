@@ -31,8 +31,5 @@ pub use transaction::*;
 pub mod script;
 pub use script::*;
 
-
-#[wasm_bindgen]
-pub fn hash(input: Vec<u8>) -> String {
-  bitcoin_hashes::sha256d::Hash::hash(&input).to_hex()
-} 
+pub mod hash;
+pub use hash::*;

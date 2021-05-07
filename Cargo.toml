@@ -1,6 +1,6 @@
 [package]
 name = "bsv-wasm"
-version = "0.7.0"
+version = "0.7.9"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2018"
 description = "A Bitcoin SV library with WASM in mind."
@@ -11,13 +11,13 @@ categories = ['no-std']
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.8.0-pre", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
-wasm-bindgen = { version = "0.2.70", features = ["serde-serialize"] }
-hex = "0.4.2"
+k256 = { version = "0.8.0", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
+wasm-bindgen = { version = "0.2.73", features = ["serde-serialize"] }
+hex = "0.4.3"
 console_error_panic_hook = { version = "0.1.1", optional = true }
 anyhow = "1.0.38"
 bs58 = "0.4.0"
-bitcoin_hashes = "0.9.4"
+bitcoin_hashes = "0.9.6"
 snafu = { version = "0.6.10", default-features = false }
 byteorder = "1.4.3"
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
