@@ -1,6 +1,6 @@
 [package]
 name = "bsv-wasm"
-version = "0.7.13"
+version = "0.7.14"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2018"
 description = "A Bitcoin SV library with WASM in mind."
