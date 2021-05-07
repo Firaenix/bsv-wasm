@@ -12,4 +12,9 @@ build:
 
 publish-node:
 	wasm-pack build --release --target nodejs
-	wasm-pack pack ./pkg
+	wasm-pack publish ./pkg
+
+publish-web:
+	wasm-pack build --release --target web
+	sed -i '' "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
+	wasm-pack publish ./pkg

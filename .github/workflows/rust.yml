@@ -10,9 +10,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -20,12 +23,17 @@ jobs:
       with:
         # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
         version: 'latest'
-    - name: Build
-      run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
     - name: Run WASM tests
       run: wasm-pack test --node
+
+    - run: make build-nodejs
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: cd ./examples/node-test && yarn test
 
 
   publish:
@@ -37,6 +45,19 @@ jobs:
       with:
         # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
         version: 'latest'
+        
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: katyo/publish-crates@v1
+      with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-    - name: Run WASM tests
-      run: wasm-pack test --node
+    - name: Publish Rust Package
+      run: cargo publish
+
+    - name: Publish Node Package
+      run: make publish-node
+    - name: Publish Web Package
+      run: make publish-web
