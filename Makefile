@@ -9,3 +9,7 @@ build-deno:
 
 build:
 	CC=emcc cargo web build --target=wasm32-unknown-unknown
+
+publish-node:
+	wasm-pack build --release --target nodejs
+	wasm-pack pack ./pkg

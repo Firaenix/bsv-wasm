@@ -5,6 +5,16 @@
   <strong>A Rust/WASM Library to interact with Bitcoin SV</strong>
 </div>
 
+## Installation
+NodeJS:  
+`npm i bsv-wasm --save`
+
+Web:  
+`npm i bsv-wasm-web --save`
+
+Rust:
+``
+
 ## TODO:
 [ ] BIP32
 [ ] BIP44
@@ -18,3 +28,5 @@
 - Brenton Gunning (rust-sv)
 - Moneybutton Team (bsv.js)
 - Bitping Team
+- LearnMeABitcoin 
+- BSV Node Team

@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use bsv_rs::{PrivateKey, PublicKey, address::*};
+    use bsv_wasm::{PrivateKey, PublicKey, address::*};
     extern crate wasm_bindgen_test;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();

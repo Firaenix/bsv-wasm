@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use bsv_rs::*;
+  use bsv_wasm::*;
   extern crate wasm_bindgen_test;
-  use wasm_bindgen_test::*;
+  use bsv_wasm::TxIn;
+use wasm_bindgen_test::*;
   wasm_bindgen_test::wasm_bindgen_test_configure!();
 
   #[test]

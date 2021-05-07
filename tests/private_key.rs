@@ -6,7 +6,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use bitcoin_hashes::hex::ToHex;
-    use bsv_rs::keypair::*;
+    use bsv_wasm::keypair::*;
     extern crate wasm_bindgen_test;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();

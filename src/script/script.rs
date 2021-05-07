@@ -71,10 +71,10 @@ impl Script {
         }
 
         let opcode_str = match FromPrimitive::from_u8(byte) {
-            Some(v @ OpCodes::OP_0) => match extended {
-                true => v.to_string(),
-                false => 0.to_string(),
-            },
+            // Some(v @ OpCodes::OP_0) => match extended {
+            //     true => v.to_string(),
+            //     false => 0.to_string(),
+            // },
             Some(v @ OpCodes::OP_PUSHDATA1) => Script::format_pushdata_string(cursor, v, extended)?,
             Some(v @ OpCodes::OP_PUSHDATA2) => Script::format_pushdata_string(cursor, v, extended)?,
             Some(v @ OpCodes::OP_PUSHDATA4) => Script::format_pushdata_string(cursor, v, extended)?,
@@ -136,10 +136,6 @@ impl Script {
         cursor: &mut Cursor<Vec<u8>>,
     ) -> Result<Option<String>, ScriptErrors> {
         Ok(match byte {
-            num @ 0x52..=0x60 => match extended {
-                true => FromPrimitive::from_u8(num).and_then(|x: OpCodes| Some(x.to_string())),
-                false => Some((num - 80).to_string()),
-            },
             size @ 0x01..=0x4b => {
                 let pushdata = Script::get_pushdata(cursor, size as usize)?;
                 match extended {
@@ -235,6 +231,7 @@ impl Script {
             }
           },
           size => {
+            // Cant do a standard match because 0xFFFFFFFF is too large
             if size > 0x10000 && size <= 0xFFFFFFFF {
               match OpCodes::OP_PUSHDATA4.to_u8() {
                 Some(pushdata4_byte) => buffer.push(pushdata4_byte),
@@ -309,6 +306,7 @@ impl Script {
         }
     }
 
+    #[wasm_bindgen(js_name = toExtendedASMString)]
     pub fn to_extended_asm_string(&self) -> Result<String, JsValue> {
         match Script::to_asm_string_impl(&self, true) {
             Ok(v) => Ok(v),
@@ -316,8 +314,17 @@ impl Script {
         }
     }
 
+    #[wasm_bindgen(js_name = fromHex)]
     pub fn from_hex(hex: String) -> Result<Script, JsValue> {
         match Script::from_hex_impl(hex) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[wasm_bindgen(js_name = fromASMString)]
+    pub fn from_asm_string(asm_string: String) -> Result<Script, JsValue> {
+        match Script::from_asm_string_impl(asm_string) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
