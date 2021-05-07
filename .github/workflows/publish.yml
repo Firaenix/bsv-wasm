@@ -1,9 +1,7 @@
-name: Rust
+name: Test & Publish
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
     branches: [ master ]
 
 env:
