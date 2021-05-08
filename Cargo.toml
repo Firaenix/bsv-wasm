@@ -1,6 +1,6 @@
 [package]
 name = "bsv-wasm"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2018"
 description = "A Bitcoin SV library with WASM in mind."
@@ -55,7 +55,7 @@ cargo-web = "0.6.26"
 rustflags = ["-C", "target-feature=+simd128"]
 
 [profile.release]
-opt-level = "s"
+opt-level = 3
 lto = true
 
 [profile.test]
