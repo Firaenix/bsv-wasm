@@ -268,14 +268,17 @@ impl Script {
  */
 #[wasm_bindgen]
 impl Script {
+    #[wasm_bindgen(js_name = toBytes)]
     pub fn to_bytes(&self) -> Vec<u8> {
         self.0.clone()
     }
 
+    #[wasm_bindgen(js_name = fromBytes)]
     pub fn from_bytes(bytes: Vec<u8>) -> Script {
         Script(bytes)
     }
 
+    #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }

@@ -4,6 +4,7 @@ use bitcoin_hashes::Hash;
 use wasm_bindgen::{prelude::*, throw_str};
 use wasm_bindgen::JsValue;
 use crate::PublicKey;
+use anyhow::*;
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,29 +53,51 @@ impl P2PKHAddress {
 
     Ok(address.into_string())
   }
+
+  pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
+    let decoded = bs58::decode(address_string.clone());
+
+    let address_bytes = match decoded.into_vec() {
+      Ok(v) => v,
+      Err(e) => return Err(AddressErrors::Base58Decode{ error: anyhow!(e), string: address_string })
+    };
+
+    // Remove 0x00 from the front and the 4 byte checksum off the end
+    let pub_key_hash = address_bytes[1..address_bytes.len()-4].to_vec();
+
+    Ok(P2PKHAddress{pubkey_hash: pub_key_hash})
+  }
 }
 
 /**
  * WASM Exported Methods
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
+ #[cfg(target_arch = "wasm32")]
+ #[wasm_bindgen]
 impl P2PKHAddress {
 
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPubKeyHash))]
+  #[wasm_bindgen(js_name = fromPubKeyHash)]
   pub fn from_pubkey_hash(hash_bytes: Vec<u8>) -> P2PKHAddress {
     P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
   }
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPubKey))]
+  #[wasm_bindgen(js_name = fromPubKey)]
   pub fn from_pubkey(pub_key: &PublicKey) ->  Result<P2PKHAddress, JsValue> {
     match P2PKHAddress::from_pubkey_impl(pub_key) {
       Ok(v) => Ok(v),
         Err(e) => throw_str(&e.to_string())
     }
   }
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
+  #[wasm_bindgen(js_name = toString)]
   pub fn to_address_string(&self) ->  Result<String, JsValue> {
     match P2PKHAddress::to_address_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string())
+    }
+  }
+
+  #[wasm_bindgen(js_name = fromP2PKHString)]
+  pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, JsValue> { 
+    match P2PKHAddress::from_p2pkh_string_impl(address_string) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string())
     }
@@ -99,4 +122,7 @@ impl P2PKHAddress {
     P2PKHAddress::to_address_string_impl(&self)
   }
 
+  pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, AddressErrors> { 
+    P2PKHAddress::from_p2pkh_string_impl(address_string)
+  }
 }

@@ -5,9 +5,9 @@ use crate::{PublicKeyErrors};
 
 #[derive(Debug, Snafu)]
 pub enum AddressErrors {
-    #[snafu(display("Could not decode Base58 string: {} {}", string, message))]
+    #[snafu(display("Could not decode Base58 string: {} {}", string, error))]
     Base58Decode {
-      message: String,
+      error: anyhow::Error,
       string: String
     },
 
