@@ -40,6 +40,23 @@ mod tests {
 
   #[test]
   #[wasm_bindgen_test]
+  fn pub_key_hash_to_pub_key_hash() {
+    // Arrange
+    let pub_key_hash = "47c6ad3495d35e6df17ccb06831cb44dbd570995";
+    let pub_key_hash_bytes = hex::decode(pub_key_hash).unwrap();
+    let address = P2PKHAddress::from_pubkey_hash(pub_key_hash_bytes.clone()); 
+
+    // Act
+    let decoded_pub_key_hash_bytes = address.to_pubkey_hash();
+    let decoded_pub_key_hash_hex = address.to_pubkey_hash_hex();
+
+    // Assert
+    assert_eq!(decoded_pub_key_hash_hex, pub_key_hash);
+    assert_eq!(decoded_pub_key_hash_bytes, pub_key_hash_bytes);
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
   fn private_key_to_public_key_to_address() {
     let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into()).unwrap();
     let pub_key = PublicKey::from_private_key(&priv_key, true);

@@ -70,6 +70,22 @@ impl P2PKHAddress {
 }
 
 /**
+  Shared Methods
+*/
+#[wasm_bindgen]
+impl P2PKHAddress {
+  #[wasm_bindgen(js_name = toPubKeyHashBytes)]
+  pub fn to_pubkey_hash(&self) -> Vec<u8> {
+    self.pubkey_hash.clone()
+  }
+
+  #[wasm_bindgen(js_name = toPubKeyHashHex)]
+  pub fn to_pubkey_hash_hex(&self) -> String {
+    hex::encode(self.pubkey_hash.clone()) 
+  }
+}
+
+/**
  * WASM Exported Methods
  */
  #[cfg(target_arch = "wasm32")]
