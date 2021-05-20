@@ -37,20 +37,9 @@ impl PrivateKey {
         }
     }
 
-    pub(crate) fn to_hex_impl(&self) -> String {
-        let secret_key_bytes = self.secret_key.to_bytes().to_vec();
-        hex::encode(secret_key_bytes)
-    }
-
-    pub(crate) fn get_point_impl(&self, compressed: bool) -> Vec<u8> {
-        EncodedPoint::from_secret_key(&self.secret_key, compressed)
-            .as_bytes()
-            .into()
-    }
-
     pub(crate) fn to_wif_impl(&self, compressed: bool) -> String {
         // 1. Get Private Key hex
-        let priv_key_hex = self.to_hex_impl();
+        let priv_key_hex = self.to_hex();
 
         // 2. Add 0x80 in front + 0x01 to end if compressed pub key
         let padded_hex = match compressed {
@@ -87,18 +76,22 @@ impl PrivateKey {
         PrivateKey { secret_key }
     }
 
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {
+      let secret_key = match SecretKey::from_bytes(bytes) {
+          Ok(key) => key,
+          Err(e) => throw_str(&e.to_string()),
+      };
+
+      Ok(PrivateKey { secret_key })
+  }
+
     pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
         let bytes = match hex::decode(hex_str) {
             Ok(bytes) => bytes,
             Err(e) => throw_str(&e.to_string()),
         };
 
-        let secret_key = match SecretKey::from_bytes(bytes) {
-            Ok(key) => key,
-            Err(e) => throw_str(&e.to_string()),
-        };
-
-        Ok(PrivateKey { secret_key })
+        Self::from_bytes_impl(&bytes)
     }
 
     pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
@@ -142,33 +135,50 @@ impl PrivateKey {
     }
 }
 
+#[wasm_bindgen]
+impl PrivateKey {
+  #[wasm_bindgen(js_name = toBuffer)]
+  pub fn to_bytes(&self) -> Vec<u8> {
+    self.secret_key.to_bytes().to_vec()
+  }
+
+  #[wasm_bindgen(js_name = toHex)]
+  pub fn to_hex(&self) -> String {
+      let secret_key_bytes = self.to_bytes();
+      hex::encode(secret_key_bytes)
+  }
+
+  #[wasm_bindgen(js_name = toWIF)]
+  pub fn to_wif(&self, compressed: bool) -> String {
+    PrivateKey::to_wif_impl(&self, compressed)
+  }
+
+  #[wasm_bindgen(js_name = fromRandom)]
+  pub fn from_random() -> PrivateKey {
+    PrivateKey::from_random_impl()
+  }
+
+  #[wasm_bindgen(js_name = getPoint)]
+  pub fn get_point(&self, compressed: bool) -> Vec<u8> { 
+    EncodedPoint::from_secret_key(&self.secret_key, compressed)
+            .as_bytes()
+            .into()
+  }
+}
+
+
 /**
  * WASM Exported Methods
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 impl PrivateKey {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> String {
-      self.to_hex_impl()
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toWIF))]
-    pub fn to_wif(&self, compressed: bool) -> String {
-      PrivateKey::to_wif_impl(&self, compressed)
-    }
-
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromWIF))]
     pub fn from_wif(wif_string: String) -> Result<PrivateKey, JsValue> {
       match PrivateKey::from_wif_impl(wif_string) {
         Ok(v) => Ok(v),
         Err(e) => throw_str(&e.to_string())
       }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromRandom))]
-    pub fn from_random() -> PrivateKey {
-      PrivateKey::from_random_impl()
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
@@ -186,50 +196,23 @@ impl PrivateKey {
         Err(e) => throw_str(&e.to_string())
       }
     }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPoint))]
-    pub fn get_point(&self, compressed: bool) -> Vec<u8> { 
-      PrivateKey::get_point_impl(&self, compressed)
-    }
 }
+
 
 /**
  * Native Exported Methods
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_hex(&self) -> String {
-      self.to_hex_impl()
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_wif(&self, compressed: bool) -> String {
-      PrivateKey::to_wif_impl(&self, compressed)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_wif(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
       PrivateKey::from_wif_impl(wif_string)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_random() -> PrivateKey {
-      PrivateKey::from_random_impl()
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
       PrivateKey::from_hex_impl(hex_str)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, PrivateKeyErrors> {
       PrivateKey::sign_message_impl(&self, msg)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn get_point(&self, compressed: bool) -> Vec<u8> { 
-      PrivateKey::get_point_impl(&self, compressed)
     }
 }

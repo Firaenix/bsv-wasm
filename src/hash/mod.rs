@@ -1,4 +1,4 @@
-use bitcoin_hashes::{Hash as BitcoinHash, hex::ToHex};
+use bitcoin_hashes::{Hash as BitcoinHash, HashEngine, Hmac, HmacEngine, hash160, hex::ToHex, ripemd160, sha1, sha256, sha256d, sha512};
 use wasm_bindgen::prelude::*;
 use serde::*;
 use crate::utils::{from_hex, to_hex};
@@ -59,5 +59,61 @@ impl Hash {
   #[wasm_bindgen(js_name = sha512)]
   pub fn sha_512(input: &[u8]) -> Self {
     Hash(bitcoin_hashes::sha512::Hash::hash(input).to_vec())
+  }
+}
+
+/**
+  * HMAC Methods
+  */
+#[wasm_bindgen]
+impl Hash {
+  fn hmac<T>(input: &[u8], key: &[u8]) -> Hmac<T> where T: BitcoinHash {
+    let mut engine = HmacEngine::<T>::new(key);
+    engine.input(input);
+    let hmac = Hmac::<T>::from_engine(engine);
+
+    hmac
+  }
+
+  #[wasm_bindgen(js_name = sha512Hmac)]
+  pub fn sha_512_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<sha512::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
+  }
+
+  #[wasm_bindgen(js_name = sha256Hmac)]
+  pub fn sha_256_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<sha256::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
+  }
+
+  #[wasm_bindgen(js_name = sha256dHmac)]
+  pub fn sha_256d_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<sha256d::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
+  }
+
+  #[wasm_bindgen(js_name = sha1Hmac)]
+  pub fn sha_1_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<sha1::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
+  }
+
+  #[wasm_bindgen(js_name = ripemd160Hmac)]
+  pub fn ripemd_160_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<ripemd160::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
+  }
+
+  #[wasm_bindgen(js_name = hash160Hmac)]
+  pub fn hash_160_hmac(input: &[u8], key: &[u8]) -> Self {
+    let hmac = Hash::hmac::<hash160::Hash>(input, key);
+
+    Self(hmac.as_inner().to_vec())
   }
 }
