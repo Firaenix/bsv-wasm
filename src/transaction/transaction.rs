@@ -263,7 +263,7 @@ impl Transaction {
     }
   }
 
-  #[wasm_bindgen(js_name = toBuffer)]
+  #[wasm_bindgen(js_name = toBytes)]
   pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
     match Transaction::to_bytes_impl(&self) {
       Ok(v) => Ok(v),

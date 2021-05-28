@@ -15,7 +15,7 @@ pub struct Hash(
  */
 #[wasm_bindgen]
 impl Hash {
-  #[wasm_bindgen(js_name = toBuffer)]
+  #[wasm_bindgen(js_name = toBytes)]
   pub fn to_bytes(&self) -> Vec<u8> {
     self.0.clone()
   } 

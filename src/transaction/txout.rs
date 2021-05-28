@@ -28,7 +28,7 @@ pub enum TxOutErrors {
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct TxOut {
-  value: i64,
+  value: u64,
   #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
   script_pub_key: Vec<u8>,
 }
@@ -52,7 +52,7 @@ impl TxOut {
       cursor: &mut Cursor<Vec<u8>>
   ) -> Result<TxOut, TxOutErrors> {
     // Satoshi Value - 8 bytes
-    let satoshis = match cursor.read_i64::<LittleEndian>() {
+    let satoshis = match cursor.read_u64::<LittleEndian>() {
       Ok(v) => v,
       Err(e) => return Err(TxOutErrors::Deserialise { field: Some("satoshis".to_string()), error: anyhow!(e) })
     };
@@ -80,7 +80,7 @@ impl TxOut {
     let mut cursor = Cursor::new(Vec::new());
 
     // Satoshi Value - 8 bytes
-    match cursor.write_i64::<LittleEndian>(self.value) {
+    match cursor.write_u64::<LittleEndian>(self.value) {
       Ok(v) => v,
       Err(e) => return Err(TxOutErrors::Serialise { field: Some("satoshis".to_string()), error: anyhow!(e) })
     };
@@ -115,7 +115,7 @@ impl TxOut {
 #[wasm_bindgen]
 impl TxOut {
   #[wasm_bindgen(constructor)]
-  pub fn new(value: i64, script_pub_key: Vec<u8>) -> TxOut {
+  pub fn new(value: u64, script_pub_key: Vec<u8>) -> TxOut {
     TxOut {
       value,
       script_pub_key
@@ -123,7 +123,7 @@ impl TxOut {
   }
 
   #[wasm_bindgen(js_name = getSatoshiValue)]
-  pub fn get_satoshi_value(&self) -> i64 {
+  pub fn get_satoshi_value(&self) -> u64 {
     self.value
   }
 
@@ -155,7 +155,7 @@ impl TxOut {
     }
   }
 
-  #[wasm_bindgen(js_name = toBuffer)]
+  #[wasm_bindgen(js_name = toBytes)]
   pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
     match TxOut::to_bytes_impl(&self) {
       Ok(v) => Ok(v),
