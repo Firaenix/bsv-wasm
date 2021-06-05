@@ -13,6 +13,8 @@ use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::{hash::Hash, PrivateKey, PrivateKeyErrors, PublicKey, PublicKeyErrors};
 
+pub const HARDENED_KEY_OFFSET: u32 = 0x80000000;
+
 #[derive(Debug, Snafu)]
 pub enum ExtendedPrivateKeyErrors {
   #[snafu(display("Could not generate randomness: {}", error))]
@@ -175,10 +177,7 @@ impl ExtendedPrivateKey {
   }
 
   pub fn derive_impl(&self, index: u32) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
-    let is_hardened = match index {
-      v @ 0..=0x7FFFFFFF => false,
-      _ => true,
-    };
+    let is_hardened = index >= HARDENED_KEY_OFFSET;
 
     let key_data = match is_hardened {
       true => {
@@ -251,21 +250,37 @@ impl ExtendedPrivateKey {
     })
   }
 
-  pub fn derive_from_path(path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+  pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
     if path.starts_with('m') == false {
       return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!("Path did not begin with 'm'") });
     }
 
-    let children = path[1..].split('/');
+    let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
 
-    let child_indices: Vec<u32> = children.map(|x| -> u32 {
-      match x.ends_with("'") {
-        true => 0 + 2147483648,
-        false => 0
-      }
-    }).collect(); 
+    let child_indices = children.map(|x| -> Result<u32, ExtendedPrivateKeyErrors> {
+      let is_hardened = x.ends_with("'");
+      let index_str = match is_hardened {
+        true => x.replace("'", ""),
+        _ => x.to_string()
+      };
 
-    return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!("Path did not begin with 'm'") });
+      let index = match u32::from_str_radix(&index_str, 10) {
+        Ok(v) => v,
+        Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
+      };
+
+      Ok(match is_hardened {
+        true => index + HARDENED_KEY_OFFSET,
+        false => index
+      })
+    }).collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?; 
+
+    let mut xpriv = self.derive(child_indices[0])?;
+    for index in child_indices[1..].iter() {
+      xpriv = xpriv.derive(*index)?;
+    }
+
+    return Ok(xpriv);
   }
 }
 

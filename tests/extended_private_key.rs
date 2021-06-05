@@ -67,5 +67,29 @@ mod xpriv_tests {
     assert_eq!(second_derived.get_private_key().to_wif(true).unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
     assert_eq!(second_derived.get_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
   }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn from_xprv_string_and_derive_from_path() {
+    let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
+
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi");
+
+    // m/0'
+    let derived_key = key.derive_from_path("m/0'/12'").unwrap();
+    assert_eq!(derived_key.get_private_key().to_wif(true).unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
+    assert_eq!(derived_key.get_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
+  }
+
+  #[test]
+  #[wasm_bindgen_test]
+  fn from_xprv_string_and_invalid_path() {
+    let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
+
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi");
+
+    let derived_key = key.derive_from_path("0'/12'");
+    assert_eq!(derived_key.is_err(), true);
+  }
 }
 
