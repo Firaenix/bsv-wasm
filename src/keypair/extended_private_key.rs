@@ -250,7 +250,7 @@ impl ExtendedPrivateKey {
     })
   }
 
-  pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+  pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
     if path.starts_with('m') == false {
       return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!("Path did not begin with 'm'") });
     }
@@ -275,9 +275,9 @@ impl ExtendedPrivateKey {
       })
     }).collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?; 
 
-    let mut xpriv = self.derive(child_indices[0])?;
+    let mut xpriv = self.derive_impl(child_indices[0])?;
     for index in child_indices[1..].iter() {
-      xpriv = xpriv.derive(*index)?;
+      xpriv = xpriv.derive_impl(*index)?;
     }
 
     return Ok(xpriv);
@@ -304,6 +304,13 @@ impl ExtendedPrivateKey {
 impl ExtendedPrivateKey {
   pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::derive_impl(&self, index) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, JsValue> {
+    match Self::derive_from_path_impl(&self, path) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -340,6 +347,10 @@ impl ExtendedPrivateKey {
 impl ExtendedPrivateKey {
   pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
     Self::derive_impl(&self, index)
+  }
+
+  pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    Self::derive_from_path_impl(&self, path);
   }
 
   pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
