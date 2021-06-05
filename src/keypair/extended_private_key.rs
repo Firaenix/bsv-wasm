@@ -251,29 +251,16 @@ impl ExtendedPrivateKey {
   }
 
   pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
-    if path.starts_with('m') == false {
+    if path.to_ascii_lowercase().starts_with('m') == false {
       return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!("Path did not begin with 'm'") });
     }
 
     let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
+    let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?; 
 
-    let child_indices = children.map(|x| -> Result<u32, ExtendedPrivateKeyErrors> {
-      let is_hardened = x.ends_with("'");
-      let index_str = match is_hardened {
-        true => x.replace("'", ""),
-        _ => x.to_string()
-      };
-
-      let index = match u32::from_str_radix(&index_str, 10) {
-        Ok(v) => v,
-        Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
-      };
-
-      Ok(match is_hardened {
-        true => index + HARDENED_KEY_OFFSET,
-        false => index
-      })
-    }).collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?; 
+    if child_indices.len() <= 0 {
+      return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(format!("No path was provided. Please provide a string of the form m/0. Given path: {}", path)) });
+    }
 
     let mut xpriv = self.derive_impl(child_indices[0])?;
     for index in child_indices[1..].iter() {
@@ -281,6 +268,28 @@ impl ExtendedPrivateKey {
     }
 
     return Ok(xpriv);
+  }
+
+  fn parse_str_to_idx(x: &str) -> Result<u32, ExtendedPrivateKeyErrors> {
+    let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
+    let index_str = x
+      .trim_end_matches("'")
+      .trim_end_matches("h")
+      .trim_end_matches("H");
+
+    let index = match u32::from_str_radix(index_str, 10) {
+      Ok(v) => v,
+      Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
+    };
+
+    if index >= HARDENED_KEY_OFFSET {
+      return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET-1)) });
+    }
+
+    Ok(match is_hardened {
+      true => index + HARDENED_KEY_OFFSET,
+      false => index
+    })
   }
 }
 
@@ -350,7 +359,7 @@ impl ExtendedPrivateKey {
   }
 
   pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
-    Self::derive_from_path_impl(&self, path);
+    Self::derive_from_path_impl(&self, path)
   }
 
   pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
