@@ -1,4 +1,5 @@
 use bitcoin_hashes::{Hash as BitcoinHash, HashEngine, Hmac, HmacEngine, hash160, hex::ToHex, ripemd160, sha1, sha256, sha256d, sha512};
+use primitive_types::{U256, U512};
 use wasm_bindgen::prelude::*;
 use serde::*;
 use crate::utils::{from_hex, to_hex};
