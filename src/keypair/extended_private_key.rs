@@ -1,7 +1,7 @@
 use std::{io::{Cursor, Read, Write}, ops::{Add, Rem}, vec};
 
 use bitcoin_hashes::hex::ToHex;
-use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
+use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
 use elliptic_curve::generic_array::typenum::private::IsGreaterOrEqualPrivate;
 use k256::{NonZeroScalar, Secp256k1, ecdsa::SigningKey, Scalar, SecretKey};
 use primitive_types::{U256, U512};
@@ -66,27 +66,40 @@ impl ExtendedPrivateKey {
   }
 
   pub fn to_string_impl(&self) -> Result<String, ExtendedPrivateKeyErrors> {
-    let mut serialised = String::new();
-    serialised.push_str("0488ade4");
-    serialised.push_str(&format!("{:02}", self.depth));
+    let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
-    serialised.push_str(&self.parent_fingerprint.to_hex());
+    match cursor.write_u32::<BigEndian>(0x0488ade4)
+      .and_then(|_| cursor.write_u8(self.depth))
+      .and_then(|_| cursor.write(&self.parent_fingerprint))
+      .and_then(|_| cursor.write_u32::<BigEndian>(self.index))
+      .and_then(|_| cursor.write(&self.chain_code))
+      .and_then(|_| cursor.write_u8(0))
+      .and_then(|_| cursor.write(&self.private_key.to_bytes())) {
+        Ok(_) => (),
+        Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
+      };
 
-    serialised.push_str(&format!("{:08}", self.index));
-    serialised.push_str(&self.chain_code.to_hex());
-    serialised.push_str(&format!("00{}", self.private_key.to_hex()));
+    let mut serialised = Vec::new();
+    cursor.set_position(0);
+    match cursor.read_to_end(&mut serialised) {
+      Ok(_) => (),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
+    };
 
-    let checksum = &match hex::decode(serialised.clone()) {
-      Ok(v) => Hash::sha_256d(&v),
-      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError { error: anyhow!(e) }),
-    }
-    .to_bytes()[0..4];
-    serialised.push_str(&checksum.to_hex());
+    let checksum = &Hash::sha_256d(&serialised).to_bytes()[0..4];
+    match cursor.write(checksum) {
+      Ok(_) => (),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
+    };
 
-    match hex::decode(&serialised) {
-      Ok(v) => Ok(bs58::encode(v).into_string()),
-      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError { error: anyhow!(e) }),
-    }
+    serialised = Vec::new();
+    cursor.set_position(0);
+    match cursor.read_to_end(&mut serialised) {
+      Ok(_) => (),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
+    };
+
+    Ok(bs58::encode(serialised).into_string())
   }
 
   pub fn from_string_impl(xprv_string: &str) -> Result<Self> {
@@ -130,8 +143,8 @@ impl ExtendedPrivateKey {
   pub fn from_random_impl() -> Result<Self, ExtendedPrivateKeyErrors> {
     let mut seed = vec![0; 64];
     match getrandom(&mut seed)  {
-      Ok(v) => Ok(v),
-      Err(e) => Err(ExtendedPrivateKeyErrors::RandomnessGenerationError{ error: anyhow!(e) }),
+      Ok(_) => (),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::RandomnessGenerationError{ error: anyhow!(e) }),
     };
 
     Self::from_seed_impl(seed)
@@ -144,19 +157,15 @@ impl ExtendedPrivateKey {
     let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
     let private_key_bytes = match seed_chunks.next() {
       Some(b) => b,
-      None => {
-        return Err(ExtendedPrivateKeyErrors::InvalidSeedHmacError {
-          error: anyhow!("Could not get 32 bytes for private key"),
-        })
-      }
+      None => return Err(ExtendedPrivateKeyErrors::InvalidSeedHmacError {
+        error: anyhow!("Could not get 32 bytes for private key"),
+      })
     };
     let chain_code = match seed_chunks.next() {
       Some(b) => b,
-      None => {
-        return Err(ExtendedPrivateKeyErrors::InvalidSeedHmacError {
-          error: anyhow!("Could not get 32 bytes for chain code"),
-        })
-      }
+      None => return Err(ExtendedPrivateKeyErrors::InvalidSeedHmacError {
+        error: anyhow!("Could not get 32 bytes for chain code"),
+      })
     };
 
     let priv_key = match PrivateKey::from_bytes_impl(private_key_bytes) {
@@ -191,7 +200,7 @@ impl ExtendedPrivateKey {
       false => {
         let mut bytes: Vec<u8> = vec![];
 
-        let mut pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
+        let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
           Ok(v) => v,
           Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e }),
         };
@@ -201,6 +210,13 @@ impl ExtendedPrivateKey {
         bytes
       }
     };
+
+    let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
+      Ok(v) => v,
+      Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e }),
+    };
+    let hash = Hash::hash_160(&pub_key_bytes);
+    let fingerprint = &hash.to_bytes()[0..4];
 
     let hmac = Hash::sha_512_hmac(&key_data, &self.chain_code.clone());
     let seed_bytes = hmac.to_bytes();
@@ -246,7 +262,7 @@ impl ExtendedPrivateKey {
       public_key: child_pub_key,
       depth: self.depth + 1,
       index,
-      parent_fingerprint: [0, 0, 0, 0].to_vec(),
+      parent_fingerprint: fingerprint.to_vec(),
     })
   }
 
@@ -306,11 +322,24 @@ impl ExtendedPrivateKey {
   pub fn get_chain_code(&self) -> Vec<u8> {
     self.chain_code.clone()
   }
+
+  pub fn get_depth(&self) -> u8 {
+    self.depth.clone()
+  }
+
+  pub fn get_parent_fingerprint(&self) -> Vec<u8> {
+    self.parent_fingerprint.clone()
+  }
+
+  pub fn get_index(&self) -> u32 {
+    self.index.clone()
+  }
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl ExtendedPrivateKey {
+  #[wasm_bindgen(js_name = deriveChild)]
   pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::derive_impl(&self, index) {
       Ok(v) => Ok(v),
@@ -318,6 +347,7 @@ impl ExtendedPrivateKey {
     }
   }
 
+  #[wasm_bindgen(js_name = derive)]
   pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::derive_from_path_impl(&self, path) {
       Ok(v) => Ok(v),
@@ -325,6 +355,7 @@ impl ExtendedPrivateKey {
     }
   }
 
+  #[wasm_bindgen(js_name = fromSeed)]
   pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::from_seed_impl(seed) {
       Ok(v) => Ok(v),
@@ -332,18 +363,23 @@ impl ExtendedPrivateKey {
     }
   }
 
+  #[wasm_bindgen(js_name = fromRandom)]
   pub fn from_random() -> Result<ExtendedPrivateKey, JsValue> {
     match Self::from_random_impl() {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = fromString)]
   pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::from_string_impl(xprv_string) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = toString)]
   pub fn to_string(&self) -> Result<String, JsValue> {
     match Self::to_string_impl(&self) {
       Ok(v) => Ok(v),
