@@ -210,13 +210,18 @@ impl ExtendedPrivateKey {
       }
     };
 
-    let parent_private_key = SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice()).unwrap();
+    let parent_scalar = match SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice()) {
+      Ok(v) => v.secret_scalar().clone(),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
+    };
 
-    let il = SecretKey::from_bytes(private_key_bytes).unwrap();
-    let sclal: Scalar = Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes());
+    let il_scalar = match SecretKey::from_bytes(private_key_bytes) {
+      Ok(il) => Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes()),
+      Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
+    };
 
     // child_private_key = il + parent_key % n
-    let derived_private_key = parent_private_key.secret_scalar().add(sclal);
+    let derived_private_key = parent_scalar.add(il_scalar);
 
     let child_private_key = match PrivateKey::from_bytes_impl(&derived_private_key.to_bytes()) {
       Ok(v) => v,

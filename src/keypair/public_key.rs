@@ -84,7 +84,7 @@ impl PublicKey {
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, JsValue> {
+    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, JsValue> {
         match PublicKey::from_bytes_impl(bytes, compress) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),

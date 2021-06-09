@@ -160,42 +160,42 @@ impl ExtendedPublicKey {
     // let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
     let child_public_key_bytes = match seed_chunks.next() {
       Some(b) => b,
-      None => {
-        return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError {
-          error: anyhow!("Could not get 32 bytes for private key"),
-        })
-      }
+      None => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError {
+        error: anyhow!("Could not get 32 bytes for private key"),
+      })
     };
     let child_chain_code = match seed_chunks.next() {
       Some(b) => b,
-      None => {
-        return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError {
-          error: anyhow!("Could not get 32 bytes for chain code"),
-        })
-      }
+      None => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError {
+        error: anyhow!("Could not get 32 bytes for chain code"),
+      })
     };
 
     let parent_pub_key_bytes = match self.public_key.to_bytes() {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::InvalidPublicKeyError { error: e }), 
     };
-    let parent_pub_key_point = match EncodedPoint::from_bytes(&parent_pub_key_bytes) {
+    let parent_pub_key_point = match K256PublicKey::from_sec1_bytes(&parent_pub_key_bytes) {
+      Ok(x) => x.to_projective(),
+      Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
+    };
+
+    // Pass child_public_key_bytes to secretkey because both Private + Public use same scalar, just need to multiply by it and add the new point
+    let il_scalar = match SecretKey::from_bytes(child_public_key_bytes) {
+      Ok(il) => Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes()),
+      Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
+    };
+    //ECDSA::Group::Secp256k1.generator.multiply_by_scalar(il.to_i(16))
+    let child_pub_key_point = parent_pub_key_point + (ProjectivePoint::generator() * il_scalar);
+
+    let internal_pub_key: K256PublicKey = match K256PublicKey::from_affine(child_pub_key_point.to_affine()) {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
     };
-    let parent_pub_key_raw = K256PublicKey::from_encoded_point(&parent_pub_key_point).unwrap();
-
-    //ECDSA::Group::Secp256k1.generator.multiply_by_scalar(il.to_i(16))
-    let il = SecretKey::from_bytes(child_public_key_bytes).unwrap();
-    let sclal = Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes());
-    let new_point = ProjectivePoint::generator() * sclal;
-
-    let child_pub_key_point = parent_pub_key_raw.to_projective() + new_point;
-
-
-    let child_pub_key = K256PublicKey::from_affine(child_pub_key_point.to_affine()).unwrap();
-
-    let child_pub_key = PublicKey::from_bytes(&child_pub_key.to_encoded_point(true).as_bytes(), true).unwrap();
+    let child_pub_key = match PublicKey::from_bytes(&internal_pub_key.to_encoded_point(true).as_bytes(), true) {
+      Ok(v) => v,
+      Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
+    };
 
     Ok(ExtendedPublicKey {
       chain_code: child_chain_code.to_vec(),
