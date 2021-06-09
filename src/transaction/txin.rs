@@ -210,6 +210,18 @@ impl TxIn {
   pub fn get_sequence(&self) -> u32 {
     self.sequence
   }
+
+  #[wasm_bindgen(js_name = getOutpointBytes)]
+  pub fn get_outpoint_bytes(&self) -> Vec<u8> {
+    let mut outpoint_bytes = self.prev_tx_id.clone();
+    outpoint_bytes.extend_from_slice(&self.vout.to_be_bytes());
+    outpoint_bytes
+  }
+
+  #[wasm_bindgen(js_name = getOutpointHex)]
+  pub fn get_outpoint_hex(&self) -> String {
+    hex::encode(self.get_outpoint_bytes())
+  }
 }
 
 /**

@@ -59,6 +59,9 @@ mod tests {
   #[wasm_bindgen_test]
   fn private_key_to_public_key_to_address() {
     let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into()).unwrap();
+    #[cfg(target_arch = "wasm32")]
+    let pub_key = PublicKey::from_private_key(&priv_key, Some(true));
+    #[cfg(not(target_arch = "wasm32"))]
     let pub_key = PublicKey::from_private_key(&priv_key, true);
 
     let pub_key_hex = pub_key.to_hex().unwrap();
@@ -74,6 +77,9 @@ mod tests {
   #[wasm_bindgen_test]
   fn from_address_string_to_address_string() {
     let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into()).unwrap();
+    #[cfg(target_arch = "wasm32")]
+    let pub_key = PublicKey::from_private_key(&priv_key, Some(true));
+    #[cfg(not(target_arch = "wasm32"))]
     let pub_key = PublicKey::from_private_key(&priv_key, true);
 
     let pub_key_hex = pub_key.to_hex().unwrap();

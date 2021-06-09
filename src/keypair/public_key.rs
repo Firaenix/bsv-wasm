@@ -69,6 +69,15 @@ impl PublicKey {
     }
 }
 
+impl PublicKey {
+    fn param_is_compressed(compress: Option<bool>) -> bool {
+        match compress {
+            Some(v) => v,
+            None => true
+        }
+    }
+}
+
 /**
  * WASM Exported Methods
  */
@@ -76,16 +85,16 @@ impl PublicKey {
 #[wasm_bindgen]
 impl PublicKey {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String, compress: bool) -> Result<PublicKey, JsValue> {
-        match PublicKey::from_hex_impl(hex_str, compress) {
+    pub fn from_hex(hex_str: String, compress: Option<bool>) -> Result<PublicKey, JsValue> {
+        match PublicKey::from_hex_impl(hex_str, PublicKey::param_is_compressed(compress)) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, JsValue> {
-        match PublicKey::from_bytes_impl(bytes, compress) {
+    pub fn from_bytes(bytes: &[u8], compress: Option<bool>) -> Result<PublicKey, JsValue> {
+        match PublicKey::from_bytes_impl(bytes, PublicKey::param_is_compressed(compress)) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -108,8 +117,8 @@ impl PublicKey {
     }
 
     #[wasm_bindgen(js_name = fromPrivateKey)]
-    pub fn from_private_key(priv_key: &PrivateKey, compress: bool) -> PublicKey {
-      PublicKey::from_private_key_impl(priv_key, compress)
+    pub fn from_private_key(priv_key: &PrivateKey, compress: Option<bool>) -> PublicKey {
+      PublicKey::from_private_key_impl(priv_key, PublicKey::param_is_compressed(compress))
     }
 }
 

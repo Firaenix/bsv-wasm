@@ -43,6 +43,9 @@ mod tests {
     let message = b"Hello";
 
     let signature = key.sign_message(message.to_vec()).unwrap();
+    #[cfg(target_arch = "wasm32")]
+    let pub_key = PublicKey::from_private_key(&key, Some(true));
+    #[cfg(not(target_arch = "wasm32"))]
     let pub_key = PublicKey::from_private_key(&key, true);
 
     let is_verified = signature.verify(message.to_vec(), &pub_key).unwrap();
