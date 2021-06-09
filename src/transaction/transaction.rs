@@ -221,6 +221,11 @@ impl Transaction {
     self.n_locktime
   }
 
+  #[wasm_bindgen(js_name = getNLocktimeAsBytes)]
+  pub fn get_n_locktime_as_bytes(&self) -> Vec<u8> {
+    self.n_locktime.to_be_bytes().to_vec()
+  }
+
   /**
    * Creates a new empty transaction where you need to add inputs and outputs
    * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)

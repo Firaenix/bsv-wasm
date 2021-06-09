@@ -32,12 +32,12 @@ use wasm_bindgen_test::*;
     assert_eq!(tx_in_1.get_sequence(), 4294967295);
 
     let tx_out_0 = tx.get_output(0).unwrap();
-    assert_eq!(tx_out_0.get_satoshi_value(), 1076000);
+    assert_eq!(tx_out_0.get_satoshis(), 1076000);
     assert_eq!(tx_out_0.get_script_pub_key_size(), 25);
     assert_eq!(tx_out_0.get_script_pub_key(), hex::decode("76a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac").unwrap());
 
     let tx_out_1 = tx.get_output(1).unwrap();
-    assert_eq!(tx_out_1.get_satoshi_value(), 117488);
+    assert_eq!(tx_out_1.get_satoshis(), 117488);
     assert_eq!(tx_out_1.get_script_pub_key_size(), 25);
     assert_eq!(tx_out_1.get_script_pub_key(), hex::decode("76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac").unwrap());
 

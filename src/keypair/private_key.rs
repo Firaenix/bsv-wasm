@@ -137,7 +137,7 @@ impl PrivateKey {
 
 #[wasm_bindgen]
 impl PrivateKey {
-  #[wasm_bindgen(js_name = toBuffer)]
+  #[wasm_bindgen(js_name = toBytes)]
   pub fn to_bytes(&self) -> Vec<u8> {
     self.secret_key.to_bytes().to_vec()
   }

@@ -211,6 +211,11 @@ impl TxIn {
     self.sequence
   }
 
+  #[wasm_bindgen(js_name = getSequenceAsBytes)]
+  pub fn get_sequence_as_bytes(&self) -> Vec<u8> {
+    self.sequence.to_be_bytes().to_vec()
+  }
+
   #[wasm_bindgen(js_name = getOutpointBytes)]
   pub fn get_outpoint_bytes(&self) -> Vec<u8> {
     let mut outpoint_bytes = self.prev_tx_id.clone();

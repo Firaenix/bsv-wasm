@@ -122,9 +122,14 @@ impl TxOut {
     }
   }
 
-  #[wasm_bindgen(js_name = getSatoshiValue)]
-  pub fn get_satoshi_value(&self) -> u64 {
+  #[wasm_bindgen(js_name = getSatoshis)]
+  pub fn get_satoshis(&self) -> u64 {
     self.value
+  }
+
+  #[wasm_bindgen(js_name = getSatoshisAsBytes)]
+  pub fn get_satoshis_as_bytes(&self) -> Vec<u8> {
+    self.value.to_be_bytes().to_vec()
   }
 
   #[wasm_bindgen(js_name = getScriptPubKeySize)]
