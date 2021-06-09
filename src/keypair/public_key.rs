@@ -39,9 +39,8 @@ impl PublicKey {
         Ok(point.as_bytes().to_vec())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        let point_bytes = bytes;
-        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(point_bytes) {
+    pub(crate) fn from_bytes_impl(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(bytes) {
             Ok(v) => v,
             Err(e) => {
                 return Err(PublicKeyErrors::InvalidPoint {
@@ -66,7 +65,7 @@ impl PublicKey {
             }
         };
 
-        PublicKey::from_bytes_impl(point_bytes, compress)
+        PublicKey::from_bytes_impl(&point_bytes, compress)
     }
 }
 
@@ -123,7 +122,7 @@ impl PublicKey {
         PublicKey::from_hex_impl(hex_str, compress)
     }
 
-    pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
         PublicKey::from_bytes_impl(bytes, compress)
     }
 

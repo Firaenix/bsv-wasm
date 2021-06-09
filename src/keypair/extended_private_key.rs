@@ -1,36 +1,14 @@
-use std::{io::{Cursor, Read, Write}, ops::{Add, Rem}, vec};
-
-use bitcoin_hashes::hex::ToHex;
-use byteorder::{BigEndian, ByteOrder, ReadBytesExt, WriteBytesExt};
-use elliptic_curve::generic_array::typenum::private::IsGreaterOrEqualPrivate;
-use k256::{NonZeroScalar, Secp256k1, ecdsa::SigningKey, Scalar, SecretKey};
-use primitive_types::{U256, U512};
+use crate::{ExtendedPrivateKeyErrors, HARDENED_KEY_OFFSET, XPRIV_VERSION_BYTE};
+use std::{any, io::{Cursor, Read, Write}, ops::{Add}, vec};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use k256::{Scalar, SecretKey};
 
 use anyhow::*;
 use getrandom::*;
-use snafu::*;
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::{hash::Hash, PrivateKey, PrivateKeyErrors, PublicKey, PublicKeyErrors};
-
-pub const HARDENED_KEY_OFFSET: u32 = 0x80000000;
-
-#[derive(Debug, Snafu)]
-pub enum ExtendedPrivateKeyErrors {
-  #[snafu(display("Could not generate randomness: {}", error))]
-  RandomnessGenerationError { error: anyhow::Error },
-  #[snafu(display("Could not calculate private key bytes from seed: {}", error))]
-  InvalidSeedHmacError { error: anyhow::Error },
-  #[snafu(display("Could not calculate private key: {}", error))]
-  InvalidPrivateKeyError { error: PrivateKeyErrors },
-  #[snafu(display("Could not calculate public key: {}", error))]
-  InvalidPublicKeyError { error: PublicKeyErrors },
-  #[snafu(display("Could not serialise xpriv: {}", error))]
-  SerialisationError { error: anyhow::Error },
-
-  #[snafu(display("Could not derive xpriv: {}", error))]
-  DerivationError { error: anyhow::Error },
-}
 
 #[wasm_bindgen]
 pub struct ExtendedPrivateKey {
@@ -65,39 +43,27 @@ impl ExtendedPrivateKey {
     }
   }
 
-  pub fn to_string_impl(&self) -> Result<String, ExtendedPrivateKeyErrors> {
+  pub fn to_string_impl(&self) -> Result<String> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
-    match cursor.write_u32::<BigEndian>(0x0488ade4)
+    cursor.write_u32::<BigEndian>(XPRIV_VERSION_BYTE)
       .and_then(|_| cursor.write_u8(self.depth))
       .and_then(|_| cursor.write(&self.parent_fingerprint))
       .and_then(|_| cursor.write_u32::<BigEndian>(self.index))
       .and_then(|_| cursor.write(&self.chain_code))
       .and_then(|_| cursor.write_u8(0))
-      .and_then(|_| cursor.write(&self.private_key.to_bytes())) {
-        Ok(_) => (),
-        Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
-      };
+      .and_then(|_| cursor.write(&self.private_key.to_bytes()))?;
 
     let mut serialised = Vec::new();
     cursor.set_position(0);
-    match cursor.read_to_end(&mut serialised) {
-      Ok(_) => (),
-      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
-    };
+    cursor.read_to_end(&mut serialised)?;
 
     let checksum = &Hash::sha_256d(&serialised).to_bytes()[0..4];
-    match cursor.write(checksum) {
-      Ok(_) => (),
-      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
-    };
+    cursor.write(checksum)?;
 
     serialised = Vec::new();
     cursor.set_position(0);
-    match cursor.read_to_end(&mut serialised) {
-      Ok(_) => (),
-      Err(e) => return Err(ExtendedPrivateKeyErrors::SerialisationError{ error: anyhow!(e) })
-    };
+    cursor.read_to_end(&mut serialised)?;
 
     Ok(bs58::encode(serialised).into_string())
   }
@@ -186,6 +152,10 @@ impl ExtendedPrivateKey {
   }
 
   pub fn derive_impl(&self, index: u32) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    if self.depth >= 255 {
+      return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!("Cannot derive from depth of more than 255") });
+    }
+
     let is_hardened = index >= HARDENED_KEY_OFFSET;
 
     let key_data = match is_hardened {
@@ -311,26 +281,32 @@ impl ExtendedPrivateKey {
 
 #[wasm_bindgen]
 impl ExtendedPrivateKey {
+  #[wasm_bindgen(js_name = getPrivateKey)]
   pub fn get_private_key(&self) -> PrivateKey {
     self.private_key.clone()
   }
 
+  #[wasm_bindgen(js_name = getPublicKey)]
   pub fn get_public_key(&self) -> PublicKey {
     self.public_key.clone()
   }
 
+  #[wasm_bindgen(js_name = getChainCode)]
   pub fn get_chain_code(&self) -> Vec<u8> {
     self.chain_code.clone()
   }
 
+  #[wasm_bindgen(js_name = getDepth)]
   pub fn get_depth(&self) -> u8 {
     self.depth.clone()
   }
 
+  #[wasm_bindgen(js_name = getParentFingerprint)]
   pub fn get_parent_fingerprint(&self) -> Vec<u8> {
     self.parent_fingerprint.clone()
   }
 
+  #[wasm_bindgen(js_name = getIndex)]
   pub fn get_index(&self) -> u32 {
     self.index.clone()
   }
@@ -408,7 +384,7 @@ impl ExtendedPrivateKey {
   pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey> {
     Self::from_string_impl(xprv_string)
   }
-  pub fn to_string(&self) -> Result<String, ExtendedPrivateKeyErrors> {
+  pub fn to_string(&self) -> Result<String> {
     Self::to_string_impl(&self)
   }
 }
