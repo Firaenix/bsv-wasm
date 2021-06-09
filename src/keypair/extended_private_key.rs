@@ -211,12 +211,12 @@ impl ExtendedPrivateKey {
     };
 
     let parent_scalar = match SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice()) {
-      Ok(v) => v.secret_scalar().clone(),
+      Ok(v) => v.to_secret_scalar().clone(),
       Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
     };
 
     let il_scalar = match SecretKey::from_bytes(private_key_bytes) {
-      Ok(il) => Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes()),
+      Ok(il) => Scalar::from_bytes_reduced(&il.to_secret_scalar().to_bytes()),
       Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError{ error: anyhow!(e) })
     };
 

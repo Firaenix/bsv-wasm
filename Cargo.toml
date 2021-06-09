@@ -11,7 +11,7 @@ categories = ['no-std']
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.8.1", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
+k256 = { version = "0.9.0", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
 wasm-bindgen = { version = "0.2.73", features = ["serde-serialize"] }
 hex = "0.4.3"
 console_error_panic_hook = { version = "0.1.1", optional = true }
@@ -29,7 +29,7 @@ num-traits = "0.2"
 num-derive = "0.3"
 
 [dependencies.elliptic-curve]
-version = "0.9"
+version = "0.10.0"
 features = ["hazmat"]
 default-features = true
 

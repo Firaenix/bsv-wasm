@@ -1,6 +1,6 @@
 use bitcoin_hashes::hex::ToHex;
-use k256::{AffinePoint, EncodedPoint, NonZeroScalar, ProjectivePoint, PublicKey as K256PublicKey, Scalar, Secp256k1, SecretKey};
-use elliptic_curve::{ff::PrimeField, sec1::{FromEncodedPoint, ToEncodedPoint}};
+use k256::{AffinePoint, EncodedPoint, NonZeroScalar, ProjectivePoint, PublicKey as K256PublicKey, Scalar, ScalarBytes, Secp256k1, SecretKey};
+use elliptic_curve::{sec1::{FromEncodedPoint, ToEncodedPoint}};
 
 use crate::{HARDENED_KEY_OFFSET, PrivateKey, XPUB_VERSION_BYTE};
 use std::{io::{Cursor, Read, Write}, ops::{Add, Mul}};
@@ -182,7 +182,7 @@ impl ExtendedPublicKey {
 
     // Pass child_public_key_bytes to secretkey because both Private + Public use same scalar, just need to multiply by it and add the new point
     let il_scalar = match SecretKey::from_bytes(child_public_key_bytes) {
-      Ok(il) => Scalar::from_bytes_reduced(&il.secret_scalar().to_bytes()),
+      Ok(il) => Scalar::from_bytes_reduced(&il.to_secret_scalar().to_bytes()),
       Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
     };
     //ECDSA::Group::Secp256k1.generator.multiply_by_scalar(il.to_i(16))
