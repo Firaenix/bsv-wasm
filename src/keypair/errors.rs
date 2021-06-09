@@ -4,9 +4,9 @@ use snafu::*;
 
 #[derive(Debug, Snafu)]
 pub enum PrivateKeyErrors {
-    #[snafu(display("Could not decode Base58 string: {} {}", string, message))]
+    #[snafu(display("Could not decode Base58 string: {} {}", string, error))]
     Base58Decode {
-      message: String,
+      error: anyhow::Error,
       string: String
     },
     
@@ -15,14 +15,19 @@ pub enum PrivateKeyErrors {
       error: FromHexError
     },
 
-    #[snafu(display("Could not parse hex: {}", message))]
+    #[snafu(display("Could not parse hex: {}", error))]
     ByteDecode{
-      message: String
+      error: anyhow::Error
     },
 
     #[snafu(display("Invalid Point: {}", error))]
     InvalidPoint {
       error: elliptic_curve::Error
+    },
+
+    #[snafu(display("Could not generate secret key: {}", error))]
+    SecretKey {
+      error: anyhow::Error
     },
 
     SignatureError {

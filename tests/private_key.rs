@@ -31,7 +31,7 @@ mod tests {
 
     let wif = key.unwrap().to_wif(false);
 
-    assert_eq!(wif, "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
+    assert_eq!(wif.unwrap(), "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
   }
 
   #[test]

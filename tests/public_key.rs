@@ -25,7 +25,7 @@ mod tests {
   #[wasm_bindgen_test]
   fn pub_key_from_hex() {
     // Arrange
-    let pub_key = PublicKey::from_hex(String::from("02588d202afcc1ee4ab5254c7847ec25b9a135bbda0f2bc69ee1a714749fd77dc9"), true).unwrap();
+    let pub_key = PublicKey::from_hex(String::from("02588d202afcc1ee4ab5254c7847ec25b9a135bbda0f2bc69ee1a714749fd77dc9"), true).unwrap();    
     let pub_key_hex = pub_key.to_hex().unwrap();
 
     // Assert

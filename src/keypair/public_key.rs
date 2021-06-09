@@ -39,9 +39,8 @@ impl PublicKey {
         Ok(point.as_bytes().to_vec())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        let point_bytes = bytes;
-        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(point_bytes) {
+    pub(crate) fn from_bytes_impl(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(bytes) {
             Ok(v) => v,
             Err(e) => {
                 return Err(PublicKeyErrors::InvalidPoint {
@@ -66,17 +65,17 @@ impl PublicKey {
             }
         };
 
-        PublicKey::from_bytes_impl(point_bytes, compress)
+        PublicKey::from_bytes_impl(&point_bytes, compress)
     }
 }
 
 /**
  * WASM Exported Methods
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 impl PublicKey {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
+    #[wasm_bindgen(js_name = fromHex)]
     pub fn from_hex(hex_str: String, compress: bool) -> Result<PublicKey, JsValue> {
         match PublicKey::from_hex_impl(hex_str, compress) {
             Ok(v) => Ok(v),
@@ -84,15 +83,15 @@ impl PublicKey {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, JsValue> {
+    #[wasm_bindgen(js_name = fromBytes)]
+    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, JsValue> {
         match PublicKey::from_bytes_impl(bytes, compress) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
+    #[wasm_bindgen(js_name = toBytes)]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match PublicKey::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
@@ -100,7 +99,7 @@ impl PublicKey {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
+    #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match PublicKey::to_hex_impl(&self) {
             Ok(v) => Ok(v),
@@ -108,7 +107,7 @@ impl PublicKey {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPrivateKey))]
+    #[wasm_bindgen(js_name = fromPrivateKey)]
     pub fn from_private_key(priv_key: &PrivateKey, compress: bool) -> PublicKey {
       PublicKey::from_private_key_impl(priv_key, compress)
     }
@@ -119,27 +118,22 @@ impl PublicKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PublicKey {
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex(hex_str: String, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
         PublicKey::from_hex_impl(hex_str, compress)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_bytes(bytes: Vec<u8>, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
         PublicKey::from_bytes_impl(bytes, compress)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, PublicKeyErrors> {
         PublicKey::to_bytes_impl(&self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_hex(&self) -> Result<String, PublicKeyErrors> {
         PublicKey::to_hex_impl(&self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_private_key(priv_key: &PrivateKey, compress: bool) -> PublicKey {
         PublicKey::from_private_key_impl(priv_key, compress)
     }
