@@ -51,7 +51,7 @@ impl ExtendedPublicKey {
       .and_then(|_| cursor.write_u32::<BigEndian>(self.index))
       .and_then(|_| cursor.write(&self.chain_code))?;
 
-    let pub_key_bytes  = match self.public_key.to_bytes() {
+    let pub_key_bytes  = match self.public_key.to_bytes_impl() {
       Ok(v) => v,
       Err(e) => return Err(anyhow!(e))
     };
@@ -125,7 +125,7 @@ impl ExtendedPublicKey {
   }
 
   pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, ExtendedPublicKeyErrors> {
-    let xpriv = match ExtendedPrivateKey::from_seed(seed)  {
+    let xpriv = match ExtendedPrivateKey::from_seed_impl(seed)  {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError{ error: anyhow!(e) })
     };
@@ -171,7 +171,7 @@ impl ExtendedPublicKey {
       })
     };
 
-    let parent_pub_key_bytes = match self.public_key.to_bytes() {
+    let parent_pub_key_bytes = match self.public_key.to_bytes_impl() {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::InvalidPublicKeyError { error: e }), 
     };
@@ -192,7 +192,7 @@ impl ExtendedPublicKey {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
     };
-    let child_pub_key = match PublicKey::from_bytes(&internal_pub_key.to_encoded_point(true).as_bytes(), true) {
+    let child_pub_key = match PublicKey::from_bytes_impl(&internal_pub_key.to_encoded_point(true).as_bytes(), true) {
       Ok(v) => v,
       Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
     };

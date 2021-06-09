@@ -94,7 +94,6 @@ mod xpriv_tests {
   }
 
   #[test]
-  #[wasm_bindgen_test]
   fn from_xprv_string_and_path_only_contains_m() {
     let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
 
