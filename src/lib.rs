@@ -33,3 +33,6 @@ pub use script::*;
 
 pub mod hash;
 pub use hash::*;
+
+pub mod encryption;
+pub use encryption::*;
