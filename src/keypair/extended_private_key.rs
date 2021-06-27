@@ -1,5 +1,5 @@
 use crate::{ExtendedPrivateKeyErrors, HARDENED_KEY_OFFSET, XPRIV_VERSION_BYTE};
-use std::{any, io::{Cursor, Read, Write}, ops::{Add}, vec};
+use std::{io::{Cursor, Read, Write}, ops::{Add}, vec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use k256::{Scalar, SecretKey};
 
@@ -8,7 +8,7 @@ use getrandom::*;
 
 use wasm_bindgen::{prelude::*, throw_str};
 
-use crate::{hash::Hash, PrivateKey, PrivateKeyErrors, PublicKey, PublicKeyErrors};
+use crate::{hash::Hash, PrivateKey, PublicKey};
 
 #[wasm_bindgen]
 pub struct ExtendedPrivateKey {

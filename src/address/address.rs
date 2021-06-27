@@ -1,4 +1,4 @@
-use crate::{AddressErrors, OpCodes};
+use crate::{AddressErrors};
 
 use bitcoin_hashes::Hash;
 use wasm_bindgen::{prelude::*, throw_str};

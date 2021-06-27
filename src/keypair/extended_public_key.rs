@@ -1,9 +1,8 @@
-use bitcoin_hashes::hex::ToHex;
-use k256::{AffinePoint, EncodedPoint, NonZeroScalar, ProjectivePoint, PublicKey as K256PublicKey, Scalar, ScalarBytes, Secp256k1, SecretKey};
-use elliptic_curve::{sec1::{FromEncodedPoint, ToEncodedPoint}};
+use k256::{ProjectivePoint, PublicKey as K256PublicKey, Scalar, SecretKey};
+use elliptic_curve::{sec1::{ToEncodedPoint}};
 
-use crate::{HARDENED_KEY_OFFSET, PrivateKey, XPUB_VERSION_BYTE};
-use std::{io::{Cursor, Read, Write}, ops::{Add, Mul}};
+use crate::{HARDENED_KEY_OFFSET, XPUB_VERSION_BYTE};
+use std::{io::{Cursor, Read, Write}};
 
 use crate::{ExtendedPrivateKey, ExtendedPublicKeyErrors, PublicKey, hash::Hash};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};

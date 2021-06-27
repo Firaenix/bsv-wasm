@@ -1,5 +1,3 @@
-
-use std::convert::TryFrom;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;

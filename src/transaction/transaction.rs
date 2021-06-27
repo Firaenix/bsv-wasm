@@ -8,7 +8,6 @@ use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 use serde::{Serialize, Deserialize};
 use snafu::*;
-use anyhow::*;
 
 #[derive(Debug, Snafu)]
 pub enum TransactionErrors {

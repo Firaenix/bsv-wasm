@@ -1,5 +1,4 @@
-use core::num;
-use std::{any, fmt::format, io::{BufRead, Cursor, Read, Write}, str::FromStr, usize};
+use std::{io::{Cursor, Read}, str::FromStr, usize};
 
 use crate::utils::{from_hex, to_hex};
 use anyhow::*;

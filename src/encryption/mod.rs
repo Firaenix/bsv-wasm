@@ -1,7 +1,7 @@
 use aes::*;
-use block_modes::{BlockMode, Cbc, block_padding::{NoPadding, Pkcs7}};
+use block_modes::{BlockMode, Cbc, block_padding::{Pkcs7}};
 use anyhow::*;
-use wasm_bindgen::{prelude::*, throw_str, JsStatic};
+use wasm_bindgen::{prelude::*, throw_str};
 
 
 #[wasm_bindgen]
