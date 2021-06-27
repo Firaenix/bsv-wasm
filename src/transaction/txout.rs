@@ -110,6 +110,13 @@ impl TxOut {
   pub(crate) fn to_hex_impl(&self) -> Result<String, TxOutErrors> {
     Ok(hex::encode(&self.to_bytes_impl()?))
   }
+
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TxOutErrors> {
+    match serde_json::to_string_pretty(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxOutErrors::Serialise{ field: None, error: anyhow!(e) })
+    } 
+  }
 }
 
 #[wasm_bindgen]
@@ -175,6 +182,22 @@ impl TxOut {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = toJSON)]
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match TxOut::to_json_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -190,4 +213,19 @@ impl TxOut {
   pub fn to_hex(&self) -> Result<String, TxOutErrors> {
     TxOut::to_hex_impl(&self)
   }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TxOutErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxOutErrors::Serialise{field: None, error: anyhow!(e)})
+    }
+  }
+
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json_string(&self) -> Result<String, TxOutErrors> {
+    TxOut::to_json_string_impl(&self)
+  }
+
 }

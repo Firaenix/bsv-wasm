@@ -20,15 +20,15 @@ https://crates.io/crates/bsv-wasm
 - Addresses (P2PKH)
 
 ## TODO:
-- [ ] SigHash Support
+- [x] SigHash Support
 - [ ] ECIES
 - [ ] Script Builder
 - [ ] Isomorphic Package for JS
-- [ ] Write documentation
-- [ ] BIP32
-- [ ] BIP44
+- [ ] Write documentation (Inline on functions and structs)
+- [x] BIP32
+- [x] BIP44
 - [ ] Testnet Support
-- [ ] Nicer way to pass an array of TxIn and TxOut into things (currenly limited by https://github.com/rustwasm/wasm-bindgen/issues/111)
+- [x] Nicer way to pass an array of TxIn and TxOut into things (currenly limited by https://github.com/rustwasm/wasm-bindgen/issues/111)
 
 ## Will not do:
 - Mnemonics

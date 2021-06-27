@@ -6,7 +6,7 @@ use crate::{TxIn, TxOut, VarInt};
 use anyhow::*;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use snafu::*;
 use anyhow::*;
 
@@ -22,10 +22,15 @@ pub enum TransactionErrors {
     field: Option<String>,
     error: anyhow::Error
   },
+
+  #[snafu(display("Error serialising Tx to serde_json: {}", error))]
+  JsonSerialise {
+    error: serde_json::Error
+  },
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Transaction {
   version: u32,
   inputs: Vec<TxIn>,
@@ -177,7 +182,7 @@ impl Transaction {
     Ok(hex::encode(&self.to_bytes_impl()?))
   }
 
-  pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TransactionErrors> {
     match serde_json::to_string(self) {
       Ok(v) => Ok(v),
       Err(e) => Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) })
@@ -232,7 +237,7 @@ impl Transaction {
    */
   #[wasm_bindgen(constructor)]
   pub fn new(version: u32, n_locktime: u32) -> Transaction {
-    Transaction{ version, n_locktime, inputs: vec![], outputs: vec![] }
+    Transaction::new_impl(version, vec![], vec![], n_locktime)
   }
 
   #[wasm_bindgen(js_name = addInput)]
@@ -260,9 +265,17 @@ impl Transaction {
     };
   }
 
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match Transaction::to_json_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
   #[wasm_bindgen(js_name = toJSON)]
-  pub fn to_json(&self) -> Result<String, JsValue> {
-    match Transaction::to_json_impl(&self) {
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -283,6 +296,36 @@ impl Transaction {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  /**
+   * Adds an array of TxIn's to the transaction
+   * @param {TxIn[]} tx_ins
+   */
+  #[wasm_bindgen(js_name = addInputs)]
+  pub fn add_inputs(&mut self, tx_ins: Box<[JsValue]>) {
+    let js_value = &*tx_ins.to_vec();
+    
+    for elem in js_value {
+      let input = elem.into_serde().unwrap();
+
+      self.add_input(&input);
+    }
+  }
+
+  /**
+   * Adds an array of TxOuts to the transaction
+   * @param {TxOut[]} tx_outs
+   */
+  #[wasm_bindgen(js_name = addOutputs)]
+  pub fn add_outputs(&mut self, tx_outs: Box<[JsValue]>) {
+    let js_value = &*tx_outs.to_vec();
+    
+    for elem in js_value {
+      let output = elem.into_serde().unwrap();
+
+      self.add_output(&output);
+    }
+  }
 }
 
 /**
@@ -296,8 +339,16 @@ impl Transaction {
   }
 
   #[cfg(not(target_arch = "wasm32"))]
-  pub fn to_json(&self) -> Result<String, TransactionErrors> {
-    Transaction::to_json_impl(&self)
+  pub fn to_json_string(&self) -> Result<String, TransactionErrors> {
+    Transaction::to_json_string_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TransactionErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TransactionErrors::Serialise{field: None, error: anyhow!(e)})
+    }
   }
 
   #[cfg(not(target_arch = "wasm32"))]
@@ -308,5 +359,19 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn to_hex(&self) -> Result<String, TransactionErrors> {
     Transaction::to_hex_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn add_inputs(&mut self, tx_ins: Vec<TxIn>) {
+    for txin in tx_ins {
+      self.add_input(&txin);
+    }
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn add_outputs(&mut self, tx_outs: Vec<TxOut>) {
+    for txout in tx_outs {
+      self.add_output(&txout);
+    }
   }
 }

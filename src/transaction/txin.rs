@@ -1,4 +1,5 @@
 
+use std::convert::TryFrom;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
@@ -36,15 +37,6 @@ pub struct TxIn {
   sequence: u32,
 }
 
-impl From<JsValue> for TxIn {
-    fn from<'a>(x: JsValue) -> Self {
-        match x.into_serde::<TxIn>() {
-          Ok(v) => v,
-          Err(_) => TxIn{prev_tx_id: vec![], script_sig: Script::default(), sequence: 0, vout:0}
-        }
-    }
-}
-
 impl TxIn {
   pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, TxInErrors> {
     let txin_bytes = match hex::decode(&hex_str) {
@@ -65,7 +57,7 @@ impl TxIn {
     match cursor.read(&mut prev_tx_id) {
       Err(e) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
       Ok(0) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Read zero bytes for Prev TX Id!") }),
-      Ok(v) => ()
+      Ok(_) => ()
     };
     // Error in the original bitcoin client means that all txids in TxIns are reversed
     prev_tx_id.reverse();
@@ -152,6 +144,13 @@ impl TxIn {
 
   pub(crate) fn to_hex_impl(&self) -> Result<String, TxInErrors> {
     Ok(hex::encode(&self.to_bytes_impl()?))
+  }
+
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TxInErrors> {
+    match serde_json::to_string_pretty(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxInErrors::Serialise{ field: None, error: anyhow!(e) })
+    } 
   }
 }
 
@@ -244,6 +243,22 @@ impl TxIn {
     }
   }
 
+  #[wasm_bindgen(js_name = toJSON)]
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match TxIn::to_json_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
   #[wasm_bindgen(js_name = toBytes)]
   pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
     match TxIn::to_bytes_impl(&self) {
@@ -276,5 +291,18 @@ impl TxIn {
 
   pub fn to_hex(&self) -> Result<String, TxInErrors> {
     TxIn::to_hex_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json_string(&self) -> Result<String, TxInErrors> {
+    TxIn::to_json_string_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TxInErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxInErrors::Serialise{field: None, error: anyhow!(e)})
+    }
   }
 }
