@@ -45,20 +45,18 @@ pub enum SigHash {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct HashCache {
-  pub(super) hash_prevouts: Option<Hash>,
+  pub(super) hash_inputs: Option<Hash>,
   pub(super) hash_sequence: Option<Hash>,
-  pub(super) hash_outputs: Option<Hash>,
-  is_stale: bool
+  pub(super) hash_outputs: Option<Hash>
 }
 
 impl HashCache {
   /// Creates a new cache
   pub fn new() -> Self {
       HashCache {
-          hash_prevouts: None,
+          hash_inputs: None,
           hash_sequence: None,
-          hash_outputs: None,
-          is_stale: true
+          hash_outputs: None
       }
   }
 }
@@ -71,26 +69,41 @@ impl Transaction {
     // Write nVersion
     buffer.write_u32::<LittleEndian>(self.version)?;
 
-    // hashPrevouts
-    let hash_inputs = match sighash {
-      SigHash::Input | SigHash::InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
-      _ => {
-        let input_outpoints: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_outpoint_bytes()).collect();
-
-        Hash::sha_256d(&input_outpoints).to_bytes()
+    // hashInputs (hashPrevouts)
+    let hash_inputs = match self.hash_cache.hash_inputs {
+      Some(x) => x.to_bytes(),
+      None => {
+        match sighash {
+          SigHash::Input | SigHash::InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
+          _ => {
+            let input_outpoints: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_outpoint_bytes()).collect();
+    
+            let hash = Hash::sha_256d(&input_outpoints);
+            self.hash_cache.hash_inputs = Some(hash.clone());
+            
+            hash.to_bytes()
+          }
+        }
       }
     };
     buffer.write(&hash_inputs)?;
 
     // hashSequence
-    let hash_sequence = match sighash {
-      SigHash::InputsOutputs => [0; 32].to_vec(),
-      _ => {
-        let input_sequences: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_sequence_as_bytes()).collect();
-
-        Hash::sha_256d(&input_sequences).to_bytes()
+    let hash_sequence = match self.hash_cache.hash_sequence {
+      Some(x) => x.to_bytes(),
+      None => match sighash {
+        SigHash::InputsOutputs => [0; 32].to_vec(),
+        _ => {
+          let input_sequences: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_sequence_as_bytes()).collect();
+  
+          let hash = Hash::sha_256d(&input_sequences);
+          self.hash_cache.hash_sequence = Some(hash.clone());
+          hash.to_bytes()
+        }
       }
     };
+    
+    
     buffer.write(&hash_sequence)?;
 
     // outpoint (txid+vout)
@@ -107,28 +120,33 @@ impl Transaction {
     buffer.write_u32::<LittleEndian>(input.get_sequence())?;
 
     // hashOutputs
-    let hash_outputs = match sighash {
-      // Only sign the output at the same index as the given txin
-      SigHash::InputOutput | SigHash::InputsOutput => {
-        if n_tx_in > self.get_noutputs() as usize {
-          return Err(anyhow!("Cannot sign with SIGHASH_SINGLE given input index greater than number of outputs"));
+    let hash_outputs = match self.hash_cache.hash_outputs {
+      Some(x) => x.to_bytes(),
+      None => match sighash {
+        // Only sign the output at the same index as the given txin
+        SigHash::InputOutput | SigHash::InputsOutput => {
+          if n_tx_in > self.get_noutputs() as usize {
+            return Err(anyhow!("Cannot sign with SIGHASH_SINGLE given input index greater than number of outputs"));
+          }
+  
+          let output_bytes = match self.outputs[n_tx_in].to_bytes() {
+            Ok(v) => v,
+            Err(e) => return Err(anyhow!(e))
+          };
+          Hash::sha_256d(&output_bytes).to_bytes()
+        },
+        // Sign all outputs
+        SigHash::InputOutputs | SigHash::InputsOutputs => {
+          let mut txout_bytes = Vec::new();
+          for output in &self.outputs {
+            txout_bytes.write(&output.to_bytes()?)?;
+          }
+          let hash = Hash::sha_256d(&txout_bytes);
+          self.hash_cache.hash_outputs = Some(hash.clone());
+          hash.to_bytes()
         }
-
-        let output_bytes = match self.outputs[n_tx_in].to_bytes() {
-          Ok(v) => v,
-          Err(e) => return Err(anyhow!(e))
-        };
-        Hash::sha_256d(&output_bytes).to_bytes()
-      },
-      // Sign all outputs
-      SigHash::InputOutputs | SigHash::InputsOutputs => {
-        let mut txout_bytes = Vec::new();
-        for output in &self.outputs {
-          txout_bytes.write(&output.to_bytes()?)?;
-        }
-        Hash::sha_256d(&txout_bytes).to_bytes()
+        _  => [0; 32].to_vec()
       }
-      _  => [0; 32].to_vec()
     };
     buffer.write(&hash_outputs)?;
 

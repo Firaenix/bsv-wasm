@@ -36,6 +36,8 @@ pub struct Transaction {
   pub(super) inputs: Vec<TxIn>,
   pub(super) outputs: Vec<TxOut>,
   pub(super) n_locktime: u32,
+  #[serde(skip)]
+  pub(super) hash_cache: HashCache
 }
 
 impl Transaction {
@@ -47,7 +49,8 @@ impl Transaction {
         version,
         inputs,
         outputs,
-        n_locktime
+        n_locktime,
+        hash_cache: HashCache::new()
       }
     }
 
