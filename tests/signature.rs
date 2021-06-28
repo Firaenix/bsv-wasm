@@ -42,7 +42,7 @@ mod tests {
     let key = PrivateKey::from_wif(wif.into()).unwrap();
     let message = b"Hello";
 
-    let signature = key.sign_message(message.to_vec()).unwrap();
+    let signature = key.sign_message(message).unwrap();
     #[cfg(target_arch = "wasm32")]
     let pub_key = PublicKey::from_private_key(&key, Some(true));
     #[cfg(not(target_arch = "wasm32"))]

@@ -2,8 +2,9 @@ use std::{io::Cursor};
 use std::io::Read;
 use std::io::Write;
 
-use crate::{TxIn, TxOut, VarInt};
+use crate::{HashCache, TxIn, TxOut, VarInt};
 use anyhow::*;
+use bitcoin_hashes::Hash;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 use serde::{Serialize, Deserialize};
@@ -29,12 +30,12 @@ pub enum TransactionErrors {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Transaction {
-  version: u32,
-  inputs: Vec<TxIn>,
-  outputs: Vec<TxOut>,
-  n_locktime: u32,
+  pub(super) version: u32,
+  pub(super) inputs: Vec<TxIn>,
+  pub(super) outputs: Vec<TxOut>,
+  pub(super) n_locktime: u32,
 }
 
 impl Transaction {
@@ -42,7 +43,7 @@ impl Transaction {
     inputs: Vec<TxIn>,
     outputs: Vec<TxOut>,
     n_locktime: u32) -> Transaction {
-      Transaction{
+      Transaction {
         version,
         inputs,
         outputs,

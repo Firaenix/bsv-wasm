@@ -19,14 +19,14 @@ pub struct PrivateKey {
  * Internal Methods
  */
 impl PrivateKey {
-  pub(crate) fn sign_message_impl(&self, msg: Vec<u8>) -> Result<Signature, PrivateKeyErrors> {
+  pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
     let thingo = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
       Ok(v) => v,
       Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
     };
 
     // let signing_key = SigningKey::random(&mut OsRng); // Serialize with `::to_bytes()`
-    let message = &msg;
+    let message = msg;
 
     // Note: the signature type must be annotated or otherwise inferrable as
     // `Signer` has many impls of the `Signer` trait (for both regular and
@@ -186,7 +186,7 @@ impl PrivateKey {
   }
 
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
-  pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, JsValue> {
+  pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, JsValue> {
     match PrivateKey::sign_message_impl(&self, msg) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
@@ -227,7 +227,7 @@ impl PrivateKey {
     PrivateKey::from_hex_impl(hex_str)
   }
 
-  pub fn sign_message(&self, msg: Vec<u8>) -> Result<Signature, PrivateKeyErrors> {
+  pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
     PrivateKey::sign_message_impl(&self, msg)
   }
 
