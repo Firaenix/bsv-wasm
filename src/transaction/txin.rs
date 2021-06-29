@@ -216,7 +216,7 @@ impl TxIn {
   #[wasm_bindgen(js_name = getOutpointBytes)]
   pub fn get_outpoint_bytes(&self) -> Vec<u8> {
     let mut outpoint_bytes = self.prev_tx_id.clone();
-    outpoint_bytes.extend_from_slice(&self.vout.to_be_bytes());
+    outpoint_bytes.extend_from_slice(&self.vout.to_le_bytes());
     outpoint_bytes
   }
 

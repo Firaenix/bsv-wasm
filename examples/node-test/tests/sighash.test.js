@@ -16,10 +16,10 @@ describe("SigHash Tests", function() {
     assert.equal(js_private_key.toWif(), wasm_private_key.toWIF(true));
     assert.equal(js_script.toAsmString(), wasm_script.toASMString());
 
-    let js_sighash = js_tx.sighash(Sig.SIGHASH_SINGLE | Sig.SIGHASH_FORKID, 0, js_script, Bn(0));
-    let wasm_sighash = wasm_tx.sighash(0, SigHash.SINGLE | SigHash.FORKID, wasm_script, BigInt(0));
+    let js_sighash = js_tx.sighashPreimage(Sig.SIGHASH_SINGLE | Sig.SIGHASH_FORKID, 0, js_script, Bn(0));
+    let wasm_sighash = wasm_tx.sighashPreimage(0, SigHash.SINGLE | SigHash.FORKID, wasm_script, BigInt(0));
 
-    assert.equal(Buffer.from(wasm_sighash).toString('hex'), js_sighash.toString('hex'), "Sighash functions do not match")
+    assert.equal(Buffer.from(wasm_sighash).toString('hex'), js_sighash.toString('hex'), "Sighash preimage functions do not match")
 
     let js_sig = js_tx.sign(KeyPair.fromPrivKey(js_private_key), Sig.SIGHASH_SINGLE | Sig.SIGHASH_FORKID, 0, js_script, Bn(0));
     let wasm_sig = wasm_tx.sign(wasm_private_key, SigHash.SINGLE | SigHash.FORKID, 0, wasm_script, BigInt(0));

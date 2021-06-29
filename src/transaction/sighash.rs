@@ -75,7 +75,7 @@ impl Transaction {
     presigned_script: &Script,
     value: u64,
   ) -> Result<Signature> {
-    let buffer = self.sighash_impl(n_tx_in, sighash, presigned_script, value)?;
+    let buffer = self.sighash_preimage_impl(n_tx_in, sighash, presigned_script, value)?;
     let hash = Hash::sha_256d(&buffer);
     let sig = match priv_key.sign_message_impl(&hash.to_bytes()) {
       Ok(v) => v,
@@ -88,7 +88,7 @@ impl Transaction {
   /**
    * Calculates the SIGHASH Buffer to be signed
    */
-  pub(crate) fn sighash_impl(
+  pub(crate) fn sighash_preimage_impl(
     &mut self,
     n_tx_in: usize,
     sighash: SigHash,
@@ -110,17 +110,16 @@ impl Transaction {
 
     let hashed_outputs = self.hash_outputs(sighash, n_tx_in)?;
 
-    buffer
-      .write_u32::<LittleEndian>(self.version)
-      .and_then(|_| buffer.write(&self.hash_inputs(sighash)))
-      .and_then(|_| buffer.write(&self.hash_sequence(sighash)))
-      .and_then(|_| buffer.write(&input.get_outpoint_bytes()))
-      .and_then(|_| buffer.write_varint(presigned_script.to_bytes().len() as u64))
-      .and_then(|_| buffer.write(&presigned_script.to_bytes()))
-      .and_then(|_| buffer.write_u64::<LittleEndian>(value))
-      .and_then(|_| buffer.write_u32::<LittleEndian>(input.get_sequence()))
-      .and_then(|_| buffer.write(&hashed_outputs))
-      .and_then(|_| buffer.write_u32::<LittleEndian>(self.n_locktime))?;
+    buffer.write_u32::<LittleEndian>(self.version)?;
+    buffer.write(&self.hash_inputs(sighash))?;
+    buffer.write(&self.hash_sequence(sighash))?;
+    buffer.write(&input.get_outpoint_bytes())?;
+    buffer.write_varint(presigned_script.to_bytes().len() as u64)?;
+    buffer.write(&presigned_script.to_bytes())?;
+    buffer.write_u64::<LittleEndian>(value)?;
+    buffer.write_u32::<LittleEndian>(input.get_sequence())?;
+    buffer.write(&hashed_outputs)?;
+    buffer.write_u32::<LittleEndian>(self.n_locktime)?;
 
     let sighash_u32 = ToPrimitive::to_u32(&sighash).ok_or(anyhow!(format!(
       "Cannot convert SigHash {:?} into u32",
@@ -128,6 +127,17 @@ impl Transaction {
     )))?;
     buffer.write_u32::<LittleEndian>(sighash_u32)?;
 
+    Ok(buffer)
+  }
+
+  pub(crate) fn sighash_impl(
+    &mut self,
+    n_tx_in: usize,
+    sighash: SigHash,
+    presigned_script: &Script,
+    value: u64,
+  ) -> Result<Vec<u8>> {
+    let buffer = self.sighash_preimage_impl(n_tx_in, sighash, presigned_script,value)?;
     Ok(Hash::sha_256d(&buffer).to_bytes())
   }
 
@@ -202,13 +212,13 @@ impl Transaction {
     match sighash {
       SigHash::ANYONECANPAY | SigHash::Input | SigHash::InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
       _ => {
-        let input_outpoints: Vec<u8> = self
-          .inputs
-          .iter()
-          .flat_map(|x| x.get_outpoint_bytes())
-          .collect();
 
-        let hash = Hash::sha_256d(&input_outpoints);
+        let mut input_bytes = Vec::new();
+        for input in &self.inputs {
+          input_bytes.extend(input.get_outpoint_bytes());
+        }
+
+        let hash = Hash::sha_256d(&input_bytes);
         self.hash_cache.hash_inputs = Some(hash.clone());
 
         hash.to_bytes()
@@ -239,6 +249,16 @@ impl Transaction {
   ) -> Result<Vec<u8>> {
     Transaction::sighash_impl(self, n_tx_in, sighash, presigned_script, value)
   }
+
+  pub fn sighash_preimage(
+    &mut self,
+    n_tx_in: usize,
+    sighash: SigHash,
+    presigned_script: &Script,
+    value: u64,
+  ) -> Result<Vec<u8>> {
+    Transaction::sighash_preimage_impl(self, n_tx_in, sighash, presigned_script, value)
+  }
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -268,6 +288,20 @@ impl Transaction {
     value: u64,
   ) -> Result<Vec<u8>, JsValue> {
     match Transaction::sighash_impl(self, n_tx_in, sighash, presigned_script, value) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = sighashPreimage)]
+  pub fn sighash_preimage(
+    &mut self,
+    n_tx_in: usize,
+    sighash: SigHash,
+    presigned_script: &Script,
+    value: u64,
+  ) -> Result<Vec<u8>, JsValue> {
+    match Transaction::sighash_preimage_impl(self, n_tx_in, sighash, presigned_script, value) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
