@@ -76,7 +76,7 @@ impl TxOut {
     })
   }
 
-  pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>> {
+  pub(crate) fn to_bytes_impl(&self) -> std::io::Result<Vec<u8>> {
     let mut buffer = Vec::new();
 
     // Satoshi Value - 8 bytes
@@ -192,7 +192,7 @@ impl TxOut {
   }
 
   pub fn to_bytes(&self) -> Result<Vec<u8>> {
-    TxOut::to_bytes_impl(&self)
+    TxOut::to_bytes_impl(&self).map_err(|e| anyhow!(e))
   }
 
   pub fn to_hex(&self) -> Result<String> {

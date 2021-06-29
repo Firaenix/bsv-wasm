@@ -53,13 +53,17 @@ impl Transaction {
         hash_cache: HashCache::new()
       }
     }
-
+  
   pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
     let tx_bytes = match hex::decode(&hex_str) {
       Ok(v) => v,
       Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
     };
 
+    Transaction::from_bytes_impl(tx_bytes)
+  }
+
+  pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
     let mut cursor = Cursor::new(tx_bytes);
 
     // Version - 4 bytes
@@ -113,6 +117,7 @@ impl Transaction {
       inputs,
       outputs,
       n_locktime,
+      hash_cache: HashCache::new()
     })
   }
 
@@ -268,6 +273,15 @@ impl Transaction {
     };
   }
 
+  #[wasm_bindgen(js_name = fromBytes)]
+  pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, JsValue> {
+    return match Transaction::from_bytes_impl(tx_bytes) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    };
+  }
+
+
   #[wasm_bindgen(js_name = toString)]
   pub fn to_json_string(&self) -> Result<String, JsValue> {
     match Transaction::to_json_string_impl(&self) {
@@ -339,6 +353,11 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
     return Transaction::from_hex_impl(hex_str);
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
+    Transaction::from_bytes_impl(tx_bytes)
   }
 
   #[cfg(not(target_arch = "wasm32"))]

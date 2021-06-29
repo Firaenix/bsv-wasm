@@ -44,28 +44,20 @@ impl ExtendedPrivateKey {
   }
 
   pub fn to_string_impl(&self) -> Result<String> {
-    let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+    let mut buffer: Vec<u8> =  vec![];
 
-    cursor.write_u32::<BigEndian>(XPRIV_VERSION_BYTE)
-      .and_then(|_| cursor.write_u8(self.depth))
-      .and_then(|_| cursor.write(&self.parent_fingerprint))
-      .and_then(|_| cursor.write_u32::<BigEndian>(self.index))
-      .and_then(|_| cursor.write(&self.chain_code))
-      .and_then(|_| cursor.write_u8(0))
-      .and_then(|_| cursor.write(&self.private_key.to_bytes()))?;
+    buffer.write_u32::<BigEndian>(XPRIV_VERSION_BYTE)
+      .and_then(|_| buffer.write_u8(self.depth))
+      .and_then(|_| buffer.write(&self.parent_fingerprint))
+      .and_then(|_| buffer.write_u32::<BigEndian>(self.index))
+      .and_then(|_| buffer.write(&self.chain_code))
+      .and_then(|_| buffer.write_u8(0))
+      .and_then(|_| buffer.write(&self.private_key.to_bytes()))?;
 
-    let mut serialised = Vec::new();
-    cursor.set_position(0);
-    cursor.read_to_end(&mut serialised)?;
+    let checksum = &Hash::sha_256d(&buffer).to_bytes()[0..4];
+    buffer.write(checksum)?;
 
-    let checksum = &Hash::sha_256d(&serialised).to_bytes()[0..4];
-    cursor.write(checksum)?;
-
-    serialised = Vec::new();
-    cursor.set_position(0);
-    cursor.read_to_end(&mut serialised)?;
-
-    Ok(bs58::encode(serialised).into_string())
+    Ok(bs58::encode(buffer).into_string())
   }
 
   pub fn from_string_impl(xprv_string: &str) -> Result<Self> {

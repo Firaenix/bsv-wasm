@@ -1,8 +1,7 @@
 use byteorder::LittleEndian;
 use snafu::*;
 use std::io::Cursor;
-use anyhow::*;
-
+use std::io::Result;
 use byteorder::ReadBytesExt;
 use byteorder::WriteBytesExt;
 
@@ -12,22 +11,17 @@ pub trait HexTrait {
 
 pub trait VarInt {
   fn read_varint(&mut self) -> Result<u64>;
-  fn write_varint(&mut self, varint: u64) -> Result<()>;
+  fn write_varint(&mut self, varint: u64) -> std::io::Result<()>;
 }
 
 impl VarInt for Cursor<Vec<u8>> {
   fn read_varint(&mut self) -> Result<u64> {
-    let read_result = match self.read_u8() {
+    match self.read_u8() {
       Ok(0xff) => self.read_u64::<LittleEndian>(),
       Ok(0xfe) => self.read_u32::<LittleEndian>().and_then(|x| Ok(x as u64)),
       Ok(0xfd) => self.read_u16::<LittleEndian>().and_then(|x| Ok(x as u64)),
       Ok(v) => Ok(v as u64),
       Err(e) => Err(e)
-    };
-
-    match read_result {
-      Err(e) => Err(anyhow!(e)),
-      Ok(v) => Ok(v),
     }
   }
 
@@ -47,10 +41,7 @@ impl VarInt for Cursor<Vec<u8>> {
       }
     };
     
-    match write() {
-      Err(e) => return Err(anyhow!(e)),
-      Ok(_) => Ok(())
-    }
+    write()
   }
 }
 
@@ -58,17 +49,12 @@ impl VarInt for Vec<u8> {
   fn read_varint(&mut self) -> Result<u64> {
     let mut cursor = Cursor::new(&self);
 
-    let read_result = match cursor.read_u8() {
+    match cursor.read_u8() {
       Ok(0xff) => cursor.read_u64::<LittleEndian>(),
       Ok(0xfe) => cursor.read_u32::<LittleEndian>().and_then(|x| Ok(x as u64)),
       Ok(0xfd) => cursor.read_u16::<LittleEndian>().and_then(|x| Ok(x as u64)),
       Ok(v) => Ok(v as u64),
       Err(e) => Err(e)
-    };
-
-    match read_result {
-      Err(e) => Err(anyhow!(e)),
-      Ok(v) => Ok(v),
     }
   }
 
@@ -88,9 +74,6 @@ impl VarInt for Vec<u8> {
       }
     };
     
-    match write() {
-      Err(e) => return Err(anyhow!(e)),
-      Ok(_) => Ok(())
-    }
+    write()
   }
 }
