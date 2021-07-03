@@ -1,8 +1,11 @@
 #[cfg(test)]
 mod tests {
     extern crate wasm_bindgen_test;
+    use bitcoin_hashes::hex::ToHex;
     use bsv_wasm::hash::Hash;
+    use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}};
     use wasm_bindgen_test::*;
+    use anyhow::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
 
@@ -62,13 +65,13 @@ mod tests {
   #[test]
   #[wasm_bindgen_test]
   fn pbkdf2_sha256_hash_test() {
-    let password = "stronk-password"
-    let salt = "snail"
+    let password = "stronk-password";
+    let salt = "snails";
     let rounds: u32 = 10000;
 
-    let hash = Hash::pbkdf2_sha256(password.as_btyes(), salt.as_bytes(), rounds);
+    let hash = Hash::pbkdf2(&password, &salt, bsv_wasm::PBKDF2Hashes::SHA256, rounds, 32).unwrap();
 
     // validated against twetch/sycamore-pro and https://neurotechnics.com/tools/pbkdf2-test
-    assert_eq!(hash.to_hex(), "9e617954fe55181b24eef642351429b98522cd18df0a6aec7783c18f5c0da32c");
+    assert_eq!(hash.to_hex(), "ffb5bb1b78211b1d275f32c4ba426f0875e80640fbf313eac06ba6e79225b237");
   }
 }

@@ -30,6 +30,7 @@ num-derive = "0.3"
 aes = "0.7.4"
 block-modes = "0.8.1"
 pbkdf2 = "0.8.0"
+base64 = "0.13.0"
 
 [dependencies.elliptic-curve]
 version = "0.10.0"
