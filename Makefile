@@ -1,6 +1,9 @@
 build-web:
 	CC=emcc wasm-pack build --release --target web
 
+build-bundler:
+	CC=emcc wasm-pack build --release --target bundler
+
 build-nodejs:
 	CC=emcc wasm-pack build --release --target nodejs
 
