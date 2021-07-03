@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::io::{Cursor, Write};
 
 use crate::{Hash, PrivateKey, Script, Signature, VarInt, transaction::*};
@@ -56,6 +57,32 @@ pub enum SigHash {
   Legacy_InputOutput = 0x83,
 }
 
+impl TryFrom<u8> for SigHash {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        FromPrimitive::from_u8(value).ok_or(anyhow!("Could not convert {} into a valid SigHash value", value))
+    }
+}
+
+impl std::ops::BitOr for SigHash {
+    type Output = u8;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let lhs = self.to_u8().unwrap();
+        lhs | rhs.to_u8().unwrap()
+    }
+}
+
+impl std::ops::BitAnd for SigHash {
+  type Output = u8;
+
+  fn bitand(self, rhs: Self) -> Self::Output {
+      let lhs = self.to_u8().unwrap();
+      lhs & rhs.to_u8().unwrap()
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct HashCache {
   pub(super) hash_inputs: Option<Hash>,
@@ -106,6 +133,8 @@ impl Transaction {
     value: u64
   ) -> Result<Vec<u8>> {
     // If uses any of the FORK_ID sighash variants
+
+    // Gross, fix this. Maybe a nice method on SigHash enum to check if contains another SigHash type
     match sighash {
       SigHash::Input | 
       SigHash::InputOutput | 
@@ -145,11 +174,9 @@ impl Transaction {
         }
 
         for i in 0..tx.outputs.len() {
-          if i >= n_tx_in {
-            break;
+          if i < n_tx_in {
+            tx.set_output(i, &TxOut::new(0xff, Script::default().to_bytes()));
           }
-
-          tx.set_output(i, &TxOut::new(0xff, Script::default().to_bytes()));
         }
 
         for i in 0..tx.inputs.len() {
@@ -158,7 +185,7 @@ impl Transaction {
       },
 
       SigHash::NONE | SigHash::Legacy_Input => {
-        tx.outputs = vec![];
+        tx.outputs.clear();
 
         tx.inputs.iter_mut().for_each(|txin| {
           txin.set_sequence(0);

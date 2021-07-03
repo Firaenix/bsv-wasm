@@ -121,16 +121,16 @@ impl Transaction {
   }
 
   pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TransactionErrors> {
-    let mut cursor = Cursor::new(Vec::new());
+    let mut buffer = Vec::new();
 
     // Version - 4 bytes
-    match cursor.write_u32::<LittleEndian>(self.version) {
+    match buffer.write_u32::<LittleEndian>(self.version) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("version".to_string()), error: anyhow!(e) }),
     };
 
     // In Counter - 1-9 tx_bytes
-    match cursor.write_varint(self.get_ninputs()) {
+    match buffer.write_varint(self.get_ninputs()) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_inputs".to_string()), error: anyhow!(e) }),
     };
@@ -143,14 +143,14 @@ impl Transaction {
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
       };
 
-      match cursor.write(&input_bytes) {
+      match buffer.write(&input_bytes) {
         Ok(_) => (),
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
       };
     }
 
     // Out Counter - 1-9 tx_bytes
-    match cursor.write_varint(self.get_noutputs()) {
+    match buffer.write_varint(self.get_noutputs()) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_outputs".to_string()), error: anyhow!(e) }),
     };
@@ -163,26 +163,20 @@ impl Transaction {
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
       };
 
-      match cursor.write(&output_bytes) {
+      match buffer.write(&output_bytes) {
         Ok(_) => (),
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
       };
     }
 
     // nLocktime - 4 bytes
-    match cursor.write_u32::<LittleEndian>(self.n_locktime) {
+    match buffer.write_u32::<LittleEndian>(self.n_locktime) {
       Ok(v) => v,
       Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_locktime".to_string()), error: anyhow!(e) })
     };
 
     // Write out bytes
-    let mut bytes: Vec<u8> = Vec::new();
-    cursor.set_position(0);
-    match cursor.read_to_end(&mut bytes) {
-      Err(e) => return Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) }),
-      _ => ()
-    };
-    Ok(bytes)
+    Ok(buffer)
   }
 
   pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
