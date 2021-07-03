@@ -18,7 +18,7 @@ use wasm_bindgen_test::*;
     
     let tx_in_0 = tx.get_input(0).unwrap();
     
-    assert_eq!(tx_in_0.get_prev_tx_id(), hex::decode("3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e").unwrap());
+    assert_eq!(tx_in_0.get_prev_tx_id(None), hex::decode("3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e").unwrap());
     assert_eq!(tx_in_0.get_vout(), 0);
     assert_eq!(tx_in_0.get_script_sig_size(), 0x8c);
     assert_eq!(tx_in_0.get_script_sig().to_bytes().len(), 0x8c);
@@ -185,7 +185,7 @@ use wasm_bindgen_test::*;
 
     assert_eq!(tx.get_ninputs(), 5);
 
-    assert_eq!(tx.get_input(4).unwrap().get_outpoint_hex(), txin3.get_outpoint_hex());
+    assert_eq!(tx.get_input(4).unwrap().get_outpoint_hex(None), txin3.get_outpoint_hex(None));
   }
 
   #[cfg(not(target_arch = "wasm32"))]

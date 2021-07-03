@@ -96,9 +96,11 @@ impl TxIn {
   pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TxInErrors> {
     let mut buffer = vec![];
 
-    // prev_tx_id is already reversed
+    // Bitcoin TX Hex serialises txids in reverse. 
+    let mut prev_tx_id = self.prev_tx_id.clone();
+    prev_tx_id.reverse();
     // Write Prev TxID first
-    match buffer.write(&self.prev_tx_id) {
+    match buffer.write(&prev_tx_id) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
       Ok(0) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Wrote zero bytes for Prev TX Id!") }),
       Ok(_) => ()
@@ -166,13 +168,20 @@ impl TxIn {
   }
 
   #[wasm_bindgen(js_name = getPrevTxId)]
-  pub fn get_prev_tx_id(&self) -> Vec<u8> {
-    self.prev_tx_id.clone()
+  pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {
+    match little_endian {
+      Some(true) =>  {
+        let mut reversed_tx = self.prev_tx_id.clone();
+        reversed_tx.reverse();
+        reversed_tx
+      },
+      _ => self.prev_tx_id.clone()
+    }
   }
 
   #[wasm_bindgen(js_name = getPrevTxIdHex)]
-  pub fn get_prev_tx_id_hex(&self) -> String {
-    hex::encode(self.prev_tx_id.clone())
+  pub fn get_prev_tx_id_hex(&self, little_endian: Option<bool>) -> String {
+    hex::encode(self.get_prev_tx_id(little_endian))
   }
 
   #[wasm_bindgen(js_name = getVOut)]
@@ -206,15 +215,35 @@ impl TxIn {
   }
 
   #[wasm_bindgen(js_name = getOutpointBytes)]
-  pub fn get_outpoint_bytes(&self) -> Vec<u8> {
-    let mut outpoint_bytes = self.prev_tx_id.clone();
+  pub fn get_outpoint_bytes(&self, little_endian: Option<bool>) -> Vec<u8> {
+    let mut outpoint_bytes = self.get_prev_tx_id(little_endian);
     outpoint_bytes.extend_from_slice(&self.vout.to_le_bytes());
     outpoint_bytes
   }
 
   #[wasm_bindgen(js_name = getOutpointHex)]
-  pub fn get_outpoint_hex(&self) -> String {
-    hex::encode(self.get_outpoint_bytes())
+  pub fn get_outpoint_hex(&self, little_endian: Option<bool>) -> String {
+    hex::encode(self.get_outpoint_bytes(little_endian))
+  }
+
+  #[wasm_bindgen(js_name = setScript)]
+  pub fn set_script(&mut self, script: &Script) {
+    self.script_sig = script.clone();
+  }
+
+  #[wasm_bindgen(js_name = setPrevTxId)]
+  pub fn set_prev_tx_id(&mut self, txid: &[u8]) {
+    self.prev_tx_id = txid.to_vec();
+  }
+
+  #[wasm_bindgen(js_name = setVOut)]
+  pub fn set_vout(&mut self, vout: u32) {
+    self.vout = vout;
+  }
+
+  #[wasm_bindgen(js_name = setSequence)]
+  pub fn set_sequence(&mut self, sequence: u32) {
+    self.sequence = sequence;
   }
 }
 

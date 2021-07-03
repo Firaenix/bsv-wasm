@@ -7,10 +7,14 @@ use crate::{hash::sha256_digest::ReversibleDigest, sha256_digest::Sha256};
 pub fn sign_custom_preimage<D>(
     priv_key: &SecretKey,
     digest: D,
-    reverse_endian_k: bool
+    reverse_endian_k: bool,
 ) -> Result<(Signature, bool), ecdsa::Error>
-where D: FixedOutput<OutputSize = U32> + BlockInput + Clone + Default + Reset + Update + ReversibleDigest,
+    where D: FixedOutput<OutputSize = U32> + BlockInput + Clone + Default + Reset + Update + ReversibleDigest,
 {
+    // Add this for non deterministic K
+    // let mut added_entropy = FieldBytes::<C>::default();
+    //     rng.fill_bytes(&mut added_entropy);
+
     let priv_scalar = priv_key.to_secret_scalar();
 
     let k_digest = match reverse_endian_k {

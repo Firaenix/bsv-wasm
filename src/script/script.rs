@@ -281,6 +281,10 @@ impl Script {
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }
+
+    pub fn remove_codeseparators(&mut self) {
+        self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
+    }
 }
 
 /**

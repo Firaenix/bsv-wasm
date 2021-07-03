@@ -25,7 +25,7 @@ pub struct PrivateKey {
 #[wasm_bindgen]
 pub enum SigningHash {
   Sha256,
-  Sha256d,
+  Sha256d
 }
 
 /**
@@ -37,18 +37,7 @@ impl PrivateKey {
    * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
    */
   pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
-    let signing_key = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
-      Ok(v) => v,
-      Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
-    };
-
-    let message = msg;
-
-    let mut signature: SecpSignature = signing_key.sign(message);
-    match Signature::from_der_impl(signature.to_der().as_bytes().to_vec()) {
-      Ok(v) => Ok(v),
-      Err(e) => Err(PrivateKeyErrors::SignatureError { error: e }),
-    }
+    self.sign_with_k_impl(msg, SigningHash::Sha256, false)
   }
 
   /**
@@ -57,14 +46,9 @@ impl PrivateKey {
    * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
    */
   pub(crate) fn sign_with_k_impl(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
-    let signing_key = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
-      Ok(v) => v,
-      Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
-    };
-    
     let engine = match hash_algo {
       SigningHash::Sha256 => Sha256::new(false).chain(preimage.clone()),
-      SigningHash::Sha256d => Sha256::new(false).chain(Sha256::digest(preimage.clone()))
+      SigningHash::Sha256d => Sha256::new(false).chain(Sha256::digest(preimage.clone())),
     };
     
     let (sig, is_recoverable) = sign_custom_preimage(&self.secret_key, engine, reverse_k).unwrap();

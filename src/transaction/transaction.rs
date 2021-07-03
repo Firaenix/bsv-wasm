@@ -262,7 +262,7 @@ impl Transaction {
   }
 
   #[wasm_bindgen(js_name = addInput)]
-  pub fn add_input(&mut self, input: &TxIn) -> () {
+  pub fn add_input(&mut self, input: &TxIn) {
     self.inputs.push(input.clone());
     // Transaction has been changed, need to recalculate inputs hashes
     self.hash_cache.hash_inputs = None;
@@ -270,10 +270,20 @@ impl Transaction {
   }
 
   #[wasm_bindgen(js_name = addOutput)]
-  pub fn add_output(&mut self, output: &TxOut) -> () {
+  pub fn add_output(&mut self, output: &TxOut) {
     self.outputs.push(output.clone());
     // Transaction has been changed, need to recalculate outputs hashes
     self.hash_cache.hash_outputs = None;
+  }
+
+  #[wasm_bindgen(js_name = setInput)]
+  pub fn set_input(&mut self, index: usize, input: &TxIn) {
+    self.inputs[index] = input.clone();
+  }
+
+  #[wasm_bindgen(js_name = setOutput)]
+  pub fn set_output(&mut self, index: usize, output: &TxOut) {
+    self.outputs[index] = output.clone();
   }
 }
 
