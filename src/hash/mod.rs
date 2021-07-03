@@ -160,11 +160,7 @@ impl Hash {
    * 
    */
   pub fn pbkdf2_impl(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<Self, PBKDF2Errors> {
-    // let salt_string = match std::str::from_utf8(salt.as_bytes()) {
-    //   Ok(v) => v,
-    //   Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!(e) })
-    // };
-    let s = match Salt::new(salt) {
+    let s = match SaltString::b64_encode(salt.as_bytes()) {
       Ok(v) => v,
       Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!("{}. B64 Salt length must be between {} and {}. Your salt: {}.", e, Salt::MIN_LENGTH, Salt::MAX_LENGTH, salt) })
     };
@@ -176,14 +172,14 @@ impl Hash {
     };
 
     let params = Params { rounds, output_length };
-    let password_hash = match Pbkdf2.hash_password(password.as_bytes(), Some(algo_ident), params, s) {
+    let password_hash = match Pbkdf2.hash_password(password.as_bytes(), Some(algo_ident), params, s.as_salt()) {
       Ok(v) => v,
       Err(e) => return Err(PBKDF2Errors::HashError{ error: anyhow!(e) })
     };
 
     let hash = password_hash.hash.ok_or(PBKDF2Errors::HashError{ error: anyhow!("Failed to generate password hash") })?;
     let result = hash.as_bytes().to_vec();
-    
+    // result.reverse();
     Ok(Hash(result))
   }
 
