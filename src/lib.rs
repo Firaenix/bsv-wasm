@@ -1,9 +1,6 @@
 #[macro_use]
 extern crate num_derive;
 
-use bitcoin_hashes::{Hash, hex::ToHex};
-use wasm_bindgen::prelude::*;
-
 pub mod utils;
 
 pub mod keypair;
@@ -33,6 +30,9 @@ pub use script::*;
 
 pub mod hash;
 pub use hash::*;
+
+pub mod kdf;
+pub use kdf::*;
 
 pub mod encryption;
 pub use encryption::*;

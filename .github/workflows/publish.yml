@@ -74,3 +74,6 @@ jobs:
 
     - name: Publish Web Package
       run: make publish-web
+
+    - name: Publish Bundler Package
+      run: make publish-bundler
