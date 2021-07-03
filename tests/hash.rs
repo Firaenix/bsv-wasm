@@ -61,17 +61,4 @@ mod tests {
 
     assert_eq!(hash.to_hex(), "d76d8ade1b94820eaf73369b79112d664456c0b2ed47189341d2306b946de5dd6dc40d473902e22b5b9eba28613aae6df58d6e66d58c8b6ba5cafe96bc0e1c29");
   }
-
-  #[test]
-  #[wasm_bindgen_test]
-  fn pbkdf2_sha256_hash_test() {
-    let password = "stronk-password";
-    let salt = "snails";
-    let rounds: u32 = 10000;
-
-    let hash = Hash::pbkdf2(&password, &salt, bsv_wasm::PBKDF2Hashes::SHA256, rounds, 32).unwrap();
-
-    // validated against twetch/sycamore-pro and https://neurotechnics.com/tools/pbkdf2-test
-    assert_eq!(hash.to_hex(), "ffb5bb1b78211b1d275f32c4ba426f0875e80640fbf313eac06ba6e79225b237");
-  }
 }
