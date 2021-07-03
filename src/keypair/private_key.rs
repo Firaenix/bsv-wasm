@@ -2,7 +2,6 @@
 use crate::sign_custom_preimage;
 use crate::Hash;
 use crate::PrivateKeyErrors;
-use crate::Sha256d;
 use crate::ToHex;
 use crate::Signature;
 use crate::sha256_digest::Sha256;
@@ -23,9 +22,10 @@ pub struct PrivateKey {
   secret_key: SecretKey,
 }
 
-pub enum KTypes {
+#[wasm_bindgen]
+pub enum SigningHash {
   Sha256,
-  Sha256r,
+  Sha256d,
 }
 
 /**
@@ -42,12 +42,8 @@ impl PrivateKey {
       Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
     };
 
-    // let signing_key = SigningKey::random(&mut OsRng); // Serialize with `::to_bytes()`
     let message = msg;
 
-    // Note: the signature type must be annotated or otherwise inferrable as
-    // `Signer` has many impls of the `Signer` trait (for both regular and
-    // recoverable signature types).
     let mut signature: SecpSignature = signing_key.sign(message);
     match Signature::from_der_impl(signature.to_der().as_bytes().to_vec()) {
       Ok(v) => Ok(v),
@@ -55,38 +51,24 @@ impl PrivateKey {
     }
   }
 
-  pub(crate) fn sign_with_k_impl(&self, preimage: &[u8]) -> Result<Signature, PrivateKeyErrors> {
+  /**
+   * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
+   * Secp256k1 signature inputs must be 32 bytes in length.
+   * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
+   */
+  pub(crate) fn sign_with_k_impl(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
     let signing_key = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
       Ok(v) => v,
       Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
     };
     
-    // let preimage_hash = Hash::sha_256(preimage.clone()).to_bytes();
-    let engine = Sha256::new(true).chain(Sha256::digest(preimage.clone()));
-    let non_reverse_engine = Sha256::new(false).chain(Sha256::digest(preimage.clone()));
-    let double_hash = Hash::sha_256d(preimage).to_bytes();
-    // double_hash.reverse();
-
-    assert_eq!(&signing_key.to_bytes().to_vec(), &self.secret_key.to_bytes().to_vec(), "Signing key and secret key bytes are diff");
-
-    let (custom_sig, is_recoverable) = sign_custom_preimage(&self.secret_key, &double_hash, engine.clone()).unwrap();
-
-    // assert_eq!(ecdsa::signature::Signature::as_bytes(&signature.to_der()).to_hex(), "30450221009c230cdb72228135e3b9e27bcc58d366d89be2ddbc078dccac0b17568e11e41502201ebd424c1bbb9b807770bdc9f7db098ed158b541218ff102ae220ecf044c8df8", "NOPE");
-    // let mut thing = vec![];
-    // engine.;
-
-    // let digest_256dr = engine.clone().finalize().to_vec();
-    // assert_eq!(digest_256dr, hash.to_bytes(), "digests arent equal");
-
-    // secret_scalar.try_sign_recoverable_prehashed(ephemeral_scalar, &k);
-
-    // let signature: SecpSignature = signing_key.sign(&hash.to_bytes());
-    // let signature: SecpSignature = signing_key.sign_digest(engine);
-
-    // assert_eq!(signature.to_der().as_bytes(), custom_sig.to_der().as_bytes(), "Sigs arent equal");
-
-    // signature.normalize_s().unwrap();
-    match Signature::from_der_impl(custom_sig.to_der().as_bytes().to_vec()) {
+    let engine = match hash_algo {
+      SigningHash::Sha256 => Sha256::new(false).chain(preimage.clone()),
+      SigningHash::Sha256d => Sha256::new(false).chain(Sha256::digest(preimage.clone()))
+    };
+    
+    let (sig, is_recoverable) = sign_custom_preimage(&self.secret_key, engine, reverse_k).unwrap();
+    match Signature::from_der_impl(sig.to_der().as_bytes().to_vec()) {
       Ok(v) => Ok(v),
       Err(e) => Err(PrivateKeyErrors::SignatureError { error: e }),
     }
@@ -294,8 +276,8 @@ impl PrivateKey {
     PrivateKey::sign_message_impl(&self, msg)
   }
 
-  pub fn sign_preimage(&self, preimage: &[u8]) -> Result<Signature, PrivateKeyErrors> {
-    PrivateKey::sign_preimage_impl(&self, preimage)
+  pub fn sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
+    PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k)
   }
 
   pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {

@@ -29,5 +29,8 @@ pub use script::*;
 pub mod hash;
 pub use hash::*;
 
+pub mod kdf;
+pub use kdf::*;
+
 pub mod encryption;
 pub use encryption::*;

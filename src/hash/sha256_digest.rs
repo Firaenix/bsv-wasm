@@ -7,6 +7,21 @@ pub struct Sha256 {
     pub reverse: bool
 }
 
+pub trait ReversibleDigest  {
+    /**
+     * Returns a reversed version of the given digest
+     */
+    fn reverse(&self) -> Self;
+  }
+  
+  impl ReversibleDigest for Sha256 {
+    fn reverse(&self) -> Self {
+      let mut reversed = self.clone();
+      reversed.reverse = true;
+      reversed
+    }
+  }
+
 impl Sha256 {
     pub fn new(reverse: bool) -> Self {
         Self{ engine: sha256::Hash::engine(), reverse }

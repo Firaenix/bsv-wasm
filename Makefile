@@ -18,3 +18,8 @@ publish-web:
 	wasm-pack build --release --target web
 	sed -i "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
 	wasm-pack publish ./pkg
+
+publish-bundler:
+	wasm-pack build --release --target bundler
+	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/package.json
+	wasm-pack publish ./pkg

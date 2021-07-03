@@ -74,11 +74,8 @@ impl Transaction {
     value: u64,
   ) -> Result<Vec<u8>> {
     let buffer = self.sighash_preimage_impl(n_tx_in, sighash, presigned_script, value)?;
-    // Only SHA256 once, our signing function SHA256's again.
-    let hash = Hash::sha_256(&buffer.clone());
 
-
-    let sig = match priv_key.sign_preimage_impl(&buffer) {
+    let sig = match priv_key.sign_with_k_impl(&buffer, crate::SigningHash::Sha256d, true) {
       Ok(v) => v,
       Err(e) => return Err(anyhow!(e)),
     };
