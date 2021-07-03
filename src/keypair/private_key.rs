@@ -1,9 +1,17 @@
-use crate::PrivateKeyErrors;
 
+use crate::sign_custom_preimage;
+use crate::Hash;
+use crate::PrivateKeyErrors;
+use crate::Sha256d;
+use crate::ToHex;
 use crate::Signature;
+use crate::sha256_digest::Sha256;
 use anyhow::*;
-use bitcoin_hashes::{hex::ToHex, Hash};
+use digest::FixedOutput;
+use digest::FixedOutputDirty;
+use k256::ecdsa::digest::Digest;
 use k256::ecdsa::{signature::Signer, Signature as SecpSignature, SigningKey};
+use k256::ecdsa::signature::DigestSigner;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
@@ -15,12 +23,21 @@ pub struct PrivateKey {
   secret_key: SecretKey,
 }
 
+pub enum KTypes {
+  Sha256,
+  Sha256r,
+}
+
 /**
  * Internal Methods
  */
 impl PrivateKey {
+  /**
+   * SHA256s and then signs the specified message.
+   * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+   */
   pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
-    let thingo = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
+    let signing_key = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
       Ok(v) => v,
       Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
     };
@@ -31,8 +48,45 @@ impl PrivateKey {
     // Note: the signature type must be annotated or otherwise inferrable as
     // `Signer` has many impls of the `Signer` trait (for both regular and
     // recoverable signature types).
-    let signature: SecpSignature = thingo.sign(message);
+    let mut signature: SecpSignature = signing_key.sign(message);
     match Signature::from_der_impl(signature.to_der().as_bytes().to_vec()) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(PrivateKeyErrors::SignatureError { error: e }),
+    }
+  }
+
+  pub(crate) fn sign_with_k_impl(&self, preimage: &[u8]) -> Result<Signature, PrivateKeyErrors> {
+    let signing_key = match SigningKey::from_bytes(&self.secret_key.to_bytes()) {
+      Ok(v) => v,
+      Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
+    };
+    
+    // let preimage_hash = Hash::sha_256(preimage.clone()).to_bytes();
+    let engine = Sha256::new(true).chain(Sha256::digest(preimage.clone()));
+    let non_reverse_engine = Sha256::new(false).chain(Sha256::digest(preimage.clone()));
+    let double_hash = Hash::sha_256d(preimage).to_bytes();
+    // double_hash.reverse();
+
+    assert_eq!(&signing_key.to_bytes().to_vec(), &self.secret_key.to_bytes().to_vec(), "Signing key and secret key bytes are diff");
+
+    let (custom_sig, is_recoverable) = sign_custom_preimage(&self.secret_key, &double_hash, engine.clone()).unwrap();
+
+    // assert_eq!(ecdsa::signature::Signature::as_bytes(&signature.to_der()).to_hex(), "30450221009c230cdb72228135e3b9e27bcc58d366d89be2ddbc078dccac0b17568e11e41502201ebd424c1bbb9b807770bdc9f7db098ed158b541218ff102ae220ecf044c8df8", "NOPE");
+    // let mut thing = vec![];
+    // engine.;
+
+    // let digest_256dr = engine.clone().finalize().to_vec();
+    // assert_eq!(digest_256dr, hash.to_bytes(), "digests arent equal");
+
+    // secret_scalar.try_sign_recoverable_prehashed(ephemeral_scalar, &k);
+
+    // let signature: SecpSignature = signing_key.sign(&hash.to_bytes());
+    // let signature: SecpSignature = signing_key.sign_digest(engine);
+
+    // assert_eq!(signature.to_der().as_bytes(), custom_sig.to_der().as_bytes(), "Sigs arent equal");
+
+    // signature.normalize_s().unwrap();
+    match Signature::from_der_impl(custom_sig.to_der().as_bytes().to_vec()) {
       Ok(v) => Ok(v),
       Err(e) => Err(PrivateKeyErrors::SignatureError { error: e }),
     }
@@ -54,7 +108,7 @@ impl PrivateKey {
       Err(e) => wasm_bindgen::throw_str(&e.to_string()),
     };
 
-    let shad_hex = bitcoin_hashes::sha256d::Hash::hash(&bytes);
+    let shad_hex = Hash::sha_256d(&bytes).to_bytes();
 
     // 4. Take first 4 bytes as checksum
     let checksum = shad_hex.to_vec()[0..4].to_hex();
@@ -105,7 +159,7 @@ impl PrivateKey {
 
     // 2. Check the Checksum
     let checksum = wif_bytes[wif_bytes.len() - 4..].to_hex();
-    let check_hash = bitcoin_hashes::sha256d::Hash::hash(&wif_without_checksum);
+    let check_hash = Hash::sha_256d(&wif_without_checksum).to_bytes();
     let check_string = check_hash.to_vec()[0..4].to_hex();
 
     if check_string.ne(&checksum) {
@@ -185,7 +239,12 @@ impl PrivateKey {
     }
   }
 
+
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
+  /**
+   * SHA256s and then signs the specified message.
+   * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+   */
   pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, JsValue> {
     match PrivateKey::sign_message_impl(&self, msg) {
       Ok(v) => Ok(v),
@@ -227,8 +286,16 @@ impl PrivateKey {
     PrivateKey::from_hex_impl(hex_str)
   }
 
+  /**
+   * SHA256s and then signs the specified message.
+   * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+   */
   pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
     PrivateKey::sign_message_impl(&self, msg)
+  }
+
+  pub fn sign_preimage(&self, preimage: &[u8]) -> Result<Signature, PrivateKeyErrors> {
+    PrivateKey::sign_preimage_impl(&self, preimage)
   }
 
   pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {

@@ -9,9 +9,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{throw_str};
 
 #[wasm_bindgen]
-#[derive(
-  Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString,
-)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
   FORKID = 0x40,
@@ -74,15 +72,26 @@ impl Transaction {
     n_tx_in: usize,
     presigned_script: &Script,
     value: u64,
-  ) -> Result<Signature> {
+  ) -> Result<Vec<u8>> {
     let buffer = self.sighash_preimage_impl(n_tx_in, sighash, presigned_script, value)?;
-    let hash = Hash::sha_256d(&buffer);
-    let sig = match priv_key.sign_message_impl(&hash.to_bytes()) {
+    // Only SHA256 once, our signing function SHA256's again.
+    let hash = Hash::sha_256(&buffer.clone());
+
+
+    let sig = match priv_key.sign_preimage_impl(&buffer) {
       Ok(v) => v,
       Err(e) => return Err(anyhow!(e)),
     };
 
-    Ok(sig)
+    let mut sig_bytes = sig.to_der_bytes_impl();
+    let sighash_u8 = sighash.to_u8().ok_or(anyhow!(format!(
+      "Cannot convert SigHash {:?} into u8",
+      sighash
+    )))?;
+
+    sig_bytes.push(sighash_u8);
+
+    Ok(sig_bytes)
   }
 
   /**
@@ -95,13 +104,6 @@ impl Transaction {
     presigned_script: &Script,
     value: u64,
   ) -> Result<Vec<u8>> {
-    // This if statement is needed because of Consensus SIGHASH_SINGLE bug
-    if sighash == SigHash::InputsOutput && n_tx_in >= self.outputs.len() - 1 as usize {
-      let mut bugged_buf = vec!(0x0; 31);
-      bugged_buf.push(01);
-      return Ok(bugged_buf);
-    }
-
     let mut buffer: Vec<u8> = vec![];
 
     let input = self
@@ -121,7 +123,7 @@ impl Transaction {
     buffer.write(&hashed_outputs)?;
     buffer.write_u32::<LittleEndian>(self.n_locktime)?;
 
-    let sighash_u32 = ToPrimitive::to_u32(&sighash).ok_or(anyhow!(format!(
+    let sighash_u32 = sighash.to_u32().ok_or(anyhow!(format!(
       "Cannot convert SigHash {:?} into u32",
       sighash
     )))?;
@@ -137,10 +139,18 @@ impl Transaction {
     presigned_script: &Script,
     value: u64,
   ) -> Result<Vec<u8>> {
+    // This if statement is needed because of Consensus SIGHASH_SINGLE bug
+    // https://bitcoinfiles.org/t/9a3a165cc7881bb2e37567dec5eaab64568a889e83e6b850b42f347e1d96a555
+    if sighash == SigHash::InputsOutput && n_tx_in >= self.outputs.len() as usize {
+      let mut bugged_buf = vec!(0x0; 31);
+      bugged_buf.push(01);
+      return Ok(bugged_buf);
+    }
+
     let buffer = self.sighash_preimage_impl(n_tx_in, sighash, presigned_script,value)?;
     Ok(Hash::sha_256d(&buffer).to_bytes())
   }
-
+  
   /**
    * Checks the hash cache to see if there already are hashed sequence, otherwise calculates the hash and adds it to the cache
    */
@@ -149,18 +159,19 @@ impl Transaction {
       return x.to_bytes();
     }
 
-    if sighash == SigHash::InputsOutputs {
-      return [0; 32].to_vec()
+    match sighash {
+      SigHash::ALL | SigHash::InputsOutputs => {
+        let input_sequences: Vec<u8> = self
+          .inputs
+          .iter()
+          .flat_map(|x| x.get_sequence_as_bytes())
+          .collect();
+        let hash = Hash::sha_256d(&input_sequences);
+        self.hash_cache.hash_sequence = Some(hash.clone());
+        hash.to_bytes()
+      }
+      _ => [0; 32].to_vec()
     }
-
-    let input_sequences: Vec<u8> = self
-      .inputs
-      .iter()
-      .flat_map(|x| x.get_sequence_as_bytes())
-      .collect();
-    let hash = Hash::sha_256d(&input_sequences);
-    self.hash_cache.hash_sequence = Some(hash.clone());
-    hash.to_bytes()
   }
 
   /**
@@ -204,19 +215,18 @@ impl Transaction {
    * - If SigHash does not contain ANYONECANPAY, SHA256d all input outpoints
    * - Else 32 bytes of zeroes
    */
-  fn hash_inputs(&mut self, sighash: SigHash) -> Vec<u8> {
+  pub fn hash_inputs(&mut self, sighash: SigHash) -> Vec<u8> {
     if let Some(x) = &self.hash_cache.hash_inputs {
       return x.to_bytes();
     }
 
     match sighash {
-      SigHash::ANYONECANPAY | SigHash::Input | SigHash::InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
+      SigHash::ANYONECANPAY | 
+      SigHash::Input | 
+      SigHash::InputOutput | 
+      SigHash::InputOutputs => [0; 32].to_vec(),
       _ => {
-
-        let mut input_bytes = Vec::new();
-        for input in &self.inputs {
-          input_bytes.extend(input.get_outpoint_bytes());
-        }
+        let input_bytes: Vec<u8> = self.inputs.iter().flat_map(|txin| txin.get_outpoint_bytes()).collect();
 
         let hash = Hash::sha_256d(&input_bytes);
         self.hash_cache.hash_inputs = Some(hash.clone());
@@ -236,7 +246,7 @@ impl Transaction {
     n_tx_in: usize,
     presigned_script: &Script,
     value: u64,
-  ) -> Result<Signature> {
+  ) -> Result<Vec<u8>> {
     Transaction::sign_impl(self, priv_key, sighash, n_tx_in, presigned_script, value)
   }
 
@@ -272,7 +282,7 @@ impl Transaction {
     n_tx_in: usize,
     presigned_script: &Script,
     value: u64,
-  ) -> Result<Signature, JsValue> {
+  ) -> Result<Vec<u8>, JsValue> {
     match Transaction::sign_impl(self, priv_key, sighash, n_tx_in, presigned_script, value) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
@@ -291,6 +301,10 @@ impl Transaction {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
+  }
+
+  pub fn hash_inputss(&mut self, sighash: SigHash) -> Vec<u8> { 
+    Transaction::hash_inputs(self, sighash)
   }
 
   #[wasm_bindgen(js_name = sighashPreimage)]

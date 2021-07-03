@@ -94,50 +94,42 @@ impl TxIn {
   }
 
   pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TxInErrors> {
-    let mut cursor = Cursor::new(Vec::new());
+    let mut buffer = vec![];
 
-    let mut txid = self.prev_tx_id.clone();
-    txid.reverse();
-
+    // prev_tx_id is already reversed
     // Write Prev TxID first
-    match cursor.write(&txid) {
+    match buffer.write(&self.prev_tx_id) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
       Ok(0) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Wrote zero bytes for Prev TX Id!") }),
       Ok(_) => ()
     };
 
     // Vout
-    match cursor.write_u32::<LittleEndian>(self.vout) {
+    match buffer.write_u32::<LittleEndian>(self.vout) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("vout".to_string()), error: anyhow!(e) }),
       _ => ()
     };
 
     // Script Sig Size
-     match cursor.write_varint(self.get_script_sig_size()) {
+     match buffer.write_varint(self.get_script_sig_size()) {
       Ok(v) => v,
       Err(e) => return Err(TxInErrors::Serialise { field: Some("script_sig_size".to_string()), error: anyhow!(e) }),
     };
 
     // Script Sig
-    match cursor.write(&self.script_sig.0) {
+    match buffer.write(&self.script_sig.0) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("script_sig".to_string()), error: anyhow!(e) }),
       _ => () 
     };
 
     // Sequence
-    match cursor.write_u32::<LittleEndian>(self.sequence) {
+    match buffer.write_u32::<LittleEndian>(self.sequence) {
       Ok(v) => v,
       Err(e) => return Err(TxInErrors::Serialise { field: Some("sequence".to_string()), error: anyhow!(e) })
     };
 
     // Write out bytes
-    let mut bytes: Vec<u8> = Vec::new();
-    cursor.set_position(0);
-    match cursor.read_to_end(&mut bytes) {
-      Err(e) => return Err(TxInErrors::Serialise{ field: None, error: anyhow!(e) }),
-      _ => ()
-    };
-    Ok(bytes)
+    Ok(buffer)
   }
 
   pub(crate) fn to_hex_impl(&self) -> Result<String, TxInErrors> {

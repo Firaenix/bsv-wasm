@@ -1,6 +1,4 @@
-use crate::{AddressErrors};
-
-use bitcoin_hashes::Hash;
+use crate::{AddressErrors, Hash};
 use wasm_bindgen::{prelude::*, throw_str};
 use wasm_bindgen::JsValue;
 use crate::PublicKey;
@@ -32,9 +30,9 @@ impl P2PKHAddress {
       Err(e) => return Err(AddressErrors::ParseHex{ hex: pub_key_hex, error: e })
     };
 
-    let pub_key_hash = bitcoin_hashes::hash160::Hash::hash(&pub_key_bytes);
+    let pub_key_hash = Hash::hash_160(&pub_key_bytes);
     
-    Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_vec()))
+    Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_bytes()))
   }
 
   
@@ -44,7 +42,7 @@ impl P2PKHAddress {
     let mut address_bytes: Vec<u8> = vec![00];
     address_bytes.append(&mut pub_key_hash_bytes);
 
-    let shad_bytes = bitcoin_hashes::sha256d::Hash::hash(&address_bytes);
+    let shad_bytes = Hash::sha_256d(&address_bytes).to_bytes();
     let mut checksum_bytes = shad_bytes[0..4].to_vec();
 
     address_bytes.append(&mut checksum_bytes);

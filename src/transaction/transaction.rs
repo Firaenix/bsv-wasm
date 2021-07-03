@@ -2,9 +2,8 @@ use std::{io::Cursor};
 use std::io::Read;
 use std::io::Write;
 
-use crate::{HashCache, TxIn, TxOut, VarInt};
+use crate::{HashCache, TxIn, TxOut, VarInt, Hash};
 use anyhow::*;
-use bitcoin_hashes::Hash;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 use serde::{Serialize, Deserialize};
@@ -196,6 +195,20 @@ impl Transaction {
       Err(e) => Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) })
     } 
   }
+
+  /**
+   * Gets the ID of the current transaction. 
+   * Returns the SHA256d Hash of the current transaction.
+   * 
+   * Txid is the reverse of the hash result.
+   */
+  pub(crate) fn get_id_impl(&self) -> Result<Hash, TransactionErrors> {
+    let tx_bytes =  self.to_bytes_impl()?;
+    let mut hash = Hash::sha_256d(&tx_bytes);
+    hash.0.reverse();
+
+    Ok(hash)
+  }
 }
 
 /**
@@ -251,11 +264,16 @@ impl Transaction {
   #[wasm_bindgen(js_name = addInput)]
   pub fn add_input(&mut self, input: &TxIn) -> () {
     self.inputs.push(input.clone());
+    // Transaction has been changed, need to recalculate inputs hashes
+    self.hash_cache.hash_inputs = None;
+    self.hash_cache.hash_sequence = None;
   }
 
   #[wasm_bindgen(js_name = addOutput)]
   pub fn add_output(&mut self, output: &TxOut) -> () {
     self.outputs.push(output.clone());
+    // Transaction has been changed, need to recalculate outputs hashes
+    self.hash_cache.hash_outputs = None;
   }
 }
 
@@ -343,6 +361,28 @@ impl Transaction {
       self.add_output(&output);
     }
   }
+
+  /**
+   * Gets the ID of the current transaction as a hex string. 
+   */
+  #[wasm_bindgen(js_name = getIdHex)]
+  pub fn get_id_hex(&self) -> Result<String, JsValue> {
+    match self.get_id_impl() {
+      Ok(v) => Ok(v.to_hex()),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  /**
+   * Gets the ID of the current transaction as a Uint8Array. 
+   */
+  #[wasm_bindgen(js_name = getIdBytes)]
+  pub fn get_id_bytes(&self) -> Result<Vec<u8>, JsValue> {
+    match self.get_id_impl() {
+      Ok(v) => Ok(v.to_bytes()),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 /**
@@ -350,6 +390,20 @@ impl Transaction {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl Transaction {
+  /**
+   * Gets the ID of the current transaction as a hex string.
+   */
+  pub fn get_id_hex(&self) -> Result<String, TransactionErrors> {
+    Ok(self.get_id_impl()?.to_hex())
+  }
+
+  /**
+   * Gets the ID of the current transaction as a Vec<u8>.
+   */
+  pub fn get_id_bytes(&self) -> Result<Vec<u8>, TransactionErrors> {
+    Ok(self.get_id_impl()?.to_bytes())
+  }
+
   #[cfg(not(target_arch = "wasm32"))]
   pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
     return Transaction::from_hex_impl(hex_str);
