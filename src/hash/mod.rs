@@ -7,6 +7,7 @@ use pbkdf2::{Algorithm, Params, Pbkdf2, password_hash::{Ident, Output, PasswordH
 use bitcoin_hashes::{Hash as BitcoinHash, HashEngine, Hmac, HmacEngine, hash160, hex::ToHex, ripemd160, sha1, sha256, sha256d, sha512};
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::{JsValue, throw_str};
 use serde::*;
 use crate::utils::{from_hex, to_hex};
 
@@ -194,8 +195,12 @@ impl Hash {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl Hash {
-  pub fn pbkdf2(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<Self, PBKDF2Errors> {
+  pub fn pbkdf2(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<Hash, PBKDF2Errors> {
     Hash::pbkdf2_impl(password, salt, hash_algo, rounds, output_length)
+  }
+
+  pub fn pbkdf2_random_salt(password: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<PBKDF2Result, PBKDF2Errors> {
+    Hash::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length)
   }
 }
 
@@ -206,9 +211,17 @@ impl Hash {
 #[wasm_bindgen]
 impl Hash {
   #[wasm_bindgen(js_name = pbkdf2)]
-  pub fn pbkdf2(password: &str, salt: &str, rounds: u32)-> Result<Self, JsValue> {
-    match Hash::pbkdf2_impl(password, salt_hex, rounds) {
-      Ok(v) => v,
+  pub fn pbkdf2(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<Hash, JsValue> {
+    match Hash::pbkdf2_impl(password, salt, hash_algo, rounds, output_length) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = pbkdf2RandomSalt)]
+  pub fn pbkdf2_random_salt(password: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<PBKDF2Result, JsValue> {
+    match Hash::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length) {
+      Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
   }
