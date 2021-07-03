@@ -15,7 +15,7 @@ mod kdf_tests {
     let salt = "snails";
     let rounds: u32 = 10000;
 
-    let kdf = KDF::pbkdf2(&password, Some(&salt), bsv_wasm::PBKDF2Hashes::SHA256, rounds, 32).unwrap();
+    let kdf = KDF::pbkdf2(&password, Some(salt.into()), bsv_wasm::PBKDF2Hashes::SHA256, rounds, 32).unwrap();
 
     // validated against twetch/sycamore-pro and https://neurotechnics.com/tools/pbkdf2-test
     assert_eq!(kdf.get_hash().to_hex(), "ffb5bb1b78211b1d275f32c4ba426f0875e80640fbf313eac06ba6e79225b237");
