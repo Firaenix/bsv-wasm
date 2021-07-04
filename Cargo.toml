@@ -63,7 +63,7 @@ cargo-web = "0.6.26"
 rustflags = ["-C", "target-feature=+simd128"]
 
 [profile.release]
-opt-level = 3
+opt-level = 'z'
 lto = true
 
 [profile.test]
