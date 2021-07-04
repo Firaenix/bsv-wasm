@@ -9,26 +9,30 @@ NodeJS:
 Web:  
 `npm i bsv-wasm-web --save`
 
+Webpack:  
+`npm i bsv-wasm-bundler --save`
+
 Rust:  
 https://crates.io/crates/bsv-wasm
 
 ## Features
 - Hash (SHA256, SHA256d, SHA1, RIPEMD160, Hash160, SHA512)
+- KDF (PBKDF2)
+- Encryption (AES-CBC)
 - ECDSA (Private Key, Public Key, Signatures)
 - Transaction (Building, Serialising, Deserialising)
 - Script (Serialising, Deserialising)
 - Addresses (P2PKH)
+- Sighash Support
+- Extended Private Keys and Child Derivation (BIP32, BIP42)
 
 ## TODO:
-- [x] SigHash Support
+- [ ] AES-CTR
 - [ ] ECIES
 - [ ] Script Builder
 - [ ] Isomorphic Package for JS
 - [ ] Write documentation (Inline on functions and structs)
-- [x] BIP32
-- [x] BIP44
 - [ ] Testnet Support
-- [x] Nicer way to pass an array of TxIn and TxOut into things (currenly limited by https://github.com/rustwasm/wasm-bindgen/issues/111)
 
 ## Will not do:
 - Mnemonics
