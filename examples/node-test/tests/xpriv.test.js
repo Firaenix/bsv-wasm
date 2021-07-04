@@ -1,6 +1,7 @@
 import { ExtendedPrivateKey } from "../../../pkg/bsv_wasm";
 import { Bip32 } from 'bsv';
 import { assert } from "chai";
+import crypto from 'crypto';
 
 
 
@@ -13,6 +14,23 @@ describe('XPriv Tests', function () {
 
     assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
   })
+
+  it('Short seed match BSV.JS', () => {
+    let small_bytes = crypto.randomBytes(32);
+    let xpriv_wasm = ExtendedPrivateKey.fromSeed(small_bytes);
+    let xpriv_js = Bip32.fromSeed(small_bytes);
+
+    assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
+  })
+
+  it('Long seed match BSV.JS', () => {
+    let large_bytes = crypto.randomBytes(64);
+    let xpriv_wasm = ExtendedPrivateKey.fromSeed(large_bytes);
+    let xpriv_js = Bip32.fromSeed(large_bytes);
+
+    assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
+  })
+
 
   it('XPriv derivations match BSV.JS', () => {
     let xpriv_wif = "xprv9s21ZrQH143K2rdSf96bvxvYtHYjf2899A7M7S3Ka2jASLK6P3hs7Bg9snGVsArqAA2awhc26e5kqKDquKSkpZ6hXymjpCcUj1tRi17L4Bg";

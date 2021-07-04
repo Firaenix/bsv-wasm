@@ -4,6 +4,7 @@
 mod xpriv_tests {
     use bsv_wasm::{hash::Hash, keypair::*};
     extern crate wasm_bindgen_test;
+    use rand_core::OsRng;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
@@ -104,6 +105,7 @@ mod xpriv_tests {
   }
 
   #[test]
+  #[wasm_bindgen_test]
   fn seed_to_xprv() {
     let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
     let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
@@ -112,15 +114,26 @@ mod xpriv_tests {
   }
 
   #[test]
-  fn long_seed_to_xprv() {
+  #[wasm_bindgen_test]
+  fn non_standard__long_seed_to_xprv() {
     let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
     let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
 
-    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3UHKxrxdUicfntW2v9RRm2YGc1Fvs44cNMLfrXERKaSzziw6qVMcN6EFiT2uEYDNgSxopNFEGBjBZkHXRWQkTe8ePpAviwT");
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K2iZ72grdBYHPdmnrwYwmUHQkSpW6hnVCcYKVMr2V5A7AYDerUumeMVaZ98FAY5viaMkJ6a1bU3s5aHYbyErWotxAPBMQx4m");
   }
 
   #[test]
-  fn short_seed_to_xprv() {
+  #[wasm_bindgen_test]
+  fn non_standard__massive_seed_to_xpriv() {
+    let mut seed = vec![0; 4096];
+    getrandom::getrandom(&mut seed).unwrap();
+    let key = ExtendedPrivateKey::from_seed(seed).unwrap();
+
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K41FDFd4aLGchVDHQcEi3N8yooGCqPh4Daj9vaVXTeo2r7UEDYpaCD7aYesZVkPL2jDgmrMqNNepC6cMXQx3u2uRimLdHBtP");
+  }
+
+  #[test]
+  fn non_standard__short_seed_to_xprv() {
     let bytes = hex::decode("deadbeef").unwrap();
     let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
 
