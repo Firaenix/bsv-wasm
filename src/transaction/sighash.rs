@@ -18,7 +18,7 @@ pub enum SigHash {
   NONE = 0x02,
   SINGLE = 0x03,
   ANYONECANPAY = 0x80,
-  MAGIC = 0x21e8,
+  // MAGIC = 0x21e8, - Idea for the future
   /**
    * ALL | FORKID
    */
@@ -133,11 +133,6 @@ impl Transaction {
     unsigned_script: &Script,
     value: u64
   ) -> Result<Vec<u8>> {
-    if sighash == SigHash::MAGIC {
-      return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?);
-    }
-    
-
     // If uses any of the FORK_ID sighash variants
     // Gross, fix this. Maybe a nice method on SigHash enum to check if contains another SigHash type
     match sighash {
