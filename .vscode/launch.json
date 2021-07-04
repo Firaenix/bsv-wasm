@@ -7,16 +7,16 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in library 'bsv-rs'",
+      "name": "Debug unit tests in library 'bsv-wasm'",
       "cargo": {
         "args": [
           "test",
           "--no-run",
           "--lib",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
-          "name": "bsv-rs",
+          "name": "bsv-wasm",
           "kind": "lib"
         }
       },
@@ -32,7 +32,7 @@
           "test",
           "--no-run",
           "--test=transaction",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
           "name": "transaction",
@@ -51,7 +51,7 @@
           "test",
           "--no-run",
           "--test=private_key",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
           "name": "private_key",
@@ -70,7 +70,7 @@
           "test",
           "--no-run",
           "--test=address",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
           "name": "address",
@@ -89,7 +89,7 @@
           "test",
           "--no-run",
           "--test=signature",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
           "name": "signature",
@@ -108,10 +108,29 @@
           "test",
           "--no-run",
           "--test=public_key",
-          "--package=bsv-rs"
+          "--package=bsv-wasm"
         ],
         "filter": {
           "name": "public_key",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug integration test 'kdf'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=kdf",
+          "--package=bsv-wasm"
+        ],
+        "filter": {
+          "name": "kdf",
           "kind": "test"
         }
       },

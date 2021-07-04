@@ -1,6 +1,6 @@
 [package]
 name = "bsv-wasm"
-version = "0.9.8"
+version = "0.9.9"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2018"
 description = "A Bitcoin SV library with WASM in mind."
@@ -34,6 +34,10 @@ digest = "0.9.0"
 hmac = "0.11.0"
 bitcoin_hashes = "0.9.7"
 
+
+sha-1 = "0.9.6"
+sha2 = "0.9.5"
+hmac = "0.11.0"
 
 [dependencies.elliptic-curve]
 version = "0.10.0"
