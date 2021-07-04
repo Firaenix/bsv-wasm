@@ -129,7 +129,8 @@ mod xpriv_tests {
     getrandom::getrandom(&mut seed).unwrap();
     let key = ExtendedPrivateKey::from_seed(seed).unwrap();
 
-    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3v5YW2st1EBurZUVSuMxRknRDz8vYCVXbgyEwafehrZ5PMfMxAvzYcYFr3RxgJ5tumvW2X6aF7bFek1eSL6xyGCSNQqpR9N");
+    let new_key = ExtendedPrivateKey::from_string(&key.to_string().unwrap()).unwrap();
+    assert_eq!(new_key.to_string().unwrap(), key.to_string().unwrap());
   }
 
   #[test]
