@@ -1,3 +1,5 @@
+use crate::reverse_digest::ReversibleDigest;
+use digest::consts::U20;
 use digest::{BlockInput, FixedOutputDirty, Reset, Update, consts::{U64, U32}, Digest};
 
 use ripemd160::Ripemd160;
@@ -10,20 +12,13 @@ pub struct Hash160 {
     reverse: bool
 }
 
-pub trait ReversibleDigest  {
-    /**
-     * Returns a reversed Hash160version of the given digest
-     */
-    fn reverse(&self) -> Self;
+impl ReversibleDigest for Hash160 {
+  fn reverse(&self) -> Self {
+    let mut reversed = self.clone();
+    reversed.reverse = true;
+    reversed
   }
-  
-  impl ReversibleDigest for Hash160 {
-    fn reverse(&self) -> Self {
-      let mut reversed = self.clone();
-      reversed.reverse = true;
-      reversed
-    }
-  }
+}
 
 impl Hash160 {
     pub fn new(reverse: bool) -> Self {
@@ -52,15 +47,13 @@ impl FixedOutputDirty for Hash160 {
     type OutputSize = U20;
 
     fn finalize_into_dirty(&mut self, out: &mut digest::Output<Self>) {
-      let first_hash = &*self.engine.finalize();
-      let finished_hash = Ripemd160::digest(first_hash);
-      let mut vec = finished_hash.to_vec();
-
+      let first_hash = self.clone().engine.finalize();
+      let finished_hash = &mut *Ripemd160::digest(&*first_hash);
       if self.reverse {
-          vec.reverse()
+        finished_hash.reverse()
       }
 
-      out.copy_from_slice(&vec);
+      out.copy_from_slice(&finished_hash);
     }
 }
 

@@ -1,47 +1,46 @@
-use digest::{BlockInput, Digest, FixedOutput, FixedOutputDirty, Reset, Update, consts::{U64, U32}};
-
+use crate::hash::FixedOutput;
 use sha2::Sha256;
+use digest::{BlockInput, Digest, FixedOutputDirty, Reset, Update, consts::{U64, U32}};
 
 use crate::reverse_digest::ReversibleDigest;
 
-
+/**
+ *  Sha256 reversible - needed to convert the output of a Sha256 hash into Little Endian for SigHash BIP143
+ */
 #[derive(Clone, Default)]
-pub struct Sha256d { 
+pub struct Sha256r {
     engine: Sha256,
     reverse: bool
 }
 
-impl ReversibleDigest for Sha256d {
-  fn reverse(&self) -> Self {
-    let mut reversed = self.clone();
-    reversed.reverse = true;
-    reversed
-  }
+impl ReversibleDigest for Sha256r {
+    fn reverse(&self) -> Self {
+        let mut reversed = self.clone();
+        reversed.reverse = true;
+        reversed
+    }
 }
 
-impl BlockInput for Sha256d {
+impl BlockInput for Sha256r {
     type BlockSize = U64;
 }
 
-impl Update for Sha256d {
+impl Update for Sha256r {
     fn update(&mut self, data: impl AsRef<[u8]>) {
       Digest::update(&mut self.engine, data)
     }
 }
 
-impl FixedOutput for Sha256d {
+impl FixedOutput for Sha256r {
     type OutputSize = U32;
 
     fn finalize_into(self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {
-      let first_hash = &*self.engine.finalize();
-      let mut finished_hash = Sha256::digest(first_hash);
-      // let mut vec = finished_hash.to_vec();
-
+      let finalised_hash = &mut *self.engine.finalize();
       if self.reverse {
-        finished_hash.reverse()
+        finalised_hash.reverse()
       }
 
-      out.copy_from_slice(&*finished_hash)
+      out.copy_from_slice(&*finalised_hash);
     }
 
     fn finalize_into_reset(&mut self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {
@@ -65,10 +64,10 @@ impl FixedOutput for Sha256d {
     }
 }
 
-impl Reset for Sha256d {
+impl Reset for Sha256r {
     fn reset(&mut self) {
       self.engine = Sha256::default();
     }
 }
 
-digest::impl_write!(Sha256d);
+digest::impl_write!(Sha256r);

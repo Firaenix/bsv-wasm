@@ -1,5 +1,12 @@
 pub mod sha256d_digest;
 pub mod hash160_digest;
+pub mod reverse_digest;
+pub mod sha256r_digest;
+
+pub use sha256r_digest::*;
+pub use sha256d_digest::*;
+pub use hash160_digest::*;
+pub use reverse_digest::*;
 
 use digest::Digest;
 use hmac::crypto_mac::Key;
