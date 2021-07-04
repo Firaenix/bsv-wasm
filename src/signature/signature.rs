@@ -1,6 +1,6 @@
 use crate::{PublicKey, SignatureErrors};
 use wasm_bindgen::{prelude::*, throw_str};
-use k256::{Secp256k1, ecdsa::Signature as SecpSignature, Scalar, ecdsa::{VerifyingKey, signature::Verifier}};
+use k256::{ecdsa::Signature as SecpSignature, ecdsa::{VerifyingKey, signature::Verifier}};
 use elliptic_curve::sec1::*;
 
 #[wasm_bindgen]
@@ -76,6 +76,15 @@ impl Signature {
 }
 
 
+#[wasm_bindgen]
+impl Signature {
+  #[wasm_bindgen(js_name = toDER)]
+  pub fn to_der_bytes(&self) -> Vec<u8> {
+    Signature::to_der_bytes_impl(&self)
+  }
+}
+
+
 /**
  * WASM Exported Methods
  */
@@ -102,11 +111,6 @@ impl Signature {
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
   pub fn to_hex(&self) -> String {
     Signature::to_hex_impl(&self)
-  }
-
-  #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toDER))]
-  pub fn to_der_bytes(&self) -> Vec<u8> {
-    Signature::to_der_bytes_impl(&self)
   }
 
   #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verify))]

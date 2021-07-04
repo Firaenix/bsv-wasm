@@ -86,6 +86,11 @@ base-x@^3.0.2:
   dependencies:
     safe-buffer "^5.0.1"
 
+base64-js@^1.3.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
+  integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+
 benchmark@^2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/benchmark/-/benchmark-2.1.4.tgz#09f3de31c916425d498cc2ee565a0ebf3c2a5629"
@@ -149,15 +154,16 @@ bs58@4.0.1:
   dependencies:
     base-x "^3.0.2"
 
-bsv@^2.0.7:
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/bsv/-/bsv-2.0.7.tgz#beed919d220012737653acdd34e0c24df009f359"
-  integrity sha512-DggeThbzCpjWhMnRF00dB/+MOCrWymNzgXu/YBds4Gh0bqeGd9XxTxahberVbLf7ejRSCTpuyctiku00MD03EA==
+bsv@^2.0.10:
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/bsv/-/bsv-2.0.10.tgz#7eaaa6b5cc9806570eefff18f2cf8704c821b8b7"
+  integrity sha512-3zMs39EaPWV6QGKYZdsrtd3q/Pnrb2B5/MkKPa1HIe8sEmLIQpHKj5DF867En0gjHSSJ91LnOCpwuujZugxqtA==
   dependencies:
     aes "0.1.0"
     bitcoin-elliptic "^7.0.1"
     bn.js "^5.1.1"
     bs58 "4.0.1"
+    buffer "^6.0.3"
     chai "^4.2.0"
     hash.js "^1.1.7"
     is-hex "1.1.3"
@@ -168,6 +174,14 @@ buffer-from@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
+
+buffer@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-6.0.3.tgz#2ace578459cc8fbe2a70aaa8f52ee63b6a74c6c6"
+  integrity sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
+  dependencies:
+    base64-js "^1.3.1"
+    ieee754 "^1.2.1"
 
 camelcase@^6.0.0:
   version "6.2.0"
@@ -429,6 +443,11 @@ hmac-drbg@^1.0.0:
     hash.js "^1.0.3"
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
+
+ieee754@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
+  integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
 
 inflight@^1.0.4:
   version "1.0.6"

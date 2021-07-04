@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     extern crate wasm_bindgen_test;
-    use bitcoin_hashes::hex::ToHex;
     use bsv_wasm::hash::Hash;
     use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}};
     use wasm_bindgen_test::*;

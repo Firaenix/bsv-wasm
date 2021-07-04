@@ -1,13 +1,18 @@
 #[macro_use]
 extern crate num_derive;
 
-pub mod utils;
+#[cfg(target_arch = "wasm32")]
+extern crate wee_alloc;
+#[cfg(target_arch = "wasm32")]
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub mod keypair;
 
 pub use keypair::*;
 
 pub mod signature;
+
 pub use signature::*;
 
 pub mod traits;
@@ -19,8 +24,8 @@ pub use errors::*;
 pub mod address;
 pub use address::*;
 
-pub mod types;
-pub use types::*;
+pub mod utils;
+pub use utils::*;
 
 pub mod transaction;
 pub use transaction::*;

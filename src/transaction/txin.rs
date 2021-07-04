@@ -1,4 +1,3 @@
-
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
@@ -36,15 +35,6 @@ pub struct TxIn {
   sequence: u32,
 }
 
-impl From<JsValue> for TxIn {
-    fn from<'a>(x: JsValue) -> Self {
-        match x.into_serde::<TxIn>() {
-          Ok(v) => v,
-          Err(_) => TxIn{prev_tx_id: vec![], script_sig: Script::default(), sequence: 0, vout:0}
-        }
-    }
-}
-
 impl TxIn {
   pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, TxInErrors> {
     let txin_bytes = match hex::decode(&hex_str) {
@@ -65,7 +55,7 @@ impl TxIn {
     match cursor.read(&mut prev_tx_id) {
       Err(e) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
       Ok(0) => return Err(TxInErrors::Deserialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Read zero bytes for Prev TX Id!") }),
-      Ok(v) => ()
+      Ok(_) => ()
     };
     // Error in the original bitcoin client means that all txids in TxIns are reversed
     prev_tx_id.reverse();
@@ -104,54 +94,55 @@ impl TxIn {
   }
 
   pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TxInErrors> {
-    let mut cursor = Cursor::new(Vec::new());
+    let mut buffer = vec![];
 
-    let mut txid = self.prev_tx_id.clone();
-    txid.reverse();
-
+    // Bitcoin TX Hex serialises txids in reverse. 
+    let mut prev_tx_id = self.prev_tx_id.clone();
+    prev_tx_id.reverse();
     // Write Prev TxID first
-    match cursor.write(&txid) {
+    match buffer.write(&prev_tx_id) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!(e) }),
       Ok(0) => return Err(TxInErrors::Serialise { field: Some("prev_tx_id".to_string()), error: anyhow!("Wrote zero bytes for Prev TX Id!") }),
       Ok(_) => ()
     };
 
     // Vout
-    match cursor.write_u32::<LittleEndian>(self.vout) {
+    match buffer.write_u32::<LittleEndian>(self.vout) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("vout".to_string()), error: anyhow!(e) }),
       _ => ()
     };
 
     // Script Sig Size
-     match cursor.write_varint(self.get_script_sig_size()) {
+     match buffer.write_varint(self.get_script_sig_size()) {
       Ok(v) => v,
       Err(e) => return Err(TxInErrors::Serialise { field: Some("script_sig_size".to_string()), error: anyhow!(e) }),
     };
 
     // Script Sig
-    match cursor.write(&self.script_sig.0) {
+    match buffer.write(&self.script_sig.0) {
       Err(e) => return Err(TxInErrors::Serialise { field: Some("script_sig".to_string()), error: anyhow!(e) }),
       _ => () 
     };
 
     // Sequence
-    match cursor.write_u32::<LittleEndian>(self.sequence) {
+    match buffer.write_u32::<LittleEndian>(self.sequence) {
       Ok(v) => v,
       Err(e) => return Err(TxInErrors::Serialise { field: Some("sequence".to_string()), error: anyhow!(e) })
     };
 
     // Write out bytes
-    let mut bytes: Vec<u8> = Vec::new();
-    cursor.set_position(0);
-    match cursor.read_to_end(&mut bytes) {
-      Err(e) => return Err(TxInErrors::Serialise{ field: None, error: anyhow!(e) }),
-      _ => ()
-    };
-    Ok(bytes)
+    Ok(buffer)
   }
 
   pub(crate) fn to_hex_impl(&self) -> Result<String, TxInErrors> {
     Ok(hex::encode(&self.to_bytes_impl()?))
+  }
+
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TxInErrors> {
+    match serde_json::to_string_pretty(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxInErrors::Serialise{ field: None, error: anyhow!(e) })
+    } 
   }
 }
 
@@ -177,13 +168,20 @@ impl TxIn {
   }
 
   #[wasm_bindgen(js_name = getPrevTxId)]
-  pub fn get_prev_tx_id(&self) -> Vec<u8> {
-    self.prev_tx_id.clone()
+  pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {
+    match little_endian {
+      Some(true) =>  {
+        let mut reversed_tx = self.prev_tx_id.clone();
+        reversed_tx.reverse();
+        reversed_tx
+      },
+      _ => self.prev_tx_id.clone()
+    }
   }
 
   #[wasm_bindgen(js_name = getPrevTxIdHex)]
-  pub fn get_prev_tx_id_hex(&self) -> String {
-    hex::encode(self.prev_tx_id.clone())
+  pub fn get_prev_tx_id_hex(&self, little_endian: Option<bool>) -> String {
+    hex::encode(self.get_prev_tx_id(little_endian))
   }
 
   #[wasm_bindgen(js_name = getVOut)]
@@ -217,15 +215,35 @@ impl TxIn {
   }
 
   #[wasm_bindgen(js_name = getOutpointBytes)]
-  pub fn get_outpoint_bytes(&self) -> Vec<u8> {
-    let mut outpoint_bytes = self.prev_tx_id.clone();
-    outpoint_bytes.extend_from_slice(&self.vout.to_be_bytes());
+  pub fn get_outpoint_bytes(&self, little_endian: Option<bool>) -> Vec<u8> {
+    let mut outpoint_bytes = self.get_prev_tx_id(little_endian);
+    outpoint_bytes.extend_from_slice(&self.vout.to_le_bytes());
     outpoint_bytes
   }
 
   #[wasm_bindgen(js_name = getOutpointHex)]
-  pub fn get_outpoint_hex(&self) -> String {
-    hex::encode(self.get_outpoint_bytes())
+  pub fn get_outpoint_hex(&self, little_endian: Option<bool>) -> String {
+    hex::encode(self.get_outpoint_bytes(little_endian))
+  }
+
+  #[wasm_bindgen(js_name = setScript)]
+  pub fn set_script(&mut self, script: &Script) {
+    self.script_sig = script.clone();
+  }
+
+  #[wasm_bindgen(js_name = setPrevTxId)]
+  pub fn set_prev_tx_id(&mut self, txid: &[u8]) {
+    self.prev_tx_id = txid.to_vec();
+  }
+
+  #[wasm_bindgen(js_name = setVOut)]
+  pub fn set_vout(&mut self, vout: u32) {
+    self.vout = vout;
+  }
+
+  #[wasm_bindgen(js_name = setSequence)]
+  pub fn set_sequence(&mut self, sequence: u32) {
+    self.sequence = sequence;
   }
 }
 
@@ -239,6 +257,22 @@ impl TxIn {
   #[wasm_bindgen(js_name = fromHex)]
   pub fn from_hex(hex_str: String) -> Result<TxIn, JsValue> {
     match TxIn::from_hex_impl(hex_str) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toJSON)]
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match TxIn::to_json_string_impl(&self) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -276,5 +310,18 @@ impl TxIn {
 
   pub fn to_hex(&self) -> Result<String, TxInErrors> {
     TxIn::to_hex_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json_string(&self) -> Result<String, TxInErrors> {
+    TxIn::to_json_string_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TxInErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxInErrors::Serialise{field: None, error: anyhow!(e)})
+    }
   }
 }

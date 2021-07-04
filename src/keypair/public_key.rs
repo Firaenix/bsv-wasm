@@ -1,9 +1,8 @@
 use crate::PublicKeyErrors;
-use std::{borrow::Borrow, ops::Deref};
 
 use elliptic_curve::sec1::*;
-use k256::{PublicKey as PubKey, Secp256k1};
-use wasm_bindgen::{prelude::*, throw_str, JsStatic};
+use k256::{Secp256k1};
+use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::PrivateKey;
 
@@ -69,14 +68,6 @@ impl PublicKey {
     }
 }
 
-impl PublicKey {
-    fn param_is_compressed(compress: Option<bool>) -> bool {
-        match compress {
-            Some(v) => v,
-            None => true
-        }
-    }
-}
 
 /**
  * WASM Exported Methods
@@ -84,6 +75,13 @@ impl PublicKey {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl PublicKey {
+    fn param_is_compressed(compress: Option<bool>) -> bool {
+        match compress {
+            Some(v) => v,
+            None => true
+        }
+    }
+
     #[wasm_bindgen(js_name = fromHex)]
     pub fn from_hex(hex_str: String, compress: Option<bool>) -> Result<PublicKey, JsValue> {
         match PublicKey::from_hex_impl(hex_str, PublicKey::param_is_compressed(compress)) {

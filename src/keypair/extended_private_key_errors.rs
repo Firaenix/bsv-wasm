@@ -1,6 +1,5 @@
 use crate::PublicKeyErrors;
 use crate::PrivateKeyErrors;
-use anyhow::*;
 use snafu::*;
 
 #[derive(Debug, Snafu)]

@@ -1,7 +1,5 @@
 use crate::PublicKeyErrors;
-use anyhow::*;
 use snafu::*;
-use anyhow::*;
 
 #[derive(Debug, Snafu)]
 pub enum ExtendedPublicKeyErrors {
