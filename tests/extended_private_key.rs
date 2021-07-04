@@ -129,7 +129,7 @@ mod xpriv_tests {
     getrandom::getrandom(&mut seed).unwrap();
     let key = ExtendedPrivateKey::from_seed(seed).unwrap();
 
-    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K41FDFd4aLGchVDHQcEi3N8yooGCqPh4Daj9vaVXTeo2r7UEDYpaCD7aYesZVkPL2jDgmrMqNNepC6cMXQx3u2uRimLdHBtP");
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3v5YW2st1EBurZUVSuMxRknRDz8vYCVXbgyEwafehrZ5PMfMxAvzYcYFr3RxgJ5tumvW2X6aF7bFek1eSL6xyGCSNQqpR9N");
   }
 
   #[test]
