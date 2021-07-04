@@ -1,8 +1,8 @@
+use crate::reverse_digest::ReversibleDigest;
 use digest::{BlockInput, FixedOutput, Reset, Update, consts::U32};
 use ecdsa::{hazmat::{FromDigest, RecoverableSignPrimitive}, rfc6979::{self, generate_k}};
 use k256::{Scalar, SecretKey, ecdsa::Signature};
 
-use crate::{hash::sha256_digest::ReversibleDigest, sha256_digest::Sha256};
 
 pub fn sign_custom_preimage<D>(
     priv_key: &SecretKey,

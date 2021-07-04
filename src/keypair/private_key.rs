@@ -1,16 +1,8 @@
-
-use crate::sign_custom_preimage;
 use crate::Hash;
-use crate::PrivateKeyErrors;
-use crate::ToHex;
-use crate::Signature;
-use crate::sha256_digest::Sha256;
+use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
+use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
-use digest::FixedOutput;
-use digest::FixedOutputDirty;
 use k256::ecdsa::digest::Digest;
-use k256::ecdsa::{signature::Signer, Signature as SecpSignature, SigningKey};
-use k256::ecdsa::signature::DigestSigner;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
@@ -23,6 +15,7 @@ pub struct PrivateKey {
 }
 
 #[wasm_bindgen]
+#[derive(PartialEq, Eq)]
 pub enum SigningHash {
   Sha256,
   Sha256d
@@ -46,15 +39,15 @@ impl PrivateKey {
    * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
    */
   pub(crate) fn sign_with_k_impl(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
-    let engine = match hash_algo {
-      SigningHash::Sha256 => Sha256::new(false).chain(preimage.clone()),
-      SigningHash::Sha256d => Sha256::new(false).chain(Sha256::digest(preimage.clone())),
+    let signature_result = match hash_algo {
+        SigningHash::Sha256 => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(preimage.clone()), reverse_k),
+        SigningHash::Sha256d => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(Sha256r::digest(preimage.clone())), reverse_k)
     };
     
-    let (sig, is_recoverable) = sign_custom_preimage(&self.secret_key, engine, reverse_k).unwrap();
+    let (sig, _) = signature_result.map_err(|e| PrivateKeyErrors::SignatureError { error: anyhow!(e) })?;
     match Signature::from_der_impl(sig.to_der().as_bytes().to_vec()) {
       Ok(v) => Ok(v),
-      Err(e) => Err(PrivateKeyErrors::SignatureError { error: e }),
+      Err(e) => Err(PrivateKeyErrors::SignatureError { error: anyhow!(e) }),
     }
   }
 

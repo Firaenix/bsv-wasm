@@ -3,7 +3,6 @@ mod kdf_tests {
     extern crate wasm_bindgen_test;
     use std::str::from_utf8;
 
-    use bitcoin_hashes::hex::ToHex;
     use bsv_wasm::{KDF, hash::Hash};
     use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}};
     use wasm_bindgen_test::*;

@@ -31,7 +31,7 @@ pub enum PrivateKeyErrors {
     },
 
     SignatureError {
-      error: SignatureErrors
+      error: anyhow::Error
     },
 
     #[snafu(display("Something went wrong: {}", message))]
