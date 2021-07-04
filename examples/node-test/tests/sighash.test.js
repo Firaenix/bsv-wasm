@@ -275,6 +275,7 @@ describe("Old Sighash functions", function() {
 
     assert.equal(Buffer.from(wasm_sighash).toString('hex'), js_sighash.toString('hex'), "Sighash functions do not match")
 
+
     let js_sig = js_tx.sign(KeyPair.fromPrivKey(js_private_key), Sig.SIGHASH_NONE | Sig.SIGHASH_ANYONECANPAY, 0, js_script, Bn(0));
     let wasm_sig = wasm_tx.sign(wasm_private_key, SigHash.NONE | SigHash.ANYONECANPAY, 0, wasm_script, BigInt(0));
 

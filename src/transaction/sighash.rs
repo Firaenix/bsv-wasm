@@ -18,6 +18,7 @@ pub enum SigHash {
   NONE = 0x02,
   SINGLE = 0x03,
   ANYONECANPAY = 0x80,
+  MAGIC = 0x21e8,
   /**
    * ALL | FORKID
    */
@@ -132,8 +133,12 @@ impl Transaction {
     unsigned_script: &Script,
     value: u64
   ) -> Result<Vec<u8>> {
-    // If uses any of the FORK_ID sighash variants
+    if sighash == SigHash::MAGIC {
+      return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?);
+    }
+    
 
+    // If uses any of the FORK_ID sighash variants
     // Gross, fix this. Maybe a nice method on SigHash enum to check if contains another SigHash type
     match sighash {
       SigHash::Input | 
@@ -142,15 +147,14 @@ impl Transaction {
       SigHash::Inputs | 
       SigHash::InputsOutput | 
       SigHash::InputsOutputs => self.sighash_bip143(n_tx_in, sighash, unsigned_script, value),
-      _ => self.sighash_legacy(n_tx_in, sighash, unsigned_script, value)
+      _ => self.sighash_legacy(n_tx_in, sighash, unsigned_script)
     }
   }
 
   pub(crate) fn sighash_legacy(&mut self,
     n_tx_in: usize,
     sighash: SigHash,
-    unsigned_script: &Script,
-    value: u64
+    unsigned_script: &Script
   ) -> Result<Vec<u8>> {
     let mut tx = self.clone();
     let mut script = unsigned_script.clone();
@@ -167,29 +171,41 @@ impl Transaction {
 
     match sighash {
       SigHash::SINGLE | SigHash::Legacy_InputOutput => {
-        // This if statement is needed because of Consensus SIGHASH_SINGLE bug
-        // https://bitcoinfiles.org/t/9a3a165cc7881bb2e37567dec5eaab64568a889e83e6b850b42f347e1d96a555
-        if n_tx_in > tx.outputs.len() - 1 {
-          return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?)
-        }
+        // Not supporting the SIGHASH_SINGLE bug. Sue me craig.
+        // // This if statement is needed because of Consensus SIGHASH_SINGLE bug
+        // // https://bitcoinfiles.org/t/9a3a165cc7881bb2e37567dec5eaab64568a889e83e6b850b42f347e1d96a555
+        // if n_tx_in >= tx.outputs.len() {
+        //   return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?)
+        // }
+
+        let txout = tx.get_output(n_tx_in).ok_or(anyhow!(format!("Could not get TxOut at index {}", n_tx_in)))?;
+        tx.outputs = vec![txout];
 
         for i in 0..tx.outputs.len() {
           if i < n_tx_in {
-            tx.set_output(i, &TxOut::new(0xff, Script::default().to_bytes()));
+            tx.set_output(i, &TxOut::new(0xffffffffffffffff, Script::default().to_bytes()));
           }
         }
 
         for i in 0..tx.inputs.len() {
-            tx.inputs[i].set_sequence(0);
+            if i == n_tx_in {
+              continue;
+            }
+
+            tx.inputs[i].set_sequence(0x00000000);
         }
       },
 
       SigHash::NONE | SigHash::Legacy_Input => {
         tx.outputs.clear();
 
-        tx.inputs.iter_mut().for_each(|txin| {
-          txin.set_sequence(0);
-        });
+        for i in 0..tx.inputs.len() {
+            if i == n_tx_in {
+              continue;
+            }
+            
+            tx.inputs[i].set_sequence(0x00000000);
+        }
       },
       _ => {}
     }
@@ -205,7 +221,7 @@ impl Transaction {
       "Cannot convert SigHash {:?} into i32",
       sighash
     )))?;
-    buffer.write_i32::<LittleEndian>(sighash_i32);
+    buffer.write_i32::<LittleEndian>(sighash_i32)?;
 
     Ok(buffer)
   }

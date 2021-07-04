@@ -33,11 +33,8 @@ pbkdf2 = "0.8.0"
 digest = "0.9.0"
 hmac = "0.11.0"
 bitcoin_hashes = "0.9.7"
-
-
 sha-1 = "0.9.6"
 sha2 = "0.9.5"
-hmac = "0.11.0"
 
 [dependencies.elliptic-curve]
 version = "0.10.0"
