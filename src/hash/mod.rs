@@ -95,8 +95,8 @@ impl Hash {
   fn hmac<T>(input: &[u8], key: &[u8]) -> Hmac<T> 
     where T: Update + BlockInput + FixedOutput + Reset + Default + Clone
   {
-    let hmac_key = Key::<Hmac<T>>::from_slice(key);
-    let mut engine = Hmac::<T>::new(hmac_key);
+    // Should fix this unwrap, but really shouldnt error.
+    let mut engine = Hmac::<T>::new_from_slice(key).unwrap();
     engine.update(input);
     engine
   }
