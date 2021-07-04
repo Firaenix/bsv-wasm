@@ -11,7 +11,7 @@ categories = ['no-std']
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.9.0", features = ["ecdsa", "ecdh", "arithmetic", "sha256"] }
+k256 = { version = "0.9.4", features = ["ecdsa", "ecdh", "arithmetic", "sha256", "digest"] }
 wasm-bindgen = { version = "0.2.73", features = ["serde-serialize"] }
 hex = "0.4.3"
 console_error_panic_hook = { version = "0.1.1", optional = true }
@@ -28,6 +28,7 @@ num-traits = "0.2"
 num-derive = "0.3"
 aes = "0.7.4"
 block-modes = "0.8.1"
+ecdsa = "0.12.2"
 pbkdf2 = "0.8.0"
 sha-1 = "0.9.6"
 sha2 = "0.9.5"

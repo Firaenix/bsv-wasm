@@ -4,8 +4,6 @@
 mod tests {
     use core::time;
     use std::time::{SystemTime, UNIX_EPOCH};
-
-    use bitcoin_hashes::hex::ToHex;
     use bsv_wasm::keypair::*;
     extern crate wasm_bindgen_test;
     use wasm_bindgen_test::*;

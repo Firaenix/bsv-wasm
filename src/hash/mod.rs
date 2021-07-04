@@ -12,6 +12,7 @@ use sha2::{Sha256, Sha512};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsValue, throw_str};
 use serde::*;
+use crate::ToHex;
 use crate::utils::{from_hex, to_hex};
 
 use self::hash160_digest::Hash160;
@@ -20,8 +21,8 @@ use self::sha256d_digest::Sha256d;
 
 #[wasm_bindgen]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Hash(
-  #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
+pub struct Hash (
+  #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] 
   pub(crate) Vec<u8>
 );
 
@@ -37,7 +38,7 @@ impl Hash {
 
   #[wasm_bindgen(js_name = toHex)]
   pub fn to_hex(&self) -> String {
-    (&*self.0).to_hex()
+    self.0.to_hex()
   }
 }
 
@@ -77,7 +78,7 @@ impl Hash {
   }
 }
 
-/**
+ /**
   * HMAC Methods
   */
 #[wasm_bindgen]

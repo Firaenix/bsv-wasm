@@ -2,13 +2,12 @@ use std::{io::Cursor};
 use std::io::Read;
 use std::io::Write;
 
-use crate::{TxIn, TxOut, VarInt};
+use crate::{HashCache, TxIn, TxOut, VarInt, Hash};
 use anyhow::*;
 use byteorder::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use snafu::*;
-use anyhow::*;
 
 #[derive(Debug, Snafu)]
 pub enum TransactionErrors {
@@ -22,15 +21,22 @@ pub enum TransactionErrors {
     field: Option<String>,
     error: anyhow::Error
   },
+
+  #[snafu(display("Error serialising Tx to serde_json: {}", error))]
+  JsonSerialise {
+    error: serde_json::Error
+  },
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Transaction {
-  version: u32,
-  inputs: Vec<TxIn>,
-  outputs: Vec<TxOut>,
-  n_locktime: u32,
+  pub(super) version: u32,
+  pub(super) inputs: Vec<TxIn>,
+  pub(super) outputs: Vec<TxOut>,
+  pub(super) n_locktime: u32,
+  #[serde(skip)]
+  pub(super) hash_cache: HashCache
 }
 
 impl Transaction {
@@ -38,20 +44,25 @@ impl Transaction {
     inputs: Vec<TxIn>,
     outputs: Vec<TxOut>,
     n_locktime: u32) -> Transaction {
-      Transaction{
+      Transaction {
         version,
         inputs,
         outputs,
-        n_locktime
+        n_locktime,
+        hash_cache: HashCache::new()
       }
     }
-
+  
   pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
     let tx_bytes = match hex::decode(&hex_str) {
       Ok(v) => v,
       Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
     };
 
+    Transaction::from_bytes_impl(tx_bytes)
+  }
+
+  pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
     let mut cursor = Cursor::new(tx_bytes);
 
     // Version - 4 bytes
@@ -105,20 +116,21 @@ impl Transaction {
       inputs,
       outputs,
       n_locktime,
+      hash_cache: HashCache::new()
     })
   }
 
   pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TransactionErrors> {
-    let mut cursor = Cursor::new(Vec::new());
+    let mut buffer = Vec::new();
 
     // Version - 4 bytes
-    match cursor.write_u32::<LittleEndian>(self.version) {
+    match buffer.write_u32::<LittleEndian>(self.version) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("version".to_string()), error: anyhow!(e) }),
     };
 
     // In Counter - 1-9 tx_bytes
-    match cursor.write_varint(self.get_ninputs()) {
+    match buffer.write_varint(self.get_ninputs()) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_inputs".to_string()), error: anyhow!(e) }),
     };
@@ -131,14 +143,14 @@ impl Transaction {
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
       };
 
-      match cursor.write(&input_bytes) {
+      match buffer.write(&input_bytes) {
         Ok(_) => (),
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("input {}", i)), error: anyhow!(e) }),
       };
     }
 
     // Out Counter - 1-9 tx_bytes
-    match cursor.write_varint(self.get_noutputs()) {
+    match buffer.write_varint(self.get_noutputs()) {
       Ok(_) => (),
       Err(e) => return Err(TransactionErrors::Serialise { field: Some("n_outputs".to_string()), error: anyhow!(e) }),
     };
@@ -151,37 +163,45 @@ impl Transaction {
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
       };
 
-      match cursor.write(&output_bytes) {
+      match buffer.write(&output_bytes) {
         Ok(_) => (),
         Err(e) => return Err(TransactionErrors::Serialise { field: Some(format!("output {}", i)), error: anyhow!(e) }),
       };
     }
 
     // nLocktime - 4 bytes
-    match cursor.write_u32::<LittleEndian>(self.n_locktime) {
+    match buffer.write_u32::<LittleEndian>(self.n_locktime) {
       Ok(v) => v,
       Err(e) => return Err(TransactionErrors::Deserialise { field: Some("n_locktime".to_string()), error: anyhow!(e) })
     };
 
     // Write out bytes
-    let mut bytes: Vec<u8> = Vec::new();
-    cursor.set_position(0);
-    match cursor.read_to_end(&mut bytes) {
-      Err(e) => return Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) }),
-      _ => ()
-    };
-    Ok(bytes)
+    Ok(buffer)
   }
 
   pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
     Ok(hex::encode(&self.to_bytes_impl()?))
   }
 
-  pub(crate) fn to_json_impl(&self) -> Result<String, TransactionErrors> {
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TransactionErrors> {
     match serde_json::to_string(self) {
       Ok(v) => Ok(v),
       Err(e) => Err(TransactionErrors::Serialise{ field: None, error: anyhow!(e) })
     } 
+  }
+
+  /**
+   * Gets the ID of the current transaction. 
+   * Returns the SHA256d Hash of the current transaction.
+   * 
+   * Txid is the reverse of the hash result.
+   */
+  pub(crate) fn get_id_impl(&self) -> Result<Hash, TransactionErrors> {
+    let tx_bytes =  self.to_bytes_impl()?;
+    let mut hash = Hash::sha_256d(&tx_bytes);
+    hash.0.reverse();
+
+    Ok(hash)
   }
 }
 
@@ -232,17 +252,32 @@ impl Transaction {
    */
   #[wasm_bindgen(constructor)]
   pub fn new(version: u32, n_locktime: u32) -> Transaction {
-    Transaction{ version, n_locktime, inputs: vec![], outputs: vec![] }
+    Transaction::new_impl(version, vec![], vec![], n_locktime)
   }
 
   #[wasm_bindgen(js_name = addInput)]
-  pub fn add_input(&mut self, input: &TxIn) -> () {
+  pub fn add_input(&mut self, input: &TxIn) {
     self.inputs.push(input.clone());
+    // Transaction has been changed, need to recalculate inputs hashes
+    self.hash_cache.hash_inputs = None;
+    self.hash_cache.hash_sequence = None;
   }
 
   #[wasm_bindgen(js_name = addOutput)]
-  pub fn add_output(&mut self, output: &TxOut) -> () {
+  pub fn add_output(&mut self, output: &TxOut) {
     self.outputs.push(output.clone());
+    // Transaction has been changed, need to recalculate outputs hashes
+    self.hash_cache.hash_outputs = None;
+  }
+
+  #[wasm_bindgen(js_name = setInput)]
+  pub fn set_input(&mut self, index: usize, input: &TxIn) {
+    self.inputs[index] = input.clone();
+  }
+
+  #[wasm_bindgen(js_name = setOutput)]
+  pub fn set_output(&mut self, index: usize, output: &TxOut) {
+    self.outputs[index] = output.clone();
   }
 }
 
@@ -260,9 +295,26 @@ impl Transaction {
     };
   }
 
+  #[wasm_bindgen(js_name = fromBytes)]
+  pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, JsValue> {
+    return match Transaction::from_bytes_impl(tx_bytes) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    };
+  }
+
+
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match Transaction::to_json_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
   #[wasm_bindgen(js_name = toJSON)]
-  pub fn to_json(&self) -> Result<String, JsValue> {
-    match Transaction::to_json_impl(&self) {
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -283,6 +335,58 @@ impl Transaction {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  /**
+   * Adds an array of TxIn's to the transaction
+   * @param {TxIn[]} tx_ins
+   */
+  #[wasm_bindgen(js_name = addInputs)]
+  pub fn add_inputs(&mut self, tx_ins: Box<[JsValue]>) {
+    let js_value = &*tx_ins.to_vec();
+    
+    for elem in js_value {
+      let input = elem.into_serde().unwrap();
+
+      self.add_input(&input);
+    }
+  }
+
+  /**
+   * Adds an array of TxOuts to the transaction
+   * @param {TxOut[]} tx_outs
+   */
+  #[wasm_bindgen(js_name = addOutputs)]
+  pub fn add_outputs(&mut self, tx_outs: Box<[JsValue]>) {
+    let js_value = &*tx_outs.to_vec();
+    
+    for elem in js_value {
+      let output = elem.into_serde().unwrap();
+
+      self.add_output(&output);
+    }
+  }
+
+  /**
+   * Gets the ID of the current transaction as a hex string. 
+   */
+  #[wasm_bindgen(js_name = getIdHex)]
+  pub fn get_id_hex(&self) -> Result<String, JsValue> {
+    match self.get_id_impl() {
+      Ok(v) => Ok(v.to_hex()),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  /**
+   * Gets the ID of the current transaction as a Uint8Array. 
+   */
+  #[wasm_bindgen(js_name = getIdBytes)]
+  pub fn get_id_bytes(&self) -> Result<Vec<u8>, JsValue> {
+    match self.get_id_impl() {
+      Ok(v) => Ok(v.to_bytes()),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 /**
@@ -290,14 +394,41 @@ impl Transaction {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl Transaction {
+  /**
+   * Gets the ID of the current transaction as a hex string.
+   */
+  pub fn get_id_hex(&self) -> Result<String, TransactionErrors> {
+    Ok(self.get_id_impl()?.to_hex())
+  }
+
+  /**
+   * Gets the ID of the current transaction as a Vec<u8>.
+   */
+  pub fn get_id_bytes(&self) -> Result<Vec<u8>, TransactionErrors> {
+    Ok(self.get_id_impl()?.to_bytes())
+  }
+
   #[cfg(not(target_arch = "wasm32"))]
   pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
     return Transaction::from_hex_impl(hex_str);
   }
 
   #[cfg(not(target_arch = "wasm32"))]
-  pub fn to_json(&self) -> Result<String, TransactionErrors> {
-    Transaction::to_json_impl(&self)
+  pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
+    Transaction::from_bytes_impl(tx_bytes)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json_string(&self) -> Result<String, TransactionErrors> {
+    Transaction::to_json_string_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TransactionErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TransactionErrors::Serialise{field: None, error: anyhow!(e)})
+    }
   }
 
   #[cfg(not(target_arch = "wasm32"))]
@@ -308,5 +439,19 @@ impl Transaction {
   #[cfg(not(target_arch = "wasm32"))]
   pub fn to_hex(&self) -> Result<String, TransactionErrors> {
     Transaction::to_hex_impl(&self)
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn add_inputs(&mut self, tx_ins: Vec<TxIn>) {
+    for txin in tx_ins {
+      self.add_input(&txin);
+    }
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn add_outputs(&mut self, tx_outs: Vec<TxOut>) {
+    for txout in tx_outs {
+      self.add_output(&txout);
+    }
   }
 }

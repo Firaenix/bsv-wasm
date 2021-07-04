@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate num_derive;
 
-pub mod utils;
-
 pub mod keypair;
 
 pub use keypair::*;
@@ -19,8 +17,8 @@ pub use errors::*;
 pub mod address;
 pub use address::*;
 
-pub mod types;
-pub use types::*;
+pub mod utils;
+pub use utils::*;
 
 pub mod transaction;
 pub use transaction::*;

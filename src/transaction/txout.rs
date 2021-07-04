@@ -76,39 +76,31 @@ impl TxOut {
     })
   }
 
-  pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TxOutErrors> {
-    let mut cursor = Cursor::new(Vec::new());
+  pub(crate) fn to_bytes_impl(&self) -> std::io::Result<Vec<u8>> {
+    let mut buffer = Vec::new();
 
     // Satoshi Value - 8 bytes
-    match cursor.write_u64::<LittleEndian>(self.value) {
-      Ok(v) => v,
-      Err(e) => return Err(TxOutErrors::Serialise { field: Some("satoshis".to_string()), error: anyhow!(e) })
-    };
+    buffer.write_u64::<LittleEndian>(self.value)?;
 
     // Script Pub Key Size - 1-9 bytes
-    match cursor.write_varint(self.get_script_pub_key_size()) {
-      Ok(v) => v,
-      Err(e) => return Err(TxOutErrors::Serialise { field: Some("script_pub_key_size".to_string()), error: anyhow!(e) }),
-    };
+    buffer.write_varint(self.get_script_pub_key_size())?;
 
     // Script Pub Key
-    match cursor.write(&self.script_pub_key) {
-      Err(e) => return Err(TxOutErrors::Serialise { field: Some("script_pub_key".to_string()), error: anyhow!(e) }),
-      _ => () 
-    };
+    buffer.write(&self.script_pub_key)?;
 
     // Write out bytes
-    let mut bytes: Vec<u8> = Vec::new();
-    cursor.set_position(0);
-    match cursor.read_to_end(&mut bytes) {
-      Err(e) => return Err(TxOutErrors::Serialise{ field: None, error: anyhow!(e) }),
-      _ => ()
-    };
-    Ok(bytes)
+    Ok(buffer)
   }
 
-  pub(crate) fn to_hex_impl(&self) -> Result<String, TxOutErrors> {
+  pub(crate) fn to_hex_impl(&self) -> Result<String> {
     Ok(hex::encode(&self.to_bytes_impl()?))
+  }
+
+  pub(crate) fn to_json_string_impl(&self) -> Result<String, TxOutErrors> {
+    match serde_json::to_string_pretty(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxOutErrors::Serialise{ field: None, error: anyhow!(e) })
+    } 
   }
 }
 
@@ -175,6 +167,22 @@ impl TxOut {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = toJSON)]
+  pub fn to_json(&self) -> Result<JsValue, JsValue> {
+    match JsValue::from_serde(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_json_string(&self) -> Result<String, JsValue> {
+    match TxOut::to_json_string_impl(&self) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -183,11 +191,26 @@ impl TxOut {
     TxOut::from_hex_impl(hex_str)
   }
 
-  pub fn to_bytes(&self) -> Result<Vec<u8>, TxOutErrors> {
-    TxOut::to_bytes_impl(&self)
+  pub fn to_bytes(&self) -> Result<Vec<u8>> {
+    TxOut::to_bytes_impl(&self).map_err(|e| anyhow!(e))
   }
 
-  pub fn to_hex(&self) -> Result<String, TxOutErrors> {
+  pub fn to_hex(&self) -> Result<String> {
     TxOut::to_hex_impl(&self)
   }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json(&self) -> Result<serde_json::Value, TxOutErrors> {
+    match serde_json::to_value(self) {
+      Ok(v) => Ok(v),
+      Err(e) => Err(TxOutErrors::Serialise{field: None, error: anyhow!(e)})
+    }
+  }
+
+
+  #[cfg(not(target_arch = "wasm32"))]
+  pub fn to_json_string(&self) -> Result<String, TxOutErrors> {
+    TxOut::to_json_string_impl(&self)
+  }
+
 }

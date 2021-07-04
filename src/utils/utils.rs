@@ -1,6 +1,4 @@
 use serde::{Deserialize, Deserializer, Serializer};
-use std::str::FromStr;
-
 pub fn to_hex<S>(vec: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer
 {
