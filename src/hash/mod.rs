@@ -1,6 +1,5 @@
 pub mod sha256d_digest;
-pub mod hash160;
-mod Sha256d;
+pub mod hash160_digest;
 
 use digest::Digest;
 use hmac::crypto_mac::Key;
@@ -15,7 +14,7 @@ use wasm_bindgen::{JsValue, throw_str};
 use serde::*;
 use crate::utils::{from_hex, to_hex};
 
-use self::hash160::Hash160;
+use self::hash160_digest::Hash160;
 use self::sha256d_digest::Sha256d;
 
 
@@ -38,7 +37,7 @@ impl Hash {
 
   #[wasm_bindgen(js_name = toHex)]
   pub fn to_hex(&self) -> String {
-    self.0.to_hex()
+    (&*self.0).to_hex()
   }
 }
 
@@ -86,7 +85,7 @@ impl Hash {
   
   // D::BlockSize: ArrayLength<u8>
   fn hmac<T>(input: &[u8], key: &[u8]) -> Hmac<T> 
-    where T: Digest + Update + BlockInput + FixedOutput + Reset + Default + Clone
+    where T: Update + BlockInput + FixedOutput + Reset + Default + Clone
   {
     let hmac_key = Key::<Hmac<T>>::from_slice(key);
     let mut engine = Hmac::<T>::new(hmac_key);
@@ -110,7 +109,7 @@ impl Hash {
 
   #[wasm_bindgen(js_name = sha256dHmac)]
   pub fn sha_256d_hmac(input: &[u8], key: &[u8]) -> Self {
-    let hmac = Hash::hmac::<Sha256>(input, key);
+    let hmac = Hash::hmac::<Sha256d>(input, key);
 
     Self(hmac.finalize().into_bytes().to_vec())
   }
@@ -131,7 +130,7 @@ impl Hash {
 
   #[wasm_bindgen(js_name = hash160Hmac)]
   pub fn hash_160_hmac(input: &[u8], key: &[u8]) -> Self {
-    let hmac = Hash::hmac::<hash160::Hash>(input, key);
+    let hmac = Hash::hmac::<Hash160>(input, key);
 
     Self(hmac.finalize().into_bytes().to_vec())
   }

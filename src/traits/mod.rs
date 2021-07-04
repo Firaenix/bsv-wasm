@@ -5,9 +5,6 @@ use std::io::Cursor;
 use byteorder::ReadBytesExt;
 use byteorder::WriteBytesExt;
 
-pub trait HexTrait {
-  fn to_hex(&self) -> String;
-}
 
 #[derive(Debug, Snafu)]
 pub enum VarIntErrors {
