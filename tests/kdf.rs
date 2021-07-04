@@ -27,7 +27,7 @@ mod kdf_tests {
   #[wasm_bindgen_test]
   fn pbkdf2_sha256_hash_test_2() {
     let password = "stronk-password";
-    let salt = Hash::sha_256("debug@twetch.com".as_bytes()).to_bytes(); // "1ae0ee429ffca864413b59edd5612c1a86b097411280a6dfa376d91c6eba5a20"; // sha256 of debug@twetch.com
+    let salt = "1ae0ee429ffca864413b59edd5612c1a86b097411280a6dfa376d91c6eba5a20".as_bytes(); // sha256 of debug@twetch.com
     let rounds: u32 = 10000;
 
     let kdf = KDF::pbkdf2(password.as_bytes(), Some(&salt), bsv_wasm::PBKDF2Hashes::SHA256, rounds, 32).unwrap();

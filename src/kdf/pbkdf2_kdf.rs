@@ -1,6 +1,9 @@
-use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}};
+use hmac::Hmac;
+use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}, pbkdf2};
 use anyhow::*;
 use rand_core::OsRng;
+use sha1::Sha1;
+use sha2::{Sha256, Sha512};
 use crate::{KDF, PBKDF2Errors, hash::Hash};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsValue, throw_str};
@@ -19,27 +22,15 @@ impl KDF {
    * 
    */
   pub fn pbkdf2_impl(password: &[u8], salt: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
-    let s = match SaltString::b64_encode(salt) {
-      Ok(v) => v,
-      Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!("{}. Salt length must be between {} and {}. Your salt length: {}.", e, Salt::MIN_LENGTH, Salt::MAX_LENGTH, salt.len()) })
+    let pbkdf2_fn = match hash_algo {
+        PBKDF2Hashes::SHA1 => pbkdf2::<Hmac<Sha1>>,
+        PBKDF2Hashes::SHA256 => pbkdf2::<Hmac<Sha256>>,
+        PBKDF2Hashes::SHA512 => pbkdf2::<Hmac<Sha512>>,
     };
+    let mut result = vec![0; output_length];
+    pbkdf2_fn(password, salt, rounds, &mut result);
 
-    let algo_ident = match hash_algo {
-      PBKDF2Hashes::SHA1 => Ident::new("pbkdf2"),
-      PBKDF2Hashes::SHA256 => Ident::new("pbkdf2-sha256"),
-      PBKDF2Hashes::SHA512 => Ident::new("pbkdf2-sha512"),
-    };
-
-    let params = Params { rounds, output_length };
-    let password_hash = match Pbkdf2.hash_password(password, Some(algo_ident), params, s.as_salt()) {
-      Ok(v) => v,
-      Err(e) => return Err(PBKDF2Errors::HashError{ error: anyhow!(e) })
-    };
-
-    let hash = password_hash.hash.ok_or(PBKDF2Errors::HashError{ error: anyhow!("Failed to generate password hash") })?;
-    let result = hash.as_bytes().to_vec();
-
-    Ok(KDF{ hash: Hash(result), salt: s.as_bytes().to_vec( )})
+    Ok(KDF{ hash: Hash(result), salt: salt.to_vec()})
   }
 
   pub fn pbkdf2_random_salt_impl(password: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
