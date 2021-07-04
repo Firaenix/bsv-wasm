@@ -1,6 +1,9 @@
-use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}};
+use hmac::Hmac;
+use pbkdf2::{Params, Pbkdf2, password_hash::{Ident, PasswordHasher, Salt, SaltString}, pbkdf2};
 use anyhow::*;
 use rand_core::OsRng;
+use sha1::Sha1;
+use sha2::{Sha256, Sha512};
 use crate::{KDF, PBKDF2Errors, hash::Hash};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsValue, throw_str};
@@ -18,71 +21,33 @@ impl KDF {
   /**
    * 
    */
-  pub fn pbkdf2_impl(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
-    let s = match SaltString::b64_encode(salt.as_bytes()) {
-      Ok(v) => v,
-      Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!("{}. B64 Salt length must be between {} and {}. Your salt: {}.", e, Salt::MIN_LENGTH, Salt::MAX_LENGTH, salt) })
+  pub fn pbkdf2_impl(password: &[u8], salt: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> KDF {
+    let pbkdf2_fn = match hash_algo {
+        PBKDF2Hashes::SHA1 => pbkdf2::<Hmac<Sha1>>,
+        PBKDF2Hashes::SHA256 => pbkdf2::<Hmac<Sha256>>,
+        PBKDF2Hashes::SHA512 => pbkdf2::<Hmac<Sha512>>,
     };
+    let mut result = vec![0; output_length];
+    pbkdf2_fn(password, salt, rounds, &mut result);
 
-    let algo_ident = match hash_algo {
-      PBKDF2Hashes::SHA1 => Ident::new("pbkdf2"),
-      PBKDF2Hashes::SHA256 => Ident::new("pbkdf2-sha256"),
-      PBKDF2Hashes::SHA512 => Ident::new("pbkdf2-sha512"),
-    };
-
-    let params = Params { rounds, output_length };
-    let password_hash = match Pbkdf2.hash_password(password.as_bytes(), Some(algo_ident), params, s.as_salt()) {
-      Ok(v) => v,
-      Err(e) => return Err(PBKDF2Errors::HashError{ error: anyhow!(e) })
-    };
-
-    let hash = password_hash.hash.ok_or(PBKDF2Errors::HashError{ error: anyhow!("Failed to generate password hash") })?;
-    let result = hash.as_bytes().to_vec();
-
-    Ok(KDF{ hash: Hash(result), salt: s.as_bytes().to_vec( )})
+    KDF{ hash: Hash(result), salt: salt.to_vec() }
   }
 
-  pub fn pbkdf2_random_salt_impl(password: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
+  pub fn pbkdf2_random_salt_impl(password: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> KDF {
     let salt = SaltString::generate(&mut OsRng);
-    KDF::pbkdf2_impl(password, salt.as_str(), hash_algo, rounds, output_length)
+    KDF::pbkdf2_impl(password, salt.as_bytes(), hash_algo, rounds, output_length)
   }
 }
 
-/**
- * Native PBKDF2 Exports
- */
-#[cfg(not(target_arch = "wasm32"))]
+#[wasm_bindgen]
 impl KDF {
   /**
    * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated
    */
-  pub fn pbkdf2(password: &str, salt: Option<&str>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, PBKDF2Errors> {
+  pub fn pbkdf2(password: Vec<u8>, salt: Option<Vec<u8>>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> KDF {
     match salt {
-      Some(s) => KDF::pbkdf2_impl(password, s, hash_algo, rounds, output_length),
-      None => KDF::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length)
-    }
-  }
-}
-
-/**
- * JS Boundary PBKDF2 Exports
- */
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-impl KDF {
-  /**
-   * Implementation of PBKDF2 - when undefined is specified for salt, a random salt will be generated
-   */
-  #[wasm_bindgen(js_name = pbkdf2)]
-  pub fn pbkdf2(password: &str, salt: Option<String>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, JsValue> {
-    let res = match salt {
-      Some(s) => KDF::pbkdf2_impl(password, &s, hash_algo, rounds, output_length),
-      None => KDF::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length)
-    };
-
-    match res {
-      Ok(v) => Ok(v),
-      Err(e) => throw_str(&e.to_string()),
+      Some(s) => KDF::pbkdf2_impl(&password, &s, hash_algo, rounds, output_length),
+      None => KDF::pbkdf2_random_salt_impl(&password, hash_algo, rounds, output_length)
     }
   }
 }
