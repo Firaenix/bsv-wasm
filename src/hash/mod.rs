@@ -1,8 +1,10 @@
-use crate::hash::digest::Digest;
-use elliptic_curve::consts::U128;
-use elliptic_curve::generic_array::ArrayLength;
+pub mod sha256d_digest;
+pub mod hash160;
+mod Sha256d;
+
+use digest::Digest;
 use hmac::crypto_mac::Key;
-use hmac::{Hmac, Mac, NewMac, digest};
+use hmac::{Hmac, Mac, NewMac};
 use anyhow::*;
 use hmac::digest::{BlockInput, FixedOutput, Reset, Update};
 use ripemd160::{Ripemd160};
@@ -12,6 +14,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsValue, throw_str};
 use serde::*;
 use crate::utils::{from_hex, to_hex};
+
+use self::hash160::Hash160;
+use self::sha256d_digest::Sha256d;
 
 
 #[wasm_bindgen]
@@ -44,34 +49,32 @@ impl Hash {
 impl Hash {
   #[wasm_bindgen(js_name = sha256d)]
   pub fn sha_256d(input: &[u8]) -> Self {
-    let digest = Sha256::default().chain(Sha256::digest(input)).finalize();
-
-    Hash(digest.as_bytes())
+    Hash((&*Sha256d::digest(input)).to_vec())
   }
 
   #[wasm_bindgen(js_name = sha256)]
   pub fn sha_256(input: &[u8]) -> Self {
-    Hash(Sha256::digest(input).as_bytes())
+    Hash((&*Sha256::digest(input)).to_vec())
   }
 
   #[wasm_bindgen(js_name = sha1)]
   pub fn sha_1(input: &[u8]) -> Self {
-    Hash(Sha1::digest(input).as_bytes())
+    Hash((&*Sha1::digest(input)).to_vec())
   }
 
   #[wasm_bindgen(js_name = ripemd160)]
   pub fn ripemd_160(input: &[u8]) -> Self {
-    Hash(Ripemd160::digest(input).as_bytes())
+    Hash((&*Ripemd160::digest(input)).to_vec())
   }
 
   #[wasm_bindgen(js_name = hash160)]
   pub fn hash_160(input: &[u8]) -> Self {
-    Hash(Ripemd160::default().chain(Sha256::digest(input)).finalize().as_bytes())
+    Hash((&*Hash160::digest(input)).to_vec())
   }
 
   #[wasm_bindgen(js_name = sha512)]
   pub fn sha_512(input: &[u8]) -> Self {
-    Hash(Sha512::digest(input).as_bytes())
+    Hash((&*Sha512::digest(input)).to_vec())
   }
 }
 
