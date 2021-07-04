@@ -18,10 +18,10 @@ impl KDF {
   /**
    * 
    */
-  pub fn pbkdf2_impl(password: &str, salt: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
-    let s = match SaltString::b64_encode(salt.as_bytes()) {
+  pub fn pbkdf2_impl(password: &[u8], salt: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
+    let s = match SaltString::b64_encode(salt) {
       Ok(v) => v,
-      Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!("{}. B64 Salt length must be between {} and {}. Your salt: {}.", e, Salt::MIN_LENGTH, Salt::MAX_LENGTH, salt) })
+      Err(e) => return Err(PBKDF2Errors::UseSaltError{ error: anyhow!("{}. Salt length must be between {} and {}. Your salt length: {}.", e, Salt::MIN_LENGTH, Salt::MAX_LENGTH, salt.len()) })
     };
 
     let algo_ident = match hash_algo {
@@ -31,7 +31,7 @@ impl KDF {
     };
 
     let params = Params { rounds, output_length };
-    let password_hash = match Pbkdf2.hash_password(password.as_bytes(), Some(algo_ident), params, s.as_salt()) {
+    let password_hash = match Pbkdf2.hash_password(password, Some(algo_ident), params, s.as_salt()) {
       Ok(v) => v,
       Err(e) => return Err(PBKDF2Errors::HashError{ error: anyhow!(e) })
     };
@@ -42,9 +42,9 @@ impl KDF {
     Ok(KDF{ hash: Hash(result), salt: s.as_bytes().to_vec( )})
   }
 
-  pub fn pbkdf2_random_salt_impl(password: &str, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
+  pub fn pbkdf2_random_salt_impl(password: &[u8], hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize)-> Result<KDF, PBKDF2Errors> {
     let salt = SaltString::generate(&mut OsRng);
-    KDF::pbkdf2_impl(password, salt.as_str(), hash_algo, rounds, output_length)
+    KDF::pbkdf2_impl(password, salt.as_bytes(), hash_algo, rounds, output_length)
   }
 }
 
@@ -56,7 +56,7 @@ impl KDF {
   /**
    * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated
    */
-  pub fn pbkdf2(password: &str, salt: Option<&str>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, PBKDF2Errors> {
+  pub fn pbkdf2(password: &[u8], salt: Option<&[u8]>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, PBKDF2Errors> {
     match salt {
       Some(s) => KDF::pbkdf2_impl(password, s, hash_algo, rounds, output_length),
       None => KDF::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length)
@@ -74,7 +74,7 @@ impl KDF {
    * Implementation of PBKDF2 - when undefined is specified for salt, a random salt will be generated
    */
   #[wasm_bindgen(js_name = pbkdf2)]
-  pub fn pbkdf2(password: &str, salt: Option<String>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, JsValue> {
+  pub fn pbkdf2(password: &[u8], salt: Option<&[u8]>, hash_algo: PBKDF2Hashes, rounds: u32, output_length: usize) -> Result<KDF, JsValue> {
     let res = match salt {
       Some(s) => KDF::pbkdf2_impl(password, &s, hash_algo, rounds, output_length),
       None => KDF::pbkdf2_random_salt_impl(password, hash_algo, rounds, output_length)
