@@ -1,4 +1,4 @@
-import { ExtendedPrivateKey } from "../../../pkg/bsv_wasm";
+import { ExtendedPrivateKey } from "../../../pkg/node/bsv_wasm";
 import { Bip32 } from 'bsv';
 import { assert } from "chai";
 import crypto from 'crypto';
