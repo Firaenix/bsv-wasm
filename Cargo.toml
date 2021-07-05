@@ -26,7 +26,7 @@ strum = "0.21.0"
 strum_macros = "0.21.1"
 num-traits = "0.2"
 num-derive = "0.3"
-aes = "0.7.4"
+aes = { version = "0.7.4", features = ["ctr"] }
 block-modes = "0.8.1"
 ecdsa = "0.12.2"
 pbkdf2 = "0.8.0"
