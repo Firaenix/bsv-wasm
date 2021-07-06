@@ -1,5 +1,5 @@
 import { ExtendedPrivateKey } from "../../../pkg/node/bsv_wasm";
-import { Bip32 } from 'bsv';
+import { Bip32, Bip39 } from 'bsv';
 import { assert } from "chai";
 import crypto from 'crypto';
 
@@ -31,6 +31,15 @@ describe('XPriv Tests', function () {
     assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
   })
 
+  it('Mnemonic -> XPriv derivations match BSV.JS', () => {
+    let mnemonic = 'vapor cabbage jacket unveil permit web live pyramid husband final plug metal'
+    let path = "m/0/0/0/0"
+
+    let xpriv_wasm = ExtendedPrivateKey.fromMnemonic(mnemonic);
+    let xpriv_js = Bip32.fromSeed(new Bip39().fromString(mnemonic).toSeed());
+
+    assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
+  })
 
   it('XPriv derivations match BSV.JS', () => {
     let xpriv_wif = "xprv9s21ZrQH143K2rdSf96bvxvYtHYjf2899A7M7S3Ka2jASLK6P3hs7Bg9snGVsArqAA2awhc26e5kqKDquKSkpZ6hXymjpCcUj1tRi17L4Bg";
