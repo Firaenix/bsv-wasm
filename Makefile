@@ -1,11 +1,14 @@
 build-web:
-	CC=emcc wasm-pack build --release --out-dir ./pkg/web --target web
+	wasm-pack build --release --out-dir ./pkg/web --target web
 
 build-bundler:
-	CC=emcc wasm-pack build --release --out-dir ./pkg/bundler --target bundler
+	wasm-pack build --release --out-dir ./pkg/bundler --target bundler
 
 build-nodejs:
-	CC=emcc wasm-pack build --release --out-dir ./pkg/node --target nodejs
+	wasm-pack build --release --out-dir ./pkg/node --target nodejs
+
+build-wasm:
+	make build-web ; make build-bundler ; make build-nodejs
 
 test-node:
 	make build-nodejs && pushd ./examples/node-test && yarn test ; popd
@@ -23,3 +26,6 @@ publish-bundler:
 	wasm-pack build --release --target bundler
 	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/bundler/package.json
 	wasm-pack publish ./pkg/bundler
+
+create-isomorphic:
+	rollup pkg/node/bsv_wasm.js --format umd --name bsv_wasm_iso --file pkg/node/bsv_wasm_iso.js

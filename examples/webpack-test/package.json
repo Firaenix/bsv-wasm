@@ -1,0 +1,19 @@
+{
+  "name": "webpack-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "webpack serve --open",
+    "build": "webpack build"
+  },
+  "dependencies": {
+    "bsv-wasm": "../../pkg/bundler",
+    "html-webpack-plugin": "^5.3.2"
+  },
+  "devDependencies": {
+    "webpack": "^5.42.1",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
+  }
+}
