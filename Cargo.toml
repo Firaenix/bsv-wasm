@@ -11,7 +11,7 @@ categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto']
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.9.4", features = ["ecdsa", "ecdh", "arithmetic", "sha256", "digest"] }
+k256 = { version = "0.9.4", features = ["ecdsa", "ecdh"] }
 wasm-bindgen = { version = "0.2.73", features = ["serde-serialize"] }
 hex = "0.4.3"
 console_error_panic_hook = { version = "0.1.1", optional = true }
@@ -35,7 +35,6 @@ sha2 = "0.9.5"
 hmac = "0.11.0"
 ripemd160 = "0.9.1"
 digest = "0.9.0"
-ctr = "0.7.0"
 
 [dependencies.elliptic-curve]
 version = "0.10.0"
@@ -57,7 +56,6 @@ wasm-bindgen-test = "0.3.20"
 default = ["console_error_panic_hook"]
 
 [build-dependencies]
-cc = "1.0"
 cargo-web = "0.6.26"
 
 [build]

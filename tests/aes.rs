@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod aes_tests {
+    use std::io::Read;
+
     use bsv_wasm::{AES, encryption::AESAlgorithms, hash::Hash};
     use rand_core::{OsRng, RngCore};
     use wasm_bindgen_test::*;
@@ -47,10 +49,10 @@ mod aes_tests {
 
     let encrypted = AES::encrypt(&key, &iv, message, AESAlgorithms::AES128_CTR).unwrap();
     
-    assert_eq!(encrypted, [168, 3, 171, 3, 110, 163, 29]);
+    assert_eq!(encrypted, [225, 100, 196, 107, 4, 133, 109, 174, 65, 202, 145, 203], "Encrypted message doesnt match");
 
     let decrypted = AES::decrypt(&key, &iv, &encrypted, AESAlgorithms::AES128_CTR).unwrap();
-    assert_eq!(decrypted, [1, 2, 3, 4, 5, 6, 7])
+    assert_eq!(decrypted, message)
   }
 
   #[test]
@@ -63,10 +65,10 @@ mod aes_tests {
 
     let encrypted = AES::encrypt(&key, &iv, message, AESAlgorithms::AES256_CTR).unwrap();
     
-    assert_eq!(encrypted, [105, 202, 84, 217, 125, 217, 224]);
+    assert_eq!(encrypted, [32, 173, 59, 177, 23, 255, 144, 247, 130, 230, 95, 215], "Encrypted message doesnt match");
 
     let decrypted = AES::decrypt(&key, &iv, &encrypted, AESAlgorithms::AES256_CTR).unwrap();
-    assert_eq!(decrypted, [1, 2, 3, 4, 5, 6, 7])
+    assert_eq!(decrypted, message)
   }
 
 }
