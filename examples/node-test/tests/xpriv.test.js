@@ -33,12 +33,12 @@ describe('XPriv Tests', function () {
 
   it('Mnemonic -> XPriv derivations match BSV.JS', () => {
     let mnemonic = 'vapor cabbage jacket unveil permit web live pyramid husband final plug metal'
-    let path = "m/0/0/0/0"
 
-    let xpriv_wasm = ExtendedPrivateKey.fromMnemonic(mnemonic);
+    let xpriv_wasm = ExtendedPrivateKey.fromMnemonic(Buffer.from(mnemonic, 'utf8')).toString();
     let xpriv_js = Bip32.fromSeed(new Bip39().fromString(mnemonic).toSeed());
 
-    assert.equal(xpriv_wasm.toString(), xpriv_js.toString());
+    assert.equal(xpriv_wasm, xpriv_js.toString());
+    assert.equal(xpriv_wasm, "xprv9s21ZrQH143K3kV5ByEVyeoaC6TbWS9T3UrQamHwMgpbTghuLXUfiSgeK1TRr1K9xWVcJKdtQawEM1RGwAfCzwPHJXSCEzTSze7ZnduyQaU");
   })
 
   it('XPriv derivations match BSV.JS', () => {

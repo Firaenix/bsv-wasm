@@ -63,7 +63,7 @@ impl ExtendedPrivateKey {
   pub fn from_mnemonic_and_passphrase_impl(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<Self, ExtendedPrivateKeyErrors> {
     let fixed_phrase = match passphrase {
       Some(v) => v,
-      None => b"".to_vec()
+      None => b"mnemonic".to_vec()
     };
 
     let seed =  KDF::pbkdf2(mnemonic, Some(fixed_phrase), crate::PBKDF2Hashes::SHA512, 2048, 64);
