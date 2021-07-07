@@ -18,7 +18,7 @@ https://crates.io/crates/bsv-wasm
 ## Features
 - Hash (SHA256, SHA256d, SHA1, RIPEMD160, Hash160, SHA512)
 - KDF (PBKDF2)
-- Encryption (AES-CBC)
+- Encryption (AES-CBC, AES-CTR)
 - ECDSA (Private Key, Public Key, Signatures)
 - Transaction (Building, Serialising, Deserialising)
 - Script (Serialising, Deserialising)
@@ -27,7 +27,6 @@ https://crates.io/crates/bsv-wasm
 - Extended Private Keys and Child Derivation (BIP32, BIP42)
 
 ## TODO:
-- [ ] AES-CTR
 - [ ] ECIES
 - [ ] Script Builder
 - [ ] Isomorphic Package for JS
