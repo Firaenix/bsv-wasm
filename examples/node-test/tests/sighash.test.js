@@ -1,4 +1,4 @@
-import {Transaction, SigHash, PrivateKey, Script, Hash} from '../../../pkg/bsv_wasm';
+import {Transaction, SigHash, PrivateKey, Script, Hash} from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 import { Tx, PrivKey, Script as JSScript, KeyPair, Sig, Bn, Ecdsa, Hash as JSHash, Point } from "bsv";
 

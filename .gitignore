@@ -18,6 +18,7 @@ Cargo.lock
 **/*.rs.bk
 
 node_modules
-web-test
 
 examples/node-test/node.mjs
+
+examples/**/dist
