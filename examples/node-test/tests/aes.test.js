@@ -1,4 +1,4 @@
-import {AES} from '../../../pkg/bsv_wasm';
+import { AES, AESAlgorithms } from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 import { Aescbc } from "bsv";
 
@@ -11,7 +11,7 @@ describe("AES Tests", function() {
         const messageBuf = Buffer.from("Hello world");
         const encBuf = Aescbc.encrypt(messageBuf, cipherKeyBuf, ivBuf, false);
 
-        let encrypted = AES.encrypt256(cipherKeyBuf, ivBuf, messageBuf);
+        let encrypted = AES.encrypt(cipherKeyBuf, ivBuf, messageBuf, AESAlgorithms.AES256_CBC);
         assert.equal(Buffer.from(encrypted).toString('hex'), encBuf.toString('hex'))
       });
 });

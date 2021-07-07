@@ -1,4 +1,4 @@
-use crate::{ExtendedPrivateKeyErrors, HARDENED_KEY_OFFSET, XPRIV_VERSION_BYTE};
+use crate::{ExtendedPrivateKeyErrors, HARDENED_KEY_OFFSET, KDF, XPRIV_VERSION_BYTE};
 use std::{io::{Cursor, Read, Write}, ops::{Add}, vec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use k256::{Scalar, SecretKey};
@@ -58,6 +58,17 @@ impl ExtendedPrivateKey {
     buffer.write(checksum)?;
 
     Ok(bs58::encode(buffer).into_string())
+  }
+
+  pub fn from_mnemonic_and_passphrase_impl(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<Self, ExtendedPrivateKeyErrors> {
+    let fixed_phrase = match passphrase {
+      Some(v) => v,
+      None => b"mnemonic".to_vec()
+    };
+
+    let seed =  KDF::pbkdf2(mnemonic, Some(fixed_phrase), crate::PBKDF2Hashes::SHA512, 2048, 64);
+    let seed_bytes = seed.get_hash().to_bytes();
+    Self::from_seed_impl(seed_bytes)
   }
 
   pub fn from_string_impl(xprv_string: &str) -> Result<Self> {
@@ -359,6 +370,14 @@ impl ExtendedPrivateKey {
       Err(e) => throw_str(&e.to_string()),
     }
   }
+
+  #[wasm_bindgen(js_name = fromMnemonic)]
+  pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
+    match Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -378,10 +397,16 @@ impl ExtendedPrivateKey {
   pub fn from_random() -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
     Self::from_random_impl()
   }
+
   pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey> {
     Self::from_string_impl(xprv_string)
   }
+
   pub fn to_string(&self) -> Result<String> {
     Self::to_string_impl(&self)
+  }
+
+  pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase)
   }
 }
