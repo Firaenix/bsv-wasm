@@ -140,5 +140,12 @@ mod xpriv_tests {
 
     assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3W67FQwsDcvjkiQ6NJaKxBL4bSpATvZ1DtNrJQAfJYZX3Dscv5GFu6oaWTsn5DDD335wopZqLs1QYCGMLyF4c8xcc12URrY");
   }
+
+  #[test]
+  fn from_mnemonic_xprv() {
+    let mnemonic = "vapor cabbage jacket unveil permit web live pyramid husband final plug metal";
+    let key = ExtendedPrivateKey::from_mnemonic(mnemonic.as_bytes().to_vec(), None).unwrap();
+    assert_eq!(key.to_string().unwrap(), "xprv9s21ZrQH143K3kV5ByEVyeoaC6TbWS9T3UrQamHwMgpbTghuLXUfiSgeK1TRr1K9xWVcJKdtQawEM1RGwAfCzwPHJXSCEzTSze7ZnduyQaU");
+  }
 }
 

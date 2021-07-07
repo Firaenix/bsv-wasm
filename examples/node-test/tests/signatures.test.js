@@ -1,4 +1,4 @@
-import {PrivateKey, Hash as WASMHash} from '../../../pkg/bsv_wasm';
+import {PrivateKey, Hash as WASMHash} from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 import {PrivKey, Ecdsa, KeyPair, Hash } from "bsv";
 

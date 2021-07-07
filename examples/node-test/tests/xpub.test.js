@@ -1,4 +1,4 @@
-import { ExtendedPublicKey } from "../../../pkg/bsv_wasm";
+import { ExtendedPublicKey } from "../../../pkg/node/bsv_wasm";
 import { Bip32 } from 'bsv';
 import { assert } from "chai";
 

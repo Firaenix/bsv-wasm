@@ -1,6 +1,6 @@
 import { assert, util } from 'chai';
 import {describe} from 'mocha';
-import {Script} from '../../../pkg/bsv_wasm';
+import {Script} from '../../../pkg/node/bsv_wasm';
 import {Hash, Tx, Script as JSScript} from "bsv";
 
 describe('Script Tests', function () {
