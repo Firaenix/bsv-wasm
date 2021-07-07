@@ -372,7 +372,7 @@ impl ExtendedPrivateKey {
   }
 
   #[wasm_bindgen(js_name = fromMnemonic)]
-  pub fn from_mnemonic_and_passphrase(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
+  pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
     match Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
@@ -397,9 +397,11 @@ impl ExtendedPrivateKey {
   pub fn from_random() -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
     Self::from_random_impl()
   }
+
   pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey> {
     Self::from_string_impl(xprv_string)
   }
+
   pub fn to_string(&self) -> Result<String> {
     Self::to_string_impl(&self)
   }
