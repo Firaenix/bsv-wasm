@@ -1,6 +1,9 @@
 use crate::hash::FixedOutput;
+use digest::{
+    consts::{U32, U64},
+    BlockInput, Digest, FixedOutputDirty, Reset, Update,
+};
 use sha2::Sha256;
-use digest::{BlockInput, Digest, FixedOutputDirty, Reset, Update, consts::{U64, U32}};
 
 use crate::reverse_digest::ReversibleDigest;
 
@@ -10,7 +13,7 @@ use crate::reverse_digest::ReversibleDigest;
 #[derive(Clone, Default)]
 pub struct Sha256r {
     engine: Sha256,
-    reverse: bool
+    reverse: bool,
 }
 
 impl ReversibleDigest for Sha256r {
@@ -27,7 +30,7 @@ impl BlockInput for Sha256r {
 
 impl Update for Sha256r {
     fn update(&mut self, data: impl AsRef<[u8]>) {
-      Digest::update(&mut self.engine, data)
+        Digest::update(&mut self.engine, data)
     }
 }
 
@@ -35,15 +38,18 @@ impl FixedOutput for Sha256r {
     type OutputSize = U32;
 
     fn finalize_into(self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {
-      let finalised_hash = &mut *self.engine.finalize();
-      if self.reverse {
-        finalised_hash.reverse()
-      }
+        let finalised_hash = &mut *self.engine.finalize();
+        if self.reverse {
+            finalised_hash.reverse()
+        }
 
-      out.copy_from_slice(&*finalised_hash);
+        out.copy_from_slice(&*finalised_hash);
     }
 
-    fn finalize_into_reset(&mut self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {
+    fn finalize_into_reset(
+        &mut self,
+        out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>,
+    ) {
         self.clone().finalize_into(out);
         digest::Reset::reset(self);
     }
@@ -57,7 +63,9 @@ impl FixedOutput for Sha256r {
         out
     }
 
-    fn finalize_fixed_reset(&mut self) -> digest::generic_array::GenericArray<u8, Self::OutputSize> {
+    fn finalize_fixed_reset(
+        &mut self,
+    ) -> digest::generic_array::GenericArray<u8, Self::OutputSize> {
         let mut out = Default::default();
         self.finalize_into_reset(&mut out);
         out
@@ -66,7 +74,7 @@ impl FixedOutput for Sha256r {
 
 impl Reset for Sha256r {
     fn reset(&mut self) {
-      self.engine = Sha256::default();
+        self.engine = Sha256::default();
     }
 }
 
