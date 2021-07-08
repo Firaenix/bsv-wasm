@@ -47,12 +47,12 @@ impl PrivateKey {
         let signature_result = match hash_algo {
             SigningHash::Sha256 => sign_custom_preimage(
                 &self.secret_key,
-                Sha256r::default().chain(preimage.clone()),
+                Sha256r::default().chain(preimage),
                 reverse_k,
             ),
             SigningHash::Sha256d => sign_custom_preimage(
                 &self.secret_key,
-                Sha256r::default().chain(Sha256r::digest(preimage.clone())),
+                Sha256r::default().chain(Sha256r::digest(preimage)),
                 reverse_k,
             ),
         };

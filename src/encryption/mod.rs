@@ -64,7 +64,7 @@ impl AES {
         iv: &[u8],
         message: &[u8],
     ) -> Vec<u8> {
-        let data = &mut message.clone().to_vec();
+        let data = &mut message.to_vec();
         let mut cipher = T::new(key.into(), iv.into());
         cipher.seek(0);
         cipher.apply_keystream(data);
