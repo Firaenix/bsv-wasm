@@ -78,14 +78,11 @@ impl TxOut {
 
         // Script Pub Key
         let mut script_pub_key = vec![0; script_pub_key_size as usize];
-        match cursor.read(&mut script_pub_key) {
-            Err(e) => {
-                return Err(TxOutErrors::Deserialise {
-                    field: Some("script_pub_key".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            _ => (),
+        if let Err(e) = cursor.read(&mut script_pub_key) {
+            return Err(TxOutErrors::Deserialise {
+                field: Some("script_pub_key".to_string()),
+                error: anyhow!(e),
+            });
         };
 
         Ok(TxOut {
@@ -104,7 +101,7 @@ impl TxOut {
         buffer.write_varint(self.get_script_pub_key_size())?;
 
         // Script Pub Key
-        buffer.write(&self.script_pub_key)?;
+        buffer.write_all(&self.script_pub_key)?;
 
         // Write out bytes
         Ok(buffer)

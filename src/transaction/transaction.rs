@@ -306,12 +306,12 @@ impl Transaction {
 
     #[wasm_bindgen(js_name = getInput)]
     pub fn get_input(&self, index: usize) -> Option<TxIn> {
-        self.inputs.get(index).and_then(|x| Some(x.clone()))
+        self.inputs.get(index).cloned()
     }
 
     #[wasm_bindgen(js_name = getOutput)]
     pub fn get_output(&self, index: usize) -> Option<TxOut> {
-        self.outputs.get(index).and_then(|x| Some(x.clone()))
+        self.outputs.get(index).cloned()
     }
 
     #[wasm_bindgen(js_name = getNLocktime)]
@@ -487,7 +487,7 @@ impl Transaction {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
-        return Transaction::from_hex_impl(hex_str);
+        Transaction::from_hex_impl(hex_str)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

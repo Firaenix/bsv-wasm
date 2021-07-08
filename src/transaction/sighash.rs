@@ -64,10 +64,8 @@ impl TryFrom<u8> for SigHash {
     type Error = anyhow::Error;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        FromPrimitive::from_u8(value).ok_or(anyhow!(
-            "Could not convert {} into a valid SigHash value",
-            value
-        ))
+        FromPrimitive::from_u8(value)
+            .ok_or_else(|| anyhow!("Could not convert {} into a valid SigHash value", value))
     }
 }
 
@@ -256,14 +254,14 @@ impl Transaction {
         let hashed_outputs = self.hash_outputs(sighash, n_tx_in)?;
 
         buffer.write_u32::<LittleEndian>(self.version)?;
-        buffer.write(&self.hash_inputs(sighash))?;
-        buffer.write(&self.hash_sequence(sighash))?;
-        buffer.write(&input.get_outpoint_bytes(Some(true)))?;
+        buffer.write_all(&self.hash_inputs(sighash))?;
+        buffer.write_all(&self.hash_sequence(sighash))?;
+        buffer.write_all(&input.get_outpoint_bytes(Some(true)))?;
         buffer.write_varint(unsigned_script.to_bytes().len() as u64)?;
-        buffer.write(&unsigned_script.to_bytes())?;
+        buffer.write_all(&unsigned_script.to_bytes())?;
         buffer.write_u64::<LittleEndian>(value)?;
         buffer.write_u32::<LittleEndian>(input.get_sequence())?;
-        buffer.write(&hashed_outputs)?;
+        buffer.write_all(&hashed_outputs)?;
         buffer.write_u32::<LittleEndian>(self.n_locktime)?;
 
         let sighash_u32 = sighash.to_u32().ok_or(anyhow!(format!(
@@ -341,7 +339,7 @@ impl Transaction {
             | SigHash::InputsOutputs => {
                 let mut txout_bytes = Vec::new();
                 for output in &self.outputs {
-                    txout_bytes.write(&output.to_bytes_impl()?)?;
+                    txout_bytes.write_all(&output.to_bytes_impl()?)?;
                 }
                 let hash = Hash::sha_256d(&txout_bytes);
                 self.hash_cache.hash_outputs = Some(hash.clone());

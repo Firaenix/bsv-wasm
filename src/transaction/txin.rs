@@ -100,14 +100,11 @@ impl TxIn {
 
         // Script Sig
         let mut script_sig = vec![0; script_sig_size as usize];
-        match cursor.read(&mut script_sig) {
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("script_sig".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            _ => (),
+        if let Err(e) = cursor.read(&mut script_sig) {
+            return Err(TxInErrors::Deserialise {
+                field: Some("script_sig".to_string()),
+                error: anyhow!(e),
+            });
         };
 
         // Sequence - 4 bytes
@@ -153,14 +150,11 @@ impl TxIn {
         };
 
         // Vout
-        match buffer.write_u32::<LittleEndian>(self.vout) {
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("vout".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            _ => (),
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.vout) {
+            return Err(TxInErrors::Serialise {
+                field: Some("vout".to_string()),
+                error: anyhow!(e),
+            });
         };
 
         // Script Sig Size
@@ -175,14 +169,11 @@ impl TxIn {
         };
 
         // Script Sig
-        match buffer.write(&self.script_sig.0) {
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("script_sig".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            _ => (),
+        if let Err(e) = buffer.write(&self.script_sig.0) {
+            return Err(TxInErrors::Serialise {
+                field: Some("script_sig".to_string()),
+                error: anyhow!(e),
+            });
         };
 
         // Sequence
