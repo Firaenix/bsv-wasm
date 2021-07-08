@@ -23,4 +23,7 @@ pub enum SignatureErrors {
 
     #[snafu(display("Something went wrong: {}", message))]
     Other { message: String },
+
+    #[snafu(display("Unable to recover public key from signature {}", error))]
+    DerivePublicKey { error: anyhow::Error }
 }

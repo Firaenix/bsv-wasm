@@ -3,6 +3,7 @@ use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
 use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
 use k256::ecdsa::digest::Digest;
+use k256::ecdsa::recoverable;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
@@ -57,9 +58,10 @@ impl PrivateKey {
             ),
         };
 
-        let (sig, _) =
+        let (sig, is_recoverable) =
             signature_result.map_err(|e| PrivateKeyErrors::SignatureError { error: anyhow!(e) })?;
-        match Signature::from_der_impl(sig.to_der().as_bytes().to_vec()) {
+
+        match Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable) {
             Ok(v) => Ok(v),
             Err(e) => Err(PrivateKeyErrors::SignatureError { error: anyhow!(e) }),
         }
