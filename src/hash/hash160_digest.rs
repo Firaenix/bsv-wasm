@@ -1,29 +1,31 @@
 use crate::reverse_digest::ReversibleDigest;
 use digest::consts::U20;
-use digest::{BlockInput, FixedOutputDirty, Reset, Update, consts::{U64, U32}, Digest};
+use digest::{
+    consts::{U32, U64},
+    BlockInput, Digest, FixedOutputDirty, Reset, Update,
+};
 
 use ripemd160::Ripemd160;
 use sha2::Sha256;
 
-
 #[derive(Clone)]
-pub struct Hash160 { 
+pub struct Hash160 {
     engine: Sha256,
-    reverse: bool
+    reverse: bool,
 }
 
 impl ReversibleDigest for Hash160 {
-  fn reverse(&self) -> Self {
-    let mut reversed = self.clone();
-    reversed.reverse = true;
-    reversed
-  }
+    fn reverse(&self) -> Self {
+        let mut reversed = self.clone();
+        reversed.reverse = true;
+        reversed
+    }
 }
 
 impl Hash160 {
     pub fn new(reverse: bool) -> Self {
-      let engine: Sha256 = Sha256::default();
-      Self{ engine, reverse }
+        let engine: Sha256 = Sha256::default();
+        Self { engine, reverse }
     }
 }
 
@@ -39,7 +41,7 @@ impl BlockInput for Hash160 {
 
 impl Update for Hash160 {
     fn update(&mut self, input: impl AsRef<[u8]>) {
-      digest::Digest::update(&mut self.engine, input.as_ref())
+        digest::Digest::update(&mut self.engine, input.as_ref())
     }
 }
 
@@ -47,13 +49,13 @@ impl FixedOutputDirty for Hash160 {
     type OutputSize = U20;
 
     fn finalize_into_dirty(&mut self, out: &mut digest::Output<Self>) {
-      let first_hash = self.clone().engine.finalize();
-      let finished_hash = &mut *Ripemd160::digest(&*first_hash);
-      if self.reverse {
-        finished_hash.reverse()
-      }
+        let first_hash = self.clone().engine.finalize();
+        let finished_hash = &mut *Ripemd160::digest(&*first_hash);
+        if self.reverse {
+            finished_hash.reverse()
+        }
 
-      out.copy_from_slice(&finished_hash);
+        out.copy_from_slice(&finished_hash);
     }
 }
 
