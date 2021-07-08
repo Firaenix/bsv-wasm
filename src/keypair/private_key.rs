@@ -242,6 +242,11 @@ impl PrivateKey {
         }
     }
 
+    /**
+     * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
+     * Secp256k1 signature inputs must be 32 bytes in length.
+     * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
+     */
     #[wasm_bindgen(js_name = signWithK)]
     pub fn sign_sign_with_k(
         &self,
@@ -281,6 +286,11 @@ impl PrivateKey {
         PrivateKey::sign_message_impl(&self, msg)
     }
 
+    /**
+     * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
+     * Secp256k1 signature inputs must be 32 bytes in length.
+     * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
+     */
     pub fn sign_with_k(
         &self,
         preimage: &[u8],

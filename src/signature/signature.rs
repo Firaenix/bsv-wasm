@@ -1,6 +1,7 @@
 use crate::{PublicKey, Sha256r, SignatureErrors, SigningHash};
 use anyhow::*;
 use digest::Digest;
+use ecdsa::signature::DigestVerifier;
 use k256::{
     ecdsa::Signature as SecpSignature,
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
@@ -109,6 +110,7 @@ impl Signature {
         &self,
         message: Vec<u8>,
         pub_key: &PublicKey,
+        hash_algo: SigningHash,
     ) -> Result<bool, SignatureErrors> {
         let pub_key_bytes = match pub_key.to_bytes_impl() {
             Ok(v) => v,
@@ -125,7 +127,15 @@ impl Signature {
             Err(e) => return Err(SignatureErrors::SecpError { error: e }),
         };
 
-        Ok(key.verify(&message, &self.sig).is_ok())
+        let msg_digest = match hash_algo {
+            SigningHash::Sha256 => Sha256r::default().chain(&message.clone()),
+            SigningHash::Sha256d => Sha256r::default().chain(Sha256r::digest(&message.clone())),
+        };
+
+        match key.verify_digest(msg_digest, &self.sig) {
+            Ok(()) => Ok(true),
+            Err(e) => Ok(false),
+        }
     }
 }
 
@@ -165,8 +175,13 @@ impl Signature {
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verify))]
-    pub fn verify(&self, message: Vec<u8>, pub_key: &PublicKey) -> Result<bool, JsValue> {
-        match Signature::verify_impl(&self, message, pub_key) {
+    pub fn verify(
+        &self,
+        message: Vec<u8>,
+        pub_key: &PublicKey,
+        hash_algo: SigningHash,
+    ) -> Result<bool, JsValue> {
+        match Signature::verify_impl(&self, message, pub_key, hash_algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -206,8 +221,13 @@ impl Signature {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn verify(&self, message: Vec<u8>, pub_key: &PublicKey) -> Result<bool, SignatureErrors> {
-        Signature::verify_impl(&self, message, pub_key)
+    pub fn verify(
+        &self,
+        message: Vec<u8>,
+        pub_key: &PublicKey,
+        hash_algo: SigningHash,
+    ) -> Result<bool, SignatureErrors> {
+        Signature::verify_impl(&self, message, pub_key, hash_algo)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
