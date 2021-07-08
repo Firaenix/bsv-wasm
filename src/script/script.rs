@@ -40,7 +40,7 @@ impl Script {
         let mut cursor = Cursor::new(self.0.clone());
 
         // Read bytes until end of string
-        Ok(self.read_opcodes(&mut cursor, String::new(), extended)?)
+        self.read_opcodes(&mut cursor, String::new(), extended)
     }
 
     fn read_opcodes(
@@ -52,10 +52,10 @@ impl Script {
         if cursor.position() >= self.0.len() as u64 {
             return Ok(builder_str);
         }
-        let mut new_str = builder_str.clone();
+        let mut new_str = builder_str;
 
         if cursor.position() > 0 {
-            new_str.push_str(" ");
+            new_str.push(' ');
         }
 
         let byte = match cursor.read_u8() {
@@ -99,13 +99,9 @@ impl Script {
         opcode: OpCodes,
     ) -> Result<usize, ScriptErrors> {
         let result = match opcode {
-            OpCodes::OP_PUSHDATA1 => cursor.read_u8().and_then(|x| Ok(x as usize)),
-            OpCodes::OP_PUSHDATA2 => cursor
-                .read_u16::<LittleEndian>()
-                .and_then(|x| Ok(x as usize)),
-            OpCodes::OP_PUSHDATA4 => cursor
-                .read_u32::<LittleEndian>()
-                .and_then(|x| Ok(x as usize)),
+            OpCodes::OP_PUSHDATA1 => cursor.read_u8().map(|x| x as usize),
+            OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>().map(|x| x as usize),
+            OpCodes::OP_PUSHDATA4 => cursor.read_u32::<LittleEndian>().map(|x| x as usize),
             _ => {
                 return Err(ScriptErrors::Serialise {
                     reason: format!("Given opcode {} is not pushdata", opcode),
@@ -114,11 +110,9 @@ impl Script {
             }
         };
 
-        result.or_else(|e| {
-            Err(ScriptErrors::Serialise {
-                reason: format!("Unable to read data length for opcode: {}", opcode),
-                error: anyhow!(e),
-            })
+        result.map_err(|e| ScriptErrors::Serialise {
+            reason: format!("Unable to read data length for opcode: {}", opcode),
+            error: anyhow!(e),
         })
     }
 
@@ -150,10 +144,7 @@ impl Script {
                 }
             }
 
-            v @ 82..=96 => match OpCodes::from_u8(v) {
-                Some(num_opcode) => Some(num_opcode.to_string()),
-                None => None,
-            },
+            v @ 82..=96 => OpCodes::from_u8(v).map(|num_opcode| num_opcode.to_string()),
             _ => None,
         };
         Ok(code)
@@ -185,10 +176,10 @@ impl Script {
     }
 
     pub(crate) fn from_asm_string_impl(asm: String) -> Result<Script, ScriptErrors> {
-        let mut chunks = asm.split(" ").into_iter();
+        let chunks = asm.split(' ');
         let mut buffer: Vec<u8> = Vec::new();
 
-        while let Some(code) = chunks.next() {
+        for code in chunks {
             // Number OP_CODES
             if let Ok(num_code) = u8::from_str(code) {
                 match num_code {
