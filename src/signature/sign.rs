@@ -1,15 +1,24 @@
 use crate::reverse_digest::ReversibleDigest;
-use digest::{BlockInput, FixedOutput, Reset, Update, consts::U32};
-use ecdsa::{hazmat::{FromDigest, RecoverableSignPrimitive}, rfc6979::{self, generate_k}};
-use k256::{Scalar, SecretKey, ecdsa::Signature};
-
+use digest::{consts::U32, BlockInput, FixedOutput, Reset, Update};
+use ecdsa::{
+    hazmat::{FromDigest, RecoverableSignPrimitive},
+    rfc6979::{self, generate_k},
+};
+use k256::{ecdsa::Signature, Scalar, SecretKey};
 
 pub fn sign_custom_preimage<D>(
     priv_key: &SecretKey,
     digest: D,
     reverse_endian_k: bool,
 ) -> Result<(Signature, bool), ecdsa::Error>
-    where D: FixedOutput<OutputSize = U32> + BlockInput + Clone + Default + Reset + Update + ReversibleDigest,
+where
+    D: FixedOutput<OutputSize = U32>
+        + BlockInput
+        + Clone
+        + Default
+        + Reset
+        + Update
+        + ReversibleDigest,
 {
     // Add this for non deterministic K
     // let mut added_entropy = FieldBytes::<C>::default();
@@ -19,7 +28,7 @@ pub fn sign_custom_preimage<D>(
 
     let k_digest = match reverse_endian_k {
         true => digest.reverse(),
-        false => digest.clone()
+        false => digest.clone(),
     };
     let k = **generate_k(&priv_scalar, k_digest, &[]);
 

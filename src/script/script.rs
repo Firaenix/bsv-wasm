@@ -1,4 +1,8 @@
-use std::{io::{Cursor, Read}, str::FromStr, usize};
+use std::{
+    io::{Cursor, Read},
+    str::FromStr,
+    usize,
+};
 
 use crate::utils::{from_hex, to_hex};
 use anyhow::*;
@@ -72,9 +76,7 @@ impl Script {
         let opcode_str = match FromPrimitive::from_u8(byte) {
             Some(v @ OpCodes::OP_0) => match extended {
                 true => v.to_string(),
-                false => {
-                    0.to_string()
-                },
+                false => 0.to_string(),
             },
             Some(v @ OpCodes::OP_PUSHDATA1) => Script::format_pushdata_string(cursor, v, extended)?,
             Some(v @ OpCodes::OP_PUSHDATA2) => Script::format_pushdata_string(cursor, v, extended)?,
@@ -146,11 +148,11 @@ impl Script {
                     true => Some(format!("OP_PUSH {} {}", size, pushdata)),
                     false => Some(pushdata),
                 }
-            },
+            }
 
             v @ 82..=96 => match OpCodes::from_u8(v) {
                 Some(num_opcode) => Some(num_opcode.to_string()),
-                None => None
+                None => None,
             },
             _ => None,
         };
@@ -183,82 +185,94 @@ impl Script {
     }
 
     pub(crate) fn from_asm_string_impl(asm: String) -> Result<Script, ScriptErrors> {
-      let mut chunks = asm.split(" ").into_iter();
-      let mut buffer: Vec<u8> = Vec::new();
+        let mut chunks = asm.split(" ").into_iter();
+        let mut buffer: Vec<u8> = Vec::new();
 
-      while let Some(code) = chunks.next() {
-        // Number OP_CODES
-        if let Ok(num_code) = u8::from_str(code) {
-          match num_code {
-            v @ 0 => buffer.push(v),
-            v @ 1..=16 => buffer.push(v + 80),
-            _ => ()
-          }
-          
-          continue;
+        while let Some(code) = chunks.next() {
+            // Number OP_CODES
+            if let Ok(num_code) = u8::from_str(code) {
+                match num_code {
+                    v @ 0 => buffer.push(v),
+                    v @ 1..=16 => buffer.push(v + 80),
+                    _ => (),
+                }
+
+                continue;
+            }
+
+            // Standard OP_CODES
+            if let Ok(opcode) = OpCodes::from_str(code) {
+                if let Some(opcode_byte) = opcode.to_u8() {
+                    buffer.push(opcode_byte);
+                }
+                continue;
+            }
+
+            // PUSHDATA OP_CODES
+            let length = code.len() / 2;
+            match length {
+                op_push @ 0x01..=0x4b => {
+                    buffer.push(op_push as u8);
+                    match hex::decode(code) {
+                        Ok(v) => buffer.append(&mut v.clone()),
+                        Err(e) => return Err(ScriptErrors::Deserialise { error: anyhow!(e) }),
+                    }
+                }
+                op_pushdata1_size @ 0x4c..=0xFF => {
+                    match OpCodes::OP_PUSHDATA1.to_u8() {
+                        Some(pushdata1_byte) => buffer.push(pushdata1_byte),
+                        None => {
+                            return Err(ScriptErrors::Deserialise {
+                                error: anyhow!("Unable to deserialise OP_PUSHDATA1 Code to u8"),
+                            })
+                        }
+                    };
+
+                    buffer.push(op_pushdata1_size as u8);
+                    match hex::decode(code) {
+                        Ok(v) => buffer.append(&mut v.clone()),
+                        Err(e) => return Err(ScriptErrors::Deserialise { error: anyhow!(e) }),
+                    }
+                }
+                op_pushdata2_size @ 0x100..=0xFFFF => {
+                    match OpCodes::OP_PUSHDATA2.to_u8() {
+                        Some(pushdata2_byte) => buffer.push(pushdata2_byte),
+                        None => {
+                            return Err(ScriptErrors::Deserialise {
+                                error: anyhow!("Unable to deserialise OP_PUSHDATA2 Code to u8"),
+                            })
+                        }
+                    };
+
+                    buffer.push(op_pushdata2_size as u8);
+                    match hex::decode(code) {
+                        Ok(v) => buffer.append(&mut v.clone()),
+                        Err(e) => return Err(ScriptErrors::Deserialise { error: anyhow!(e) }),
+                    }
+                }
+                size => {
+                    // Cant do a standard match because 0xFFFFFFFF is too large
+                    if size > 0x10000 && size <= 0xFFFFFFFF {
+                        match OpCodes::OP_PUSHDATA4.to_u8() {
+                            Some(pushdata4_byte) => buffer.push(pushdata4_byte),
+                            None => {
+                                return Err(ScriptErrors::Deserialise {
+                                    error: anyhow!("Unable to deserialise OP_PUSHDATA4 Code to u8"),
+                                })
+                            }
+                        };
+
+                        buffer.push(size as u8);
+                        match hex::decode(code) {
+                            Ok(v) => buffer.append(&mut v.clone()),
+                            Err(e) => return Err(ScriptErrors::Deserialise { error: anyhow!(e) }),
+                        }
+                    }
+                }
+            }
         }
 
-        // Standard OP_CODES
-        if let Ok(opcode) = OpCodes::from_str(code) {
-          if let Some(opcode_byte) = opcode.to_u8() {
-            buffer.push(opcode_byte);
-          }
-          continue;
-        }
-
-        // PUSHDATA OP_CODES
-        let length = code.len() / 2;
-        match length {
-          op_push @ 0x01..=0x4b => {
-            buffer.push(op_push as u8);
-            match hex::decode(code) {
-              Ok(v) => buffer.append(&mut v.clone()),
-              Err(e) => return Err(ScriptErrors::Deserialise{ error: anyhow!(e) })
-            }
-          },
-          op_pushdata1_size @ 0x4c..=0xFF => {
-            match OpCodes::OP_PUSHDATA1.to_u8() {
-              Some(pushdata1_byte) => buffer.push(pushdata1_byte),
-              None => return Err(ScriptErrors::Deserialise{ error: anyhow!("Unable to deserialise OP_PUSHDATA1 Code to u8") })
-            };
-
-            buffer.push(op_pushdata1_size as u8);
-            match hex::decode(code) {
-              Ok(v) => buffer.append(&mut v.clone()),
-              Err(e) => return Err(ScriptErrors::Deserialise{ error: anyhow!(e) })
-            }
-          },
-          op_pushdata2_size @ 0x100..=0xFFFF => {
-            match OpCodes::OP_PUSHDATA2.to_u8() {
-              Some(pushdata2_byte) => buffer.push(pushdata2_byte),
-              None => return Err(ScriptErrors::Deserialise{ error: anyhow!("Unable to deserialise OP_PUSHDATA2 Code to u8") })
-            };
-
-            buffer.push(op_pushdata2_size as u8);
-            match hex::decode(code) {
-              Ok(v) => buffer.append(&mut v.clone()),
-              Err(e) => return Err(ScriptErrors::Deserialise{ error: anyhow!(e) })
-            }
-          },
-          size => {
-            // Cant do a standard match because 0xFFFFFFFF is too large
-            if size > 0x10000 && size <= 0xFFFFFFFF {
-              match OpCodes::OP_PUSHDATA4.to_u8() {
-                Some(pushdata4_byte) => buffer.push(pushdata4_byte),
-                None => return Err(ScriptErrors::Deserialise{ error: anyhow!("Unable to deserialise OP_PUSHDATA4 Code to u8") })
-              };
-  
-              buffer.push(size as u8);
-              match hex::decode(code) {
-                Ok(v) => buffer.append(&mut v.clone()),
-                Err(e) => return Err(ScriptErrors::Deserialise{ error: anyhow!(e) })
-              }
-            }
-          }
-        }
-      }
-
-      Ok(Script(buffer))
+        Ok(Script(buffer))
     }
 }
 
@@ -283,7 +297,12 @@ impl Script {
     }
 
     pub fn remove_codeseparators(&mut self) {
-        self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
+        self.0 = self
+            .0
+            .clone()
+            .into_iter()
+            .filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap())
+            .collect();
     }
 }
 
