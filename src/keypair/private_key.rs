@@ -239,6 +239,15 @@ impl PrivateKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+  }
+
+  #[wasm_bindgen(js_name = signWithK)]
+  pub fn sign_sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
+    match PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
 }
 
 /**
