@@ -27,10 +27,7 @@ impl ExtendedPublicKey {
         index: &u32,
         parent_fingerprint: Option<&[u8]>,
     ) -> Self {
-        let fingerprint = match parent_fingerprint {
-            Some(v) => v,
-            None => &[0, 0, 0, 0],
-        };
+        let fingerprint = parent_fingerprint.unwrap_or(&[0, 0, 0, 0]);
 
         ExtendedPublicKey {
             public_key: public_key.clone(),
@@ -55,14 +52,14 @@ impl ExtendedPublicKey {
             Ok(v) => v,
             Err(e) => return Err(anyhow!(e)),
         };
-        cursor.write(&pub_key_bytes)?;
+        cursor.write_all(&pub_key_bytes)?;
 
         let mut serialised = Vec::new();
         cursor.set_position(0);
         cursor.read_to_end(&mut serialised)?;
 
         let checksum = &Hash::sha_256d(&serialised).to_bytes()[0..4];
-        cursor.write(checksum)?;
+        cursor.write_all(checksum)?;
 
         serialised = Vec::new();
         cursor.set_position(0);
@@ -145,7 +142,7 @@ impl ExtendedPublicKey {
             Err(e) => return Err(ExtendedPublicKeyErrors::InvalidPublicKeyError { error: e }),
         };
         key_data.extend_from_slice(&pub_key_bytes);
-        key_data.extend_from_slice(&index.clone().to_be_bytes());
+        key_data.extend_from_slice(&index.to_be_bytes());
 
         let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
             Ok(v) => v,
@@ -157,8 +154,7 @@ impl ExtendedPublicKey {
         let hmac = Hash::sha_512_hmac(&key_data, &self.chain_code.clone());
         let seed_bytes = hmac.to_bytes();
 
-        let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
-        // let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
+        let mut seed_chunks = seed_bytes.chunks_exact(32_usize);
         let child_public_key_bytes = match seed_chunks.next() {
             Some(b) => b,
             None => {
@@ -227,18 +223,20 @@ impl ExtendedPublicKey {
         &self,
         path: &str,
     ) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
-        if path.to_ascii_lowercase().starts_with('m') == false {
+        if !path.to_ascii_lowercase().starts_with('m') {
             return Err(ExtendedPublicKeyErrors::DerivationError {
                 error: anyhow!("Path did not begin with 'm'"),
             });
         }
 
-        let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
+        let children = path[1..]
+            .split('/')
+            .filter(|x| -> bool { !(*x).is_empty() });
         let child_indices = children
             .map(Self::parse_str_to_idx)
             .collect::<Result<Vec<u32>, ExtendedPublicKeyErrors>>()?;
 
-        if child_indices.len() <= 0 {
+        if child_indices.is_empty() {
             return Err(ExtendedPublicKeyErrors::DerivationError {
                 error: anyhow!(format!(
                     "No path was provided. Please provide a string of the form m/0. Given path: {}",
@@ -252,17 +250,17 @@ impl ExtendedPublicKey {
             xpriv = xpriv.derive_impl(*index)?;
         }
 
-        return Ok(xpriv);
+        Ok(xpriv)
     }
 
     fn parse_str_to_idx(x: &str) -> Result<u32, ExtendedPublicKeyErrors> {
-        let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
+        let is_hardened = x.ends_with('\'') || x.to_lowercase().ends_with('h');
         let index_str = x
-            .trim_end_matches("'")
-            .trim_end_matches("h")
-            .trim_end_matches("H");
+            .trim_end_matches('\'')
+            .trim_end_matches('h')
+            .trim_end_matches('H');
 
-        let index = match u32::from_str_radix(index_str, 10) {
+        let index = match index_str.parse::<u32>() {
             Ok(v) => v,
             Err(e) => return Err(ExtendedPublicKeyErrors::DerivationError { error: anyhow!(e) }),
         };
@@ -308,7 +306,7 @@ impl ExtendedPublicKey {
 
     #[wasm_bindgen(js_name = getDepth)]
     pub fn get_depth(&self) -> u8 {
-        self.depth.clone()
+        self.depth
     }
 
     #[wasm_bindgen(js_name = getParentFingerprint)]
@@ -318,7 +316,7 @@ impl ExtendedPublicKey {
 
     #[wasm_bindgen(js_name = getIndex)]
     pub fn get_index(&self) -> u32 {
-        self.index.clone()
+        self.index
     }
 }
 

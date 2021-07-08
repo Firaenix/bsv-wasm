@@ -23,7 +23,7 @@ impl PublicKey {
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, PublicKeyErrors> {
         let bytes = self.to_bytes_impl()?;
-        return Ok(hex::encode(bytes));
+        Ok(hex::encode(bytes))
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, PublicKeyErrors> {

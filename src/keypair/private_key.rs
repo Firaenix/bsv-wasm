@@ -140,13 +140,13 @@ impl PrivateKey {
         }
 
         // Private Key is 32 bytes + prefix is 33 bytes, if 34 bytes and ends with 01, compressed is true
-        fn is_compressed(unchecksum: &Vec<u8>) -> bool {
+        fn is_compressed(unchecksum: &[u8]) -> bool {
             if unchecksum.len() < 34 {
                 return false;
             }
 
             match unchecksum.last() {
-                Some(last_byte) => last_byte.eq(&01),
+                Some(last_byte) => last_byte.eq(&1),
                 None => false,
             }
         }
@@ -158,7 +158,7 @@ impl PrivateKey {
             false => wif_without_checksum[1..].to_hex(),
         };
 
-        PrivateKey::from_hex_impl(private_key_hex.into())
+        PrivateKey::from_hex_impl(private_key_hex)
     }
 }
 
