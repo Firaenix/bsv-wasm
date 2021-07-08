@@ -1,30 +1,43 @@
 use crate::{PublicKey, Sha256r, SignatureErrors, SigningHash};
-use digest::Digest;
-use k256::{EncodedPoint, FieldBytes, ecdsa::Signature as SecpSignature, ecdsa::{VerifyingKey, recoverable, signature::Verifier}};
-use wasm_bindgen::{prelude::*, throw_str};
 use anyhow::*;
+use digest::Digest;
+use k256::{
+    ecdsa::Signature as SecpSignature,
+    ecdsa::{recoverable, signature::Verifier, VerifyingKey},
+    EncodedPoint, FieldBytes,
+};
+use wasm_bindgen::{prelude::*, throw_str};
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     sig: k256::ecdsa::Signature,
-    is_recoverable: bool
+    is_recoverable: bool,
 }
 
 /**
  * Implementation Methods
  */
 impl Signature {
-    pub(crate) fn from_der_impl(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
+    pub(crate) fn from_der_impl(
+        bytes: Vec<u8>,
+        is_recoverable: bool,
+    ) -> Result<Signature, SignatureErrors> {
         let sig = match SecpSignature::from_der(&bytes) {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::SecpError { error: e }),
         };
 
-        Ok(Signature { sig, is_recoverable })
+        Ok(Signature {
+            sig,
+            is_recoverable,
+        })
     }
 
-    pub(crate) fn from_hex_der_impl(hex: String, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
+    pub(crate) fn from_hex_der_impl(
+        hex: String,
+        is_recoverable: bool,
+    ) -> Result<Signature, SignatureErrors> {
         let bytes = match hex::decode(hex) {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::ParseHex { error: e }),
@@ -35,23 +48,31 @@ impl Signature {
             Err(e) => return Err(SignatureErrors::SecpError { error: e }),
         };
 
-        Ok(Signature { sig, is_recoverable })
+        Ok(Signature {
+            sig,
+            is_recoverable,
+        })
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, SignatureErrors> {
+    pub(crate) fn get_public_key(
+        &self,
+        message: &[u8],
+        hash_algo: SigningHash,
+    ) -> Result<PublicKey, SignatureErrors> {
         if self.is_recoverable == false {
-            return Err(SignatureErrors::DerivePublicKey { error: anyhow!("This signature is not recoverable") })
+            return Err(SignatureErrors::DerivePublicKey {
+                error: anyhow!("This signature is not recoverable"),
+            });
         }
 
         let recovery_id = match recoverable::Id::new(self.is_recoverable as u8) {
             Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) })
+            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
 
-        
         let recoverable_sig = match recoverable::Signature::new(&self.sig, recovery_id) {
             Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) })
+            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
 
         let message_digest = match hash_algo {
@@ -61,14 +82,14 @@ impl Signature {
 
         let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
             Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) })
+            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
 
         let pub_key = match PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec(), true) {
             Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) })
+            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
-        
+
         Ok(pub_key)
     }
 
@@ -152,7 +173,11 @@ impl Signature {
     }
 
     #[wasm_bindgen(js_name = recoverPublicKey)]
-    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey, JsValue> {
+    pub fn recover_public_key(
+        &self,
+        message: Vec<u8>,
+        hash_algo: SigningHash,
+    ) -> Result<PublicKey, JsValue> {
         match Signature::get_public_key(&self, &message, hash_algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -186,7 +211,11 @@ impl Signature {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey, SignatureErrors> {
+    pub fn recover_public_key(
+        &self,
+        message: Vec<u8>,
+        hash_algo: SigningHash,
+    ) -> Result<PublicKey, SignatureErrors> {
         Signature::get_public_key(&self, &message, hash_algo)
     }
 }

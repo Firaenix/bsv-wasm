@@ -54,9 +54,10 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn recover_pub_key_from_signature() {
-        let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32".into()).unwrap();
+        let key =
+            PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32".into())
+                .unwrap();
 
-        
         let message = b"Hello";
 
         let signature = key.sign_message(message).unwrap();
@@ -68,7 +69,12 @@ mod tests {
         let is_verified = signature.verify(message.to_vec(), &pub_key).unwrap();
         assert_eq!(is_verified, true);
 
-        let recovered_pub_key = signature.recover_public_key(message.to_vec(), SigningHash::Sha256).unwrap();
-        assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
+        let recovered_pub_key = signature
+            .recover_public_key(message.to_vec(), SigningHash::Sha256)
+            .unwrap();
+        assert_eq!(
+            pub_key.to_hex().unwrap(),
+            recovered_pub_key.to_hex().unwrap()
+        );
     }
 }
