@@ -1,7 +1,7 @@
 use crate::PublicKeyErrors;
 
 use elliptic_curve::sec1::*;
-use k256::{Secp256k1};
+use k256::Secp256k1;
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::PrivateKey;
@@ -14,7 +14,7 @@ pub struct PublicKey {
 }
 
 impl PublicKey {
-   pub(crate) fn from_private_key_impl(priv_key: &PrivateKey, compress: bool) -> PublicKey {
+    pub(crate) fn from_private_key_impl(priv_key: &PrivateKey, compress: bool) -> PublicKey {
         PublicKey {
             point: priv_key.get_point(compress),
             is_compressed: compress,
@@ -29,23 +29,18 @@ impl PublicKey {
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, PublicKeyErrors> {
         let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(&self.point.clone()) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(PublicKeyErrors::InvalidPoint {
-                  error: e,
-                })
-            }
+            Err(e) => return Err(PublicKeyErrors::InvalidPoint { error: e }),
         };
         Ok(point.as_bytes().to_vec())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+    pub(crate) fn from_bytes_impl(
+        bytes: &[u8],
+        compress: bool,
+    ) -> Result<PublicKey, PublicKeyErrors> {
         let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(bytes) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(PublicKeyErrors::InvalidPoint {
-                    error: e,
-                })
-            }
+            Err(e) => return Err(PublicKeyErrors::InvalidPoint { error: e }),
         };
 
         Ok(PublicKey {
@@ -54,20 +49,18 @@ impl PublicKey {
         })
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
+    pub(crate) fn from_hex_impl(
+        hex_str: String,
+        compress: bool,
+    ) -> Result<PublicKey, PublicKeyErrors> {
         let point_bytes = match hex::decode(hex_str) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(PublicKeyErrors::ParseHex {
-                    error: e
-                })
-            }
+            Err(e) => return Err(PublicKeyErrors::ParseHex { error: e }),
         };
 
         PublicKey::from_bytes_impl(&point_bytes, compress)
     }
 }
-
 
 /**
  * WASM Exported Methods
@@ -78,7 +71,7 @@ impl PublicKey {
     fn param_is_compressed(compress: Option<bool>) -> bool {
         match compress {
             Some(v) => v,
-            None => true
+            None => true,
         }
     }
 
@@ -116,7 +109,7 @@ impl PublicKey {
 
     #[wasm_bindgen(js_name = fromPrivateKey)]
     pub fn from_private_key(priv_key: &PrivateKey, compress: Option<bool>) -> PublicKey {
-      PublicKey::from_private_key_impl(priv_key, PublicKey::param_is_compressed(compress))
+        PublicKey::from_private_key_impl(priv_key, PublicKey::param_is_compressed(compress))
     }
 }
 
