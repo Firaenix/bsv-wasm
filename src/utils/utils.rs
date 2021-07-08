@@ -1,5 +1,5 @@
 use serde::{Deserialize, Deserializer, Serializer};
-pub fn to_hex<S>(vec: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
+pub fn to_hex<S>(vec: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {

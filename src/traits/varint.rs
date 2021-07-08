@@ -14,8 +14,8 @@ impl VarInt for Cursor<Vec<u8>> {
     fn read_varint(&mut self) -> Result<u64> {
         match self.read_u8() {
             Ok(0xff) => self.read_u64::<LittleEndian>(),
-            Ok(0xfe) => self.read_u32::<LittleEndian>().and_then(|x| Ok(x as u64)),
-            Ok(0xfd) => self.read_u16::<LittleEndian>().and_then(|x| Ok(x as u64)),
+            Ok(0xfe) => self.read_u32::<LittleEndian>().map(|x| x as u64),
+            Ok(0xfd) => self.read_u16::<LittleEndian>().map(|x| x as u64),
             Ok(v) => Ok(v as u64),
             Err(e) => Err(e),
         }
@@ -50,8 +50,8 @@ impl VarInt for Vec<u8> {
 
         match cursor.read_u8() {
             Ok(0xff) => cursor.read_u64::<LittleEndian>(),
-            Ok(0xfe) => cursor.read_u32::<LittleEndian>().and_then(|x| Ok(x as u64)),
-            Ok(0xfd) => cursor.read_u16::<LittleEndian>().and_then(|x| Ok(x as u64)),
+            Ok(0xfe) => cursor.read_u32::<LittleEndian>().map(|x| x as u64),
+            Ok(0xfd) => cursor.read_u16::<LittleEndian>().map(|x| x as u64),
             Ok(v) => Ok(v as u64),
             Err(e) => Err(e),
         }
