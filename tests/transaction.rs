@@ -1,3 +1,4 @@
+#[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod transaction_tests {
     use bsv_wasm::*;
