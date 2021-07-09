@@ -1,5 +1,5 @@
-use crate::PublicKey;
 use crate::{AddressErrors, Hash};
+use crate::{PublicKey, Script, ScriptErrors};
 use anyhow::*;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -76,6 +76,13 @@ impl P2PKHAddress {
             pubkey_hash: pub_key_hash,
         })
     }
+
+    pub(crate) fn to_tx_out_script_impl(&self) -> Result<Script, ScriptErrors> {
+        Script::from_asm_string(format!(
+            "OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG",
+            self.to_pubkey_hash_hex()
+        ))
+    }
 }
 
 /**
@@ -126,6 +133,14 @@ impl P2PKHAddress {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[wasm_bindgen(js_name = toTxOutScript)]
+    pub fn to_tx_out_script(&self) -> Result<Script, JsValue> {
+        match self.to_tx_out_script_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -148,5 +163,9 @@ impl P2PKHAddress {
 
     pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
         P2PKHAddress::from_p2pkh_string_impl(address_string)
+    }
+
+    pub fn to_tx_out_script(&self) -> Result<Script, ScriptErrors> {
+        self.to_tx_out_script_impl()
     }
 }
