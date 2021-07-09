@@ -67,7 +67,7 @@ impl P2PKHAddress {
     }
 
     pub(crate) fn to_tx_out_script_impl(&self) -> Result<Script, ScriptErrors> {
-        Script::from_asm_string(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
+        Script::from_asm_string_impl(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
     }
 }
 
