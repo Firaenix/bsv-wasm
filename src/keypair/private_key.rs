@@ -1,4 +1,4 @@
-use crate::{get_hash_digest, Hash};
+use crate::{get_hash_digest, Hash, PublicKey};
 use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
 use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
@@ -174,6 +174,11 @@ impl PrivateKey {
     #[wasm_bindgen(js_name = getPoint)]
     pub fn get_point(&self, compressed: bool) -> Vec<u8> {
         EncodedPoint::from_secret_key(&self.secret_key, compressed).as_bytes().into()
+    }
+
+    #[wasm_bindgen(js_name = getPublicKey)]
+    pub fn get_public_key(&self, compressed: bool) -> PublicKey {
+        PublicKey::from_private_key_impl(&self, compressed)
     }
 }
 
