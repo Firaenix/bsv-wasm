@@ -16,16 +16,10 @@ use snafu::*;
 #[derive(Debug, Snafu)]
 pub enum TxOutErrors {
     #[snafu(display("Error deserialising TxOut field {:?}: {}", field, error))]
-    Deserialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Deserialise { field: Option<String>, error: anyhow::Error },
 
     #[snafu(display("Error serialising TxOut field {:?}: {}", field, error))]
-    Serialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Serialise { field: Option<String>, error: anyhow::Error },
 }
 
 #[wasm_bindgen]
@@ -40,12 +34,7 @@ impl TxOut {
     pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxOut, TxOutErrors> {
         let txout_bytes = match hex::decode(&hex_str) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxOutErrors::Deserialise {
-                    field: None,
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(TxOutErrors::Deserialise { field: None, error: anyhow!(e) }),
         };
 
         let mut cursor = Cursor::new(txout_bytes);
@@ -88,10 +77,7 @@ impl TxOut {
             _ => (),
         };
 
-        Ok(TxOut {
-            value: satoshis,
-            script_pub_key,
-        })
+        Ok(TxOut { value: satoshis, script_pub_key })
     }
 
     pub(crate) fn to_bytes_impl(&self) -> std::io::Result<Vec<u8>> {
@@ -117,10 +103,7 @@ impl TxOut {
     pub(crate) fn to_json_string_impl(&self) -> Result<String, TxOutErrors> {
         match serde_json::to_string_pretty(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TxOutErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TxOutErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 }
@@ -129,10 +112,7 @@ impl TxOut {
 impl TxOut {
     #[wasm_bindgen(constructor)]
     pub fn new(value: u64, script_pub_key: Vec<u8>) -> TxOut {
-        TxOut {
-            value,
-            script_pub_key,
-        }
+        TxOut { value, script_pub_key }
     }
 
     #[wasm_bindgen(js_name = getSatoshis)]
@@ -223,10 +203,7 @@ impl TxOut {
     pub fn to_json(&self) -> Result<serde_json::Value, TxOutErrors> {
         match serde_json::to_value(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TxOutErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TxOutErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 

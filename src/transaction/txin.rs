@@ -16,16 +16,10 @@ use snafu::*;
 #[derive(Debug, Snafu)]
 pub enum TxInErrors {
     #[snafu(display("Error deserialising TxIn field {:?}: {}", field, error))]
-    Deserialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Deserialise { field: Option<String>, error: anyhow::Error },
 
     #[snafu(display("Error serialising TxIn field {:?}: {}", field, error))]
-    Serialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Serialise { field: Option<String>, error: anyhow::Error },
 }
 
 #[wasm_bindgen]
@@ -42,12 +36,7 @@ impl TxIn {
     pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, TxInErrors> {
         let txin_bytes = match hex::decode(&hex_str) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: None,
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(TxInErrors::Deserialise { field: None, error: anyhow!(e) }),
         };
 
         let mut cursor = Cursor::new(txin_bytes);
@@ -207,10 +196,7 @@ impl TxIn {
     pub(crate) fn to_json_string_impl(&self) -> Result<String, TxInErrors> {
         match serde_json::to_string_pretty(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TxInErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TxInErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 }
@@ -384,10 +370,7 @@ impl TxIn {
     pub fn to_json(&self) -> Result<serde_json::Value, TxInErrors> {
         match serde_json::to_value(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TxInErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TxInErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 }

@@ -12,9 +12,7 @@ pub struct P2PKHAddress {
 
 impl P2PKHAddress {
     fn from_pubkey_hash_impl(hash_bytes: Vec<u8>) -> P2PKHAddress {
-        P2PKHAddress {
-            pubkey_hash: hash_bytes,
-        }
+        P2PKHAddress { pubkey_hash: hash_bytes }
     }
 
     fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, AddressErrors> {
@@ -25,12 +23,7 @@ impl P2PKHAddress {
 
         let pub_key_bytes = match hex::decode(&pub_key_hex) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(AddressErrors::ParseHex {
-                    hex: pub_key_hex,
-                    error: e,
-                })
-            }
+            Err(e) => return Err(AddressErrors::ParseHex { hex: pub_key_hex, error: e }),
         };
 
         let pub_key_hash = Hash::hash_160(&pub_key_bytes);
@@ -54,9 +47,7 @@ impl P2PKHAddress {
         Ok(address.into_string())
     }
 
-    pub(crate) fn from_p2pkh_string_impl(
-        address_string: String,
-    ) -> Result<P2PKHAddress, AddressErrors> {
+    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
         let decoded = bs58::decode(address_string.clone());
 
         let address_bytes = match decoded.into_vec() {
@@ -72,16 +63,11 @@ impl P2PKHAddress {
         // Remove 0x00 from the front and the 4 byte checksum off the end
         let pub_key_hash = address_bytes[1..address_bytes.len() - 4].to_vec();
 
-        Ok(P2PKHAddress {
-            pubkey_hash: pub_key_hash,
-        })
+        Ok(P2PKHAddress { pubkey_hash: pub_key_hash })
     }
 
     pub(crate) fn to_tx_out_script_impl(&self) -> Result<Script, ScriptErrors> {
-        Script::from_asm_string(format!(
-            "OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG",
-            self.to_pubkey_hash_hex()
-        ))
+        Script::from_asm_string(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
     }
 }
 

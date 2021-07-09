@@ -52,11 +52,7 @@ impl Signature {
         bytes.as_bytes().to_vec()
     }
 
-    pub(crate) fn verify_impl(
-        &self,
-        message: Vec<u8>,
-        pub_key: &PublicKey,
-    ) -> Result<bool, SignatureErrors> {
+    pub(crate) fn verify_impl(&self, message: Vec<u8>, pub_key: &PublicKey) -> Result<bool, SignatureErrors> {
         let pub_key_bytes = match pub_key.to_bytes_impl() {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::PublicKeyError { error: e }),
@@ -75,12 +71,7 @@ impl Signature {
         Ok(key.verify(&message, &self.sig).is_ok())
     }
 
-    pub(crate) fn verify_digest_impl(
-        &self,
-        message: &[u8],
-        pub_key: &PublicKey,
-        hash_algo: SigningHash,
-    ) -> Result<bool, SignatureErrors> {
+    pub(crate) fn verify_digest_impl(&self, message: &[u8], pub_key: &PublicKey, hash_algo: SigningHash) -> Result<bool, SignatureErrors> {
         let pub_key_bytes = match pub_key.to_bytes_impl() {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::PublicKeyError { error: e }),

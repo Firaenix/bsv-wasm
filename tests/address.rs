@@ -55,20 +55,14 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn private_key_to_public_key_to_address() {
-        let priv_key = PrivateKey::from_hex(
-            "ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into(),
-        )
-        .unwrap();
+        let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into()).unwrap();
         #[cfg(target_arch = "wasm32")]
         let pub_key = PublicKey::from_private_key(&priv_key, Some(true));
         #[cfg(not(target_arch = "wasm32"))]
         let pub_key = PublicKey::from_private_key(&priv_key, true);
 
         let pub_key_hex = pub_key.to_hex().unwrap();
-        assert_eq!(
-            pub_key_hex,
-            "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737"
-        );
+        assert_eq!(pub_key_hex, "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737");
 
         let address = P2PKHAddress::from_pubkey(&pub_key).unwrap();
         let address_string = address.to_address_string().unwrap();
@@ -79,29 +73,21 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_address_string_to_address_string() {
-        let priv_key = PrivateKey::from_hex(
-            "ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into(),
-        )
-        .unwrap();
+        let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".into()).unwrap();
         #[cfg(target_arch = "wasm32")]
         let pub_key = PublicKey::from_private_key(&priv_key, Some(true));
         #[cfg(not(target_arch = "wasm32"))]
         let pub_key = PublicKey::from_private_key(&priv_key, true);
 
         let pub_key_hex = pub_key.to_hex().unwrap();
-        assert_eq!(
-            pub_key_hex,
-            "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737"
-        );
+        assert_eq!(pub_key_hex, "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737");
 
         let address = P2PKHAddress::from_pubkey(&pub_key).unwrap();
         let address_string = address.to_address_string().unwrap();
 
         assert_eq!(address_string, "1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem");
 
-        let decoded_address =
-            P2PKHAddress::from_p2pkh_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem".to_string())
-                .unwrap();
+        let decoded_address = P2PKHAddress::from_p2pkh_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem".to_string()).unwrap();
 
         assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
     }

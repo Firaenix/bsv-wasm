@@ -25,13 +25,7 @@ pub struct ExtendedPrivateKey {
 }
 
 impl ExtendedPrivateKey {
-    pub fn new(
-        private_key: &PrivateKey,
-        chain_code: &[u8],
-        depth: &u8,
-        index: &u32,
-        parent_fingerprint: Option<&[u8]>,
-    ) -> Self {
+    pub fn new(private_key: &PrivateKey, chain_code: &[u8], depth: &u8, index: &u32, parent_fingerprint: Option<&[u8]>) -> Self {
         let fingerprint = match parent_fingerprint {
             Some(v) => v,
             None => &[0, 0, 0, 0],
@@ -65,22 +59,13 @@ impl ExtendedPrivateKey {
         Ok(bs58::encode(buffer).into_string())
     }
 
-    pub fn from_mnemonic_and_passphrase_impl(
-        mnemonic: Vec<u8>,
-        passphrase: Option<Vec<u8>>,
-    ) -> Result<Self, ExtendedPrivateKeyErrors> {
+    pub fn from_mnemonic_and_passphrase_impl(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<Self, ExtendedPrivateKeyErrors> {
         let fixed_phrase = match passphrase {
             Some(v) => v,
             None => b"mnemonic".to_vec(),
         };
 
-        let seed = KDF::pbkdf2(
-            mnemonic,
-            Some(fixed_phrase),
-            crate::PBKDF2Hashes::SHA512,
-            2048,
-            64,
-        );
+        let seed = KDF::pbkdf2(mnemonic, Some(fixed_phrase), crate::PBKDF2Hashes::SHA512, 2048, 64);
         let seed_bytes = seed.get_hash().to_bytes();
         Self::from_seed_impl(seed_bytes)
     }
@@ -127,11 +112,7 @@ impl ExtendedPrivateKey {
         let mut seed = vec![0; 64];
         match getrandom(&mut seed) {
             Ok(_) => (),
-            Err(e) => {
-                return Err(ExtendedPrivateKeyErrors::RandomnessGenerationError {
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(ExtendedPrivateKeyErrors::RandomnessGenerationError { error: anyhow!(e) }),
         };
 
         Self::from_seed_impl(seed)
@@ -199,9 +180,7 @@ impl ExtendedPrivateKey {
 
                 let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
                     Ok(v) => v,
-                    Err(e) => {
-                        return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e })
-                    }
+                    Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e }),
                 };
 
                 bytes.extend_from_slice(&pub_key_bytes);
@@ -239,13 +218,10 @@ impl ExtendedPrivateKey {
             }
         };
 
-        let parent_scalar =
-            match SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice()) {
-                Ok(v) => v.to_secret_scalar().clone(),
-                Err(e) => {
-                    return Err(ExtendedPrivateKeyErrors::DerivationError { error: anyhow!(e) })
-                }
-            };
+        let parent_scalar = match SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice()) {
+            Ok(v) => v.to_secret_scalar().clone(),
+            Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError { error: anyhow!(e) }),
+        };
 
         let il_scalar = match SecretKey::from_bytes(private_key_bytes) {
             Ok(il) => Scalar::from_bytes_reduced(&il.to_secret_scalar().to_bytes()),
@@ -273,10 +249,7 @@ impl ExtendedPrivateKey {
         })
     }
 
-    pub fn derive_from_path_impl(
-        &self,
-        path: &str,
-    ) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
         if path.to_ascii_lowercase().starts_with('m') == false {
             return Err(ExtendedPrivateKeyErrors::DerivationError {
                 error: anyhow!("Path did not begin with 'm'"),
@@ -284,16 +257,11 @@ impl ExtendedPrivateKey {
         }
 
         let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
-        let child_indices = children
-            .map(Self::parse_str_to_idx)
-            .collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?;
+        let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, ExtendedPrivateKeyErrors>>()?;
 
         if child_indices.len() <= 0 {
             return Err(ExtendedPrivateKeyErrors::DerivationError {
-                error: anyhow!(format!(
-                    "No path was provided. Please provide a string of the form m/0. Given path: {}",
-                    path
-                )),
+                error: anyhow!(format!("No path was provided. Please provide a string of the form m/0. Given path: {}", path)),
             });
         }
 
@@ -307,10 +275,7 @@ impl ExtendedPrivateKey {
 
     fn parse_str_to_idx(x: &str) -> Result<u32, ExtendedPrivateKeyErrors> {
         let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
-        let index_str = x
-            .trim_end_matches("'")
-            .trim_end_matches("h")
-            .trim_end_matches("H");
+        let index_str = x.trim_end_matches("'").trim_end_matches("h").trim_end_matches("H");
 
         let index = match u32::from_str_radix(index_str, 10) {
             Ok(v) => v,
@@ -319,10 +284,7 @@ impl ExtendedPrivateKey {
 
         if index >= HARDENED_KEY_OFFSET {
             return Err(ExtendedPrivateKeyErrors::DerivationError {
-                error: anyhow!(format!(
-                    "Indicies may not be greater than {}",
-                    HARDENED_KEY_OFFSET - 1
-                )),
+                error: anyhow!(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET - 1)),
             });
         }
 
@@ -418,10 +380,7 @@ impl ExtendedPrivateKey {
     }
 
     #[wasm_bindgen(js_name = fromMnemonic)]
-    pub fn from_mnemonic(
-        mnemonic: Vec<u8>,
-        passphrase: Option<Vec<u8>>,
-    ) -> Result<ExtendedPrivateKey, JsValue> {
+    pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -435,10 +394,7 @@ impl ExtendedPrivateKey {
         Self::derive_impl(&self, index)
     }
 
-    pub fn derive_from_path(
-        &self,
-        path: &str,
-    ) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
         Self::derive_from_path_impl(&self, path)
     }
 
@@ -458,10 +414,7 @@ impl ExtendedPrivateKey {
         Self::to_string_impl(&self)
     }
 
-    pub fn from_mnemonic(
-        mnemonic: Vec<u8>,
-        passphrase: Option<Vec<u8>>,
-    ) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
+    pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, ExtendedPrivateKeyErrors> {
         Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase)
     }
 }

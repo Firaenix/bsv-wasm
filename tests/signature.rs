@@ -48,6 +48,9 @@ mod tests {
 
         let is_verified = signature.verify(message.to_vec(), &pub_key).unwrap();
         assert_eq!(is_verified, true);
-        assert_eq!(signature.to_hex(), "3045022100fab965a4dd445c990f46689f7acdc6e089128dc2d743457b350032d66336edb7022005f5684cc707b569120ef0442343998c95f6514c751251a91f82b1ec6a92da78".to_lowercase())
+        assert_eq!(
+            signature.to_hex(),
+            "3045022100fab965a4dd445c990f46689f7acdc6e089128dc2d743457b350032d66336edb7022005f5684cc707b569120ef0442343998c95f6514c751251a91f82b1ec6a92da78".to_lowercase()
+        )
     }
 }
