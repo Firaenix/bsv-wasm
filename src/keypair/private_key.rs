@@ -1,4 +1,4 @@
-use crate::Hash;
+use crate::{get_hash_digest, Hash};
 use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
 use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
@@ -44,6 +44,9 @@ impl PrivateKey {
         hash_algo: SigningHash,
         reverse_k: bool,
     ) -> Result<Signature, PrivateKeyErrors> {
+        // let digest = get_hash_digest(hash_algo, preimage.clone());
+        // let signature_result = sign_custom_preimage(&self.secret_key, digest, reverse_k);
+
         let signature_result = match hash_algo {
             SigningHash::Sha256 => sign_custom_preimage(
                 &self.secret_key,

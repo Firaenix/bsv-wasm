@@ -1,4 +1,5 @@
-use crate::{PublicKey, SignatureErrors};
+use crate::{get_hash_digest, PublicKey, SignatureErrors, SigningHash};
+use ecdsa::signature::DigestVerifier;
 use elliptic_curve::sec1::*;
 use k256::{
     ecdsa::Signature as SecpSignature,
@@ -72,6 +73,31 @@ impl Signature {
         };
 
         Ok(key.verify(&message, &self.sig).is_ok())
+    }
+
+    pub(crate) fn verify_digest_impl(
+        &self,
+        message: &[u8],
+        pub_key: &PublicKey,
+        hash_algo: SigningHash,
+    ) -> Result<bool, SignatureErrors> {
+        let pub_key_bytes = match pub_key.to_bytes_impl() {
+            Ok(v) => v,
+            Err(e) => return Err(SignatureErrors::PublicKeyError { error: e }),
+        };
+
+        let point = match EncodedPoint::from_bytes(pub_key_bytes) {
+            Ok(v) => v,
+            Err(e) => return Err(SignatureErrors::InvalidPoint { error: e }),
+        };
+
+        let key = match VerifyingKey::from_encoded_point(&point) {
+            Ok(v) => v,
+            Err(e) => return Err(SignatureErrors::SecpError { error: e }),
+        };
+
+        let digest = get_hash_digest(hash_algo, message);
+        Ok(key.verify_digest(digest, &self.sig).is_ok())
     }
 }
 
