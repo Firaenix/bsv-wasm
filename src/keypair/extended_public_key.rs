@@ -20,13 +20,7 @@ pub struct ExtendedPublicKey {
 }
 
 impl ExtendedPublicKey {
-    pub fn new(
-        public_key: &PublicKey,
-        chain_code: &[u8],
-        depth: &u8,
-        index: &u32,
-        parent_fingerprint: Option<&[u8]>,
-    ) -> Self {
+    pub fn new(public_key: &PublicKey, chain_code: &[u8], depth: &u8, index: &u32, parent_fingerprint: Option<&[u8]>) -> Self {
         let fingerprint = match parent_fingerprint {
             Some(v) => v,
             None => &[0, 0, 0, 0],
@@ -108,11 +102,7 @@ impl ExtendedPublicKey {
         let mut seed = vec![0; 64];
         match getrandom(&mut seed) {
             Ok(_) => (),
-            Err(e) => {
-                return Err(ExtendedPublicKeyErrors::RandomnessGenerationError {
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(ExtendedPublicKeyErrors::RandomnessGenerationError { error: anyhow!(e) }),
         };
 
         Self::from_seed_impl(seed)
@@ -121,9 +111,7 @@ impl ExtendedPublicKey {
     pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, ExtendedPublicKeyErrors> {
         let xpriv = match ExtendedPrivateKey::from_seed_impl(seed) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError { error: anyhow!(e) })
-            }
+            Err(e) => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError { error: anyhow!(e) }),
         };
 
         Ok(Self::from_xpriv(&xpriv))
@@ -132,10 +120,7 @@ impl ExtendedPublicKey {
     pub fn derive_impl(&self, index: u32) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
         if index >= HARDENED_KEY_OFFSET {
             return Err(ExtendedPublicKeyErrors::DerivationError {
-                error: anyhow!(
-                    "Cannot generate a hardened xpub, choose an index between 0 and {}.",
-                    HARDENED_KEY_OFFSET - 1
-                ),
+                error: anyhow!("Cannot generate a hardened xpub, choose an index between 0 and {}.", HARDENED_KEY_OFFSET - 1),
             });
         }
 
@@ -182,36 +167,24 @@ impl ExtendedPublicKey {
         };
         let parent_pub_key_point = match K256PublicKey::from_sec1_bytes(&parent_pub_key_bytes) {
             Ok(x) => x.to_projective(),
-            Err(e) => {
-                return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
-            }
+            Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
         };
 
         // Pass child_public_key_bytes to secretkey because both Private + Public use same scalar, just need to multiply by it and add the new point
         let il_scalar = match SecretKey::from_bytes(child_public_key_bytes) {
             Ok(il) => Scalar::from_bytes_reduced(&il.to_secret_scalar().to_bytes()),
-            Err(e) => {
-                return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
-            }
+            Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
         };
         //ECDSA::Group::Secp256k1.generator.multiply_by_scalar(il.to_i(16))
         let child_pub_key_point = parent_pub_key_point + (ProjectivePoint::generator() * il_scalar);
 
-        let internal_pub_key: K256PublicKey =
-            match K256PublicKey::from_affine(child_pub_key_point.to_affine()) {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
-                }
-            };
-        let child_pub_key = match PublicKey::from_bytes_impl(
-            &internal_pub_key.to_encoded_point(true).as_bytes(),
-            true,
-        ) {
+        let internal_pub_key: K256PublicKey = match K256PublicKey::from_affine(child_pub_key_point.to_affine()) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) })
-            }
+            Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
+        };
+        let child_pub_key = match PublicKey::from_bytes_impl(&internal_pub_key.to_encoded_point(true).as_bytes(), true) {
+            Ok(v) => v,
+            Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
         };
 
         Ok(ExtendedPublicKey {
@@ -223,10 +196,7 @@ impl ExtendedPublicKey {
         })
     }
 
-    pub fn derive_from_path_impl(
-        &self,
-        path: &str,
-    ) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
         if path.to_ascii_lowercase().starts_with('m') == false {
             return Err(ExtendedPublicKeyErrors::DerivationError {
                 error: anyhow!("Path did not begin with 'm'"),
@@ -234,16 +204,11 @@ impl ExtendedPublicKey {
         }
 
         let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
-        let child_indices = children
-            .map(Self::parse_str_to_idx)
-            .collect::<Result<Vec<u32>, ExtendedPublicKeyErrors>>()?;
+        let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, ExtendedPublicKeyErrors>>()?;
 
         if child_indices.len() <= 0 {
             return Err(ExtendedPublicKeyErrors::DerivationError {
-                error: anyhow!(format!(
-                    "No path was provided. Please provide a string of the form m/0. Given path: {}",
-                    path
-                )),
+                error: anyhow!(format!("No path was provided. Please provide a string of the form m/0. Given path: {}", path)),
             });
         }
 
@@ -257,10 +222,7 @@ impl ExtendedPublicKey {
 
     fn parse_str_to_idx(x: &str) -> Result<u32, ExtendedPublicKeyErrors> {
         let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
-        let index_str = x
-            .trim_end_matches("'")
-            .trim_end_matches("h")
-            .trim_end_matches("H");
+        let index_str = x.trim_end_matches("'").trim_end_matches("h").trim_end_matches("H");
 
         let index = match u32::from_str_radix(index_str, 10) {
             Ok(v) => v,
@@ -269,10 +231,7 @@ impl ExtendedPublicKey {
 
         if index >= HARDENED_KEY_OFFSET {
             return Err(ExtendedPublicKeyErrors::DerivationError {
-                error: anyhow!(format!(
-                    "Indicies may not be greater than {}",
-                    HARDENED_KEY_OFFSET - 1
-                )),
+                error: anyhow!(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET - 1)),
             });
         }
 
@@ -380,10 +339,7 @@ impl ExtendedPublicKey {
         Self::derive_impl(&self, index)
     }
 
-    pub fn derive_from_path(
-        &self,
-        path: &str,
-    ) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
         Self::derive_from_path_impl(&self, path)
     }
 

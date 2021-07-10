@@ -1,24 +1,14 @@
-use crate::reverse_digest::ReversibleDigest;
-use digest::{consts::U32, BlockInput, FixedOutput, Reset, Update};
+use crate::{reverse_digest::ReversibleDigest, Sha256r, SigningHash};
+use digest::{consts::U32, BlockInput, Digest, FixedOutput, Reset, Update};
 use ecdsa::{
     hazmat::{FromDigest, RecoverableSignPrimitive},
     rfc6979::{self, generate_k},
 };
 use k256::{ecdsa::Signature, Scalar, SecretKey};
 
-pub fn sign_custom_preimage<D>(
-    priv_key: &SecretKey,
-    digest: D,
-    reverse_endian_k: bool,
-) -> Result<(Signature, bool), ecdsa::Error>
+pub fn sign_custom_preimage<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(Signature, bool), ecdsa::Error>
 where
-    D: FixedOutput<OutputSize = U32>
-        + BlockInput
-        + Clone
-        + Default
-        + Reset
-        + Update
-        + ReversibleDigest,
+    D: FixedOutput<OutputSize = U32> + BlockInput + Clone + Default + Reset + Update + ReversibleDigest,
 {
     // Add this for non deterministic K
     // let mut added_entropy = FieldBytes::<C>::default();
@@ -34,4 +24,11 @@ where
 
     let msg_scalar = Scalar::from_digest(digest);
     priv_scalar.try_sign_recoverable_prehashed(&k, &msg_scalar)
+}
+
+pub fn get_hash_digest(hash_algo: SigningHash, preimage: &[u8]) -> impl FixedOutput<OutputSize = U32> + BlockInput + Clone + Default + Reset + Update + ReversibleDigest {
+    match hash_algo {
+        SigningHash::Sha256 => Update::chain(Sha256r::default(), preimage),
+        SigningHash::Sha256d => Update::chain(Sha256r::default(), Sha256r::digest(preimage)),
+    }
 }

@@ -20,19 +20,10 @@ pub enum AESAlgorithms {
 }
 
 impl AES {
-    pub fn encrypt_impl(
-        key: &[u8],
-        iv: &[u8],
-        message: &[u8],
-        algo: AESAlgorithms,
-    ) -> Result<Vec<u8>> {
+    pub fn encrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
         let result = match algo {
-            AESAlgorithms::AES128_CBC => {
-                Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message)
-            }
-            AESAlgorithms::AES256_CBC => {
-                Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message)
-            }
+            AESAlgorithms::AES128_CBC => Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
+            AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
             AESAlgorithms::AES128_CTR => AES::aes_ctr::<Aes128Ctr>(key, iv, message),
             AESAlgorithms::AES256_CTR => AES::aes_ctr::<Aes256Ctr>(key, iv, message),
         };
@@ -40,19 +31,10 @@ impl AES {
         Ok(result)
     }
 
-    pub fn decrypt_impl(
-        key: &[u8],
-        iv: &[u8],
-        message: &[u8],
-        algo: AESAlgorithms,
-    ) -> Result<Vec<u8>> {
+    pub fn decrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
         let result = match algo {
-            AESAlgorithms::AES128_CBC => {
-                Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?
-            }
-            AESAlgorithms::AES256_CBC => {
-                Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?
-            }
+            AESAlgorithms::AES128_CBC => Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
+            AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
             AESAlgorithms::AES128_CTR => AES::aes_ctr::<Aes128Ctr>(key, iv, message),
             AESAlgorithms::AES256_CTR => AES::aes_ctr::<Aes256Ctr>(key, iv, message),
         };
@@ -60,11 +42,7 @@ impl AES {
         Ok(result)
     }
 
-    fn aes_ctr<T: NewCipher + StreamCipherSeek + StreamCipher>(
-        key: &[u8],
-        iv: &[u8],
-        message: &[u8],
-    ) -> Vec<u8> {
+    fn aes_ctr<T: NewCipher + StreamCipherSeek + StreamCipher>(key: &[u8], iv: &[u8], message: &[u8]) -> Vec<u8> {
         let data = &mut message.clone().to_vec();
         let mut cipher = T::new(key.into(), iv.into());
         cipher.seek(0);
@@ -77,12 +55,7 @@ impl AES {
 #[wasm_bindgen]
 impl AES {
     #[wasm_bindgen(js_name = encrypt)]
-    pub fn encrypt(
-        key: &[u8],
-        iv: &[u8],
-        message: &[u8],
-        algo: AESAlgorithms,
-    ) -> Result<Vec<u8>, JsValue> {
+    pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, JsValue> {
         match AES::encrypt_impl(key, iv, message, algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -90,12 +63,7 @@ impl AES {
     }
 
     #[wasm_bindgen(js_name = decrypt)]
-    pub fn decrypt(
-        key: &[u8],
-        iv: &[u8],
-        message: &[u8],
-        algo: AESAlgorithms,
-    ) -> Result<Vec<u8>, JsValue> {
+    pub fn decrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, JsValue> {
         match AES::decrypt_impl(key, iv, message, algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
