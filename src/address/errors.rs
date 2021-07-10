@@ -1,16 +1,16 @@
 use hex::FromHexError;
-use snafu::*;
+use thiserror::*;
 
 use crate::PublicKeyErrors;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum AddressErrors {
-    #[snafu(display("Could not decode Base58 string: {} {}", string, error))]
+    #[error("Could not decode Base58 string: {} {}", string, error)]
     Base58Decode { error: anyhow::Error, string: String },
 
-    #[snafu(display("{}", error))]
+    #[error("{:#?}", error)]
     PublicKeyError { error: PublicKeyErrors },
 
-    #[snafu(display("Could not parse hex {}: {}", hex, error))]
+    #[error("Could not parse hex {}: {}", hex, error)]
     ParseHex { hex: String, error: FromHexError },
 }

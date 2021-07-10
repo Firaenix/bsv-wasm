@@ -1,31 +1,31 @@
 use crate::SignatureErrors;
 use hex::FromHexError;
-use snafu::*;
+use thiserror::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum PrivateKeyErrors {
-    #[snafu(display("Could not decode Base58 string: {} {}", string, error))]
+    #[error("Could not decode Base58 string: {} {}", string, error)]
     Base58Decode {
         error: anyhow::Error,
         string: String,
     },
 
-    #[snafu(display("Could not parse hex: {}", error))]
+    #[error("Could not parse hex: {}", error)]
     ParseHex {
         error: FromHexError,
     },
 
-    #[snafu(display("Could not parse hex: {}", error))]
+    #[error("Could not parse hex: {}", error)]
     ByteDecode {
         error: anyhow::Error,
     },
 
-    #[snafu(display("Invalid Point: {}", error))]
+    #[error("Invalid Point: {}", error)]
     InvalidPoint {
         error: elliptic_curve::Error,
     },
 
-    #[snafu(display("Could not generate secret key: {}", error))]
+    #[error("Could not generate secret key: {}", error)]
     SecretKey {
         error: anyhow::Error,
     },
@@ -34,7 +34,7 @@ pub enum PrivateKeyErrors {
         error: anyhow::Error,
     },
 
-    #[snafu(display("Something went wrong: {}", message))]
+    #[error("Something went wrong: {}", message)]
     Other {
         message: String,
     },

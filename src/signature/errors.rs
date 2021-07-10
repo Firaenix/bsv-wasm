@@ -1,29 +1,29 @@
 use crate::PublicKeyErrors;
 use hex::FromHexError;
-use snafu::*;
+use thiserror::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum SignatureErrors {
-    #[snafu(display("Could not decode Base58 string: {} {}", string, message))]
+    #[error("Could not decode Base58 string: {} {}", string, message)]
     Base58Decode { message: String, string: String },
-    #[snafu(display("Could not parse hex: {}", error))]
+    #[error("Could not parse hex: {}", error)]
     ParseHex { error: FromHexError },
 
-    #[snafu(display("Could not parse hex: {}", message))]
+    #[error("Could not parse hex: {}", message)]
     ByteDecode { message: String },
 
-    #[snafu(display("Invalid Point: {}", error))]
+    #[error("Invalid Point: {}", error)]
     InvalidPoint { error: elliptic_curve::Error },
 
-    #[snafu(display("{}", error))]
+    #[error("{}", error)]
     SecpError { error: k256::ecdsa::Error },
 
-    #[snafu(display("{}", error))]
+    #[error("{}", error)]
     PublicKeyError { error: PublicKeyErrors },
 
-    #[snafu(display("Something went wrong: {}", message))]
+    #[error("Something went wrong: {}", message)]
     Other { message: String },
 
-    #[snafu(display("Unable to recover public key from signature {}", error))]
+    #[error("Unable to recover public key from signature {}", error)]
     DerivePublicKey { error: anyhow::Error },
 }

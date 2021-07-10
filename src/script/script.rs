@@ -9,17 +9,17 @@ use anyhow::*;
 use byteorder::{LittleEndian, ReadBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::*;
-use snafu::*;
+use thiserror::*;
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::OpCodes;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum ScriptErrors {
-    #[snafu(display("Error deserialising Script: {}", error))]
+    #[error("Error deserialising Script: {}", error)]
     Deserialise { error: anyhow::Error },
 
-    #[snafu(display("Error serialising Script field {}: {}", reason, error))]
+    #[error("Error serialising Script field {}: {}", reason, error)]
     Serialise { reason: String, error: anyhow::Error },
 }
 

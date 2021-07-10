@@ -6,17 +6,17 @@ use crate::{Hash, HashCache, TxIn, TxOut, VarInt};
 use anyhow::*;
 use byteorder::*;
 use serde::{Deserialize, Serialize};
-use snafu::*;
+use thiserror::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum TransactionErrors {
-    #[snafu(display("Error deserialising transaction field {:?}: {}", field, error))]
+    #[error("Error deserialising transaction field {:?}: {}", field, error)]
     Deserialise { field: Option<String>, error: anyhow::Error },
-    #[snafu(display("Error serialising TxIn field {:?}: {}", field, error))]
+    #[error("Error serialising TxIn field {:?}: {}", field, error)]
     Serialise { field: Option<String>, error: anyhow::Error },
 
-    #[snafu(display("Error serialising Tx to serde_json: {}", error))]
+    #[error("Error serialising Tx to serde_json: {}", error)]
     JsonSerialise { error: serde_json::Error },
 }
 

@@ -1,5 +1,5 @@
-use crate::{AddressErrors, Hash};
-use crate::{PublicKey, Script, ScriptErrors};
+use crate::{AddressErrors, Hash, PublicKeyErrors, Script, ScriptErrors};
+use crate::{PrivateKey, PublicKey, Signature};
 use anyhow::*;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -15,17 +15,8 @@ impl P2PKHAddress {
         P2PKHAddress { pubkey_hash: hash_bytes }
     }
 
-    fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, AddressErrors> {
-        let pub_key_hex = match pub_key.to_hex_impl() {
-            Ok(v) => v,
-            Err(e) => return Err(AddressErrors::PublicKeyError { error: e }),
-        };
-
-        let pub_key_bytes = match hex::decode(&pub_key_hex) {
-            Ok(v) => v,
-            Err(e) => return Err(AddressErrors::ParseHex { hex: pub_key_hex, error: e }),
-        };
-
+    fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, PublicKeyErrors> {
+        let pub_key_bytes = pub_key.to_bytes()?;
         let pub_key_hash = Hash::hash_160(&pub_key_bytes);
 
         Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_bytes()))
@@ -66,9 +57,42 @@ impl P2PKHAddress {
         Ok(P2PKHAddress { pubkey_hash: pub_key_hash })
     }
 
+    /**
+     * Produces the locking script for a P2PKH address.
+     * Should be inserted into a new TxOut.
+     */
     pub(crate) fn to_tx_out_script_impl(&self) -> Result<Script, ScriptErrors> {
         Script::from_asm_string_impl(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
     }
+
+    /**
+     * Produces the unlocking script for a P2PKH address.
+     * Should be inserted into a TxIn.
+     */
+    pub(crate) fn to_tx_in_script_impl(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script> {
+        // Make sure the given Public Key matches this address.
+        let verifying_address = P2PKHAddress::from_pubkey_impl(pub_key)?;
+
+        let pub_key_hex = pub_key.to_hex_impl()?;
+        match Script::from_asm_string_impl(format!("{} {}", sig.to_hex_impl(), pub_key_hex)) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(anyhow!(e)),
+        }
+    }
+
+    /**
+     * Sign a message with the intention of verifying with this same Address.
+     * Used when using Bitcoin Signed Messages ()
+     */
+    pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature> {
+        PublicKey::from_private_key(priv_key, compress)
+    }
+
+    /**
+     * Sign a message with the intention of verifying with this same Address.
+     * Used when using Bitcoin Signed Messages ()
+     */
+    pub(crate) fn verify_impl(message: &[u8], signature: &Signature) -> Result<bool> {}
 }
 
 /**
@@ -127,6 +151,14 @@ impl P2PKHAddress {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    /**
+     * This method is an alias for toTxOutScript
+     */
+    #[wasm_bindgen(js_name = toLockingScript)]
+    pub fn to_locking_script(&self) -> Result<Script, JsValue> {
+        self.to_tx_out_script()
+    }
 }
 
 /**
@@ -139,7 +171,7 @@ impl P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, AddressErrors> {
+    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, PublicKeyErrors> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -153,5 +185,9 @@ impl P2PKHAddress {
 
     pub fn to_tx_out_script(&self) -> Result<Script, ScriptErrors> {
         self.to_tx_out_script_impl()
+    }
+
+    pub fn to_locking_script(&self) -> Result<Script, ScriptErrors> {
+        self.to_tx_out_script()
     }
 }

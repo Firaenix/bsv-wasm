@@ -40,8 +40,13 @@ impl PublicKey {
             Err(e) => return Err(PublicKeyErrors::InvalidPoint { error: e }),
         };
 
+        let point_bytes = match compress {
+            true => point.compress().as_bytes().to_vec(),
+            false => point.as_bytes().to_vec(),
+        };
+
         Ok(PublicKey {
-            point: point.compress().as_bytes().to_vec(),
+            point: point_bytes,
             is_compressed: compress,
         })
     }
