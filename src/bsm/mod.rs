@@ -22,8 +22,10 @@ impl BSM {
     let public_key = signature.get_public_key(message, SigningHash::Sha256d)?;
     let verify_p2pkh = P2PKHAddress::from_pubkey_impl(&public_key)?;
 
-    if verify_p2pkh != *address {
-      return Err(anyhow!("Provided address does not match signature"));
+    let verify_address = verify_p2pkh.to_address_string_impl()?;
+    let address_string = address.to_address_string_impl()?;
+    if verify_address != address_string {
+      return Err(anyhow!("Provided address ({}) does not match signature address ({})", verify_address, address_string));
     }
 
     ECDSA::verify_digest_impl(message, &public_key, signature, SigningHash::Sha256d)?;
