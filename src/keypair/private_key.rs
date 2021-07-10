@@ -248,7 +248,7 @@ impl PrivateKey {
      * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
      */
     #[wasm_bindgen(js_name = signWithK)]
-    pub fn sign_sign_with_k(
+    pub fn sign_with_k(
         &self,
         preimage: &[u8],
         hash_algo: SigningHash,
