@@ -10,6 +10,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 pub struct AES {}
 
 #[wasm_bindgen]
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum AESAlgorithms {
     AES128_CBC,
