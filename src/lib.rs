@@ -1,3 +1,5 @@
+#![cfg_attr(not(target_arch = "wasm32"), allow(dead_code, unused_imports))]
+
 #[macro_use]
 extern crate num_derive;
 
