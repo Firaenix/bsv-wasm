@@ -86,6 +86,37 @@ mod tests {
 
     #[test]
     #[wasm_bindgen_test]
+    fn recover_pub_key_from_signature_sha256d() {
+        let key =
+            PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32".into())
+                .unwrap();
+
+        let message = b"Hello";
+
+        let signature = key
+            .sign_with_k(message, SigningHash::Sha256d, false)
+            .unwrap();
+        #[cfg(target_arch = "wasm32")]
+        let pub_key = PublicKey::from_private_key(&key, Some(true));
+        #[cfg(not(target_arch = "wasm32"))]
+        let pub_key = PublicKey::from_private_key(&key, true);
+
+        let is_verified = signature
+            .verify(message.to_vec(), &pub_key, SigningHash::Sha256d)
+            .unwrap();
+        assert_eq!(is_verified, true);
+
+        let recovered_pub_key = signature
+            .recover_public_key(message.to_vec(), SigningHash::Sha256d)
+            .unwrap();
+        assert_eq!(
+            pub_key.to_hex().unwrap(),
+            recovered_pub_key.to_hex().unwrap()
+        );
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
     fn recover_pub_key_from_signature_sha256() {
         let key =
             PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32".into())
@@ -142,5 +173,28 @@ mod tests {
             pub_key.to_hex().unwrap(),
             recovered_pub_key.to_hex().unwrap()
         );
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn to_compact_test() {
+        let key =
+            PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32".into())
+                .unwrap();
+
+        let message = b"Hello";
+
+        let signature = key
+            .sign_with_k(message, SigningHash::Sha256, false)
+            .unwrap();
+
+        let compact_sig = signature.to_compact_bytes();
+        let uncompacted_sig = Signature::from_compact_bytes(compact_sig).unwrap();
+
+        assert_eq!(
+            uncompacted_sig.to_compact_bytes(),
+            signature.to_compact_bytes()
+        );
+        assert_eq!(uncompacted_sig.to_der_bytes(), signature.to_der_bytes());
     }
 }

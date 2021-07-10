@@ -5,7 +5,7 @@ use ecdsa::signature::DigestVerifier;
 use k256::{
     ecdsa::Signature as SecpSignature,
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
-    EncodedPoint, FieldBytes,
+    EncodedPoint, FieldBytes, Scalar,
 };
 use wasm_bindgen::{prelude::*, throw_str};
 
@@ -13,7 +13,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     sig: k256::ecdsa::Signature,
-    is_recoverable: bool,
+    recovery_i: u8,
 }
 
 /**
@@ -31,7 +31,7 @@ impl Signature {
 
         Ok(Signature {
             sig,
-            is_recoverable,
+            recovery_i: is_recoverable as u8,
         })
     }
 
@@ -51,7 +51,7 @@ impl Signature {
 
         Ok(Signature {
             sig,
-            is_recoverable,
+            recovery_i: is_recoverable as u8,
         })
     }
 
@@ -60,13 +60,7 @@ impl Signature {
         message: &[u8],
         hash_algo: SigningHash,
     ) -> Result<PublicKey, SignatureErrors> {
-        if self.is_recoverable == false {
-            return Err(SignatureErrors::DerivePublicKey {
-                error: anyhow!("This signature is not recoverable"),
-            });
-        }
-
-        let recovery_id = match recoverable::Id::new(self.is_recoverable as u8) {
+        let recovery_id = match recoverable::Id::new(self.recovery_i) {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
@@ -134,8 +128,22 @@ impl Signature {
 
         match key.verify_digest(msg_digest, &self.sig) {
             Ok(()) => Ok(true),
-            Err(e) => Ok(false),
+            Err(_) => Ok(false),
         }
+    }
+
+    pub(crate) fn from_compact_impl(compact_bytes: Vec<u8>) -> Result<Signature> {
+        let mut i = compact_bytes[0] - 27 - 4;
+        if i < 0 {
+            i = compact_bytes[0] - 27;
+        }
+
+        let r = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[1..33]));
+        let s = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[33..65]));
+
+        let sig = SecpSignature::from_scalars(r, s)?;
+
+        Ok(Signature { sig, recovery_i: i })
     }
 }
 
@@ -144,6 +152,27 @@ impl Signature {
     #[wasm_bindgen(js_name = toDER)]
     pub fn to_der_bytes(&self) -> Vec<u8> {
         Signature::to_der_bytes_impl(&self)
+    }
+
+    #[wasm_bindgen(js_name = toHex)]
+    pub fn to_hex(&self) -> String {
+        Signature::to_hex_impl(&self)
+    }
+
+    #[wasm_bindgen(js_name = toCompactBytes)]
+    pub fn to_compact_bytes(&self) -> Vec<u8> {
+        let mut compact_buf = vec![];
+
+        // Need to handle compression?
+        compact_buf.push(self.recovery_i + 27 + 4);
+
+        let r_bytes = &*self.sig.r().to_bytes();
+        compact_buf.extend_from_slice(r_bytes);
+
+        let s_bytes = &*self.sig.s().to_bytes();
+        compact_buf.extend_from_slice(s_bytes);
+
+        compact_buf
     }
 }
 
@@ -169,9 +198,12 @@ impl Signature {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> String {
-        Signature::to_hex_impl(&self)
+    #[wasm_bindgen(js_name = fromCompactBytes)]
+    pub fn from_compact_bytes(compact_bytes: Vec<u8>) -> Result<Signature, JsValue> {
+        match Signature::from_compact_impl(compact_bytes) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verify))]
@@ -215,9 +247,8 @@ impl Signature {
         Signature::from_hex_der_impl(hex, is_recoverable)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_hex(&self) -> String {
-        Signature::to_hex_impl(&self)
+    pub fn from_compact_bytes(compact_bytes: Vec<u8>) -> Result<Signature> {
+        Signature::from_compact_impl(compact_bytes)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
