@@ -108,10 +108,7 @@ impl Transaction {
      */
     pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
-        let signature = match priv_key.sign_with_k_impl(&buffer, crate::SigningHash::Sha256d, true) {
-            Ok(v) => v,
-            Err(e) => return Err(anyhow!(e)),
-        };
+        let signature = priv_key.sign_with_k_impl(&buffer, crate::SigningHash::Sha256d, true)?;
 
         Ok(SighashSignature {
             signature,

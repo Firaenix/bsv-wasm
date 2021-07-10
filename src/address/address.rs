@@ -15,14 +15,14 @@ impl P2PKHAddress {
         P2PKHAddress { pubkey_hash: hash_bytes }
     }
 
-    fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, PublicKeyErrors> {
-        let pub_key_bytes = pub_key.to_bytes()?;
+    fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress> {
+        let pub_key_bytes = pub_key.to_bytes_impl()?;
         let pub_key_hash = Hash::hash_160(&pub_key_bytes);
 
         Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_bytes()))
     }
 
-    fn to_address_string_impl(&self) -> Result<String, AddressErrors> {
+    fn to_address_string_impl(&self) -> Result<String> {
         let mut pub_key_hash_bytes = self.pubkey_hash.clone();
 
         let mut address_bytes: Vec<u8> = vec![00];
@@ -38,18 +38,9 @@ impl P2PKHAddress {
         Ok(address.into_string())
     }
 
-    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
+    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress> {
         let decoded = bs58::decode(address_string.clone());
-
-        let address_bytes = match decoded.into_vec() {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(AddressErrors::Base58Decode {
-                    error: anyhow!(e),
-                    string: address_string,
-                })
-            }
-        };
+        let address_bytes = decoded.into_vec()?;
 
         // Remove 0x00 from the front and the 4 byte checksum off the end
         let pub_key_hash = address_bytes[1..address_bytes.len() - 4].to_vec();
@@ -80,19 +71,19 @@ impl P2PKHAddress {
         }
     }
 
-    /**
-     * Sign a message with the intention of verifying with this same Address.
-     * Used when using Bitcoin Signed Messages ()
-     */
-    pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature> {
-        PublicKey::from_private_key(priv_key, compress)
-    }
+    // /**
+    //  * TODO: Sign a message with the intention of verifying with this same Address.
+    //  * Used when using Bitcoin Signed Messages ()
+    //  */
+    // pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature> {
+    //     PublicKey::from_private_key(priv_key, compress)
+    // }
 
-    /**
-     * Sign a message with the intention of verifying with this same Address.
-     * Used when using Bitcoin Signed Messages ()
-     */
-    pub(crate) fn verify_impl(message: &[u8], signature: &Signature) -> Result<bool> {}
+    // /**
+    //  * Sign a message with the intention of verifying with this same Address.
+    //  * Used when using Bitcoin Signed Messages ()
+    //  */
+    // pub(crate) fn verify_impl(message: &[u8], signature: &Signature) -> Result<bool> {}
 }
 
 /**
@@ -171,15 +162,15 @@ impl P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, PublicKeyErrors> {
+    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_address_string(&self) -> Result<String, AddressErrors> {
+    pub fn to_address_string(&self) -> Result<String> {
         P2PKHAddress::to_address_string_impl(&self)
     }
 
-    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
+    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress> {
         P2PKHAddress::from_p2pkh_string_impl(address_string)
     }
 

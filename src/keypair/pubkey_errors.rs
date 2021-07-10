@@ -20,9 +20,3 @@ pub enum PublicKeyErrors {
     #[error("Something went wrong: {}", message)]
     Other { message: String },
 }
-
-impl From<PublicKeyErrors> for anyhow::Error {
-    fn from(e: PublicKeyErrors) -> Self {
-        anyhow!(e)
-    }
-}
