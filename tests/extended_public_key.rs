@@ -1,3 +1,4 @@
+#[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod xpub_tests {
     use bsv_wasm::{hash::Hash, keypair::*};

@@ -1,3 +1,4 @@
+#[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod aes_tests {
     use std::io::Read;
