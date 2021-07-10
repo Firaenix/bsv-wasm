@@ -1,5 +1,5 @@
 import { Bsm, PrivKey, PubKey, KeyPair, Address } from 'bsv'
-import { PrivateKey, PublicKey, P2PKHAddress, SigningHash } from '../../../pkg/node/bsv_wasm';
+import { PrivateKey, PublicKey, P2PKHAddress, SigningHash, BSM,  } from '../../../pkg/node/bsv_wasm';
 
 import { assert, util } from 'chai';
 
@@ -23,7 +23,7 @@ describe("Bitcoin Signed Messages", function() {
         const verification_js = Bsm.verify(message, signature_js, address_js)
 
         const buf = Buffer.from('18426974636f696e205369676e6564204d6573736167653a0a0e48656c6c6f2c20426974636f696e', 'hex') // calculated by logging the buf inside Bsv.magicHash(message) before sha256d
-        const signature_wasm = Buffer.from(priv_wasm.signWithK(buf, SigningHash.Sha256d, false).toCompactBytes()).toString('base64')
+        const signature_wasm = Buffer.from(BSM.signMessage(priv_wasm, buf).toCompactBytes()).toString('base64')
         const verification_wasm = Bsm.verify(message, signature_wasm, address_js)
 
         const validSignature = 'IEASldKxt6sTOO1vMc3x2wN2qa5iZAUUHcj+fzekoLpOL5fl/W8ZApmSGzT211K83hHD3EQ6VE4RFEezVmPWd6Q='

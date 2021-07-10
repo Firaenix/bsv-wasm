@@ -1,7 +1,7 @@
 use crate::hash::FixedOutput;
 use digest::{
     consts::{U32, U64},
-    BlockInput, Digest, FixedOutputDirty, Reset, Update,
+    BlockInput, FixedOutputDirty, Reset, Update,
 };
 use sha2::Sha256;
 
@@ -30,7 +30,7 @@ impl BlockInput for Sha256r {
 
 impl Update for Sha256r {
     fn update(&mut self, data: impl AsRef<[u8]>) {
-        Digest::update(&mut self.engine, data)
+        self.engine.update(data);
     }
 }
 
@@ -38,7 +38,7 @@ impl FixedOutput for Sha256r {
     type OutputSize = U32;
 
     fn finalize_into(self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {
-        let finalised_hash = &mut *self.engine.finalize();
+        let finalised_hash = &mut *digest::Digest::finalize(self.engine);
         if self.reverse {
             finalised_hash.reverse()
         }

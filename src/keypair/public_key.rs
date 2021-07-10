@@ -1,5 +1,6 @@
-use crate::PublicKeyErrors;
+use crate::{PublicKeyErrors, Signature, SigningHash, ECDSA};
 
+use anyhow::*;
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -59,6 +60,24 @@ impl PublicKey {
 
         PublicKey::from_bytes_impl(&point_bytes, compress)
     }
+
+    /**
+     * Standard ECDSA Message Verification
+     */
+    pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool> {
+        ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256)
+    }
+}
+
+#[wasm_bindgen]
+impl PublicKey {
+    #[wasm_bindgen(js_name = isValidMessage)]
+    pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
+        match self.verify_message_impl(message, signature) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
 }
 
 /**
@@ -110,6 +129,14 @@ impl PublicKey {
     pub fn from_private_key(priv_key: &PrivateKey, compress: Option<bool>) -> PublicKey {
         PublicKey::from_private_key_impl(priv_key, PublicKey::param_is_compressed(compress))
     }
+
+    #[wasm_bindgen(js_name = verifyMessage)]
+    pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, JsValue> {
+        match self.verify_message_impl(message, signature) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -135,5 +162,9 @@ impl PublicKey {
 
     pub fn from_private_key(priv_key: &PrivateKey, compress: bool) -> PublicKey {
         PublicKey::from_private_key_impl(priv_key, compress)
+    }
+
+    pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool> {
+        self.verify_message_impl(message, signature)
     }
 }

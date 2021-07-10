@@ -12,7 +12,7 @@ describe("SigHash Tests", function() {
     const js_tx = Tx.fromHex(wasm_tx.toHex());
     const js_script = JSScript.fromAsmString(wasm_script.toASMString());
 
-    assert.equal(wasm_private_key.sign(Buffer.from("Hello, Bitcoin.")).toHex(),  Ecdsa.sign(Buffer.from(Hash.sha256(Buffer.from("Hello, Bitcoin.")).toBytes()), KeyPair.fromPrivKey(js_private_key)).toHex() );
+    assert.equal(wasm_private_key.signMessage(Buffer.from("Hello, Bitcoin.")).toHex(),  Ecdsa.sign(Buffer.from(Hash.sha256(Buffer.from("Hello, Bitcoin.")).toBytes()), KeyPair.fromPrivKey(js_private_key)).toHex() );
     
     assert.equal(js_tx.id(), wasm_tx.getIdHex(), "Transaction IDs dont match");
     
@@ -90,7 +90,7 @@ describe("SigHash Tests", function() {
     const js_tx = Tx.fromHex(wasm_tx.toHex());
     const js_script = JSScript.fromAsmString(wasm_script.toASMString());
     
-    assert.equal(wasm_private_key.sign(Buffer.from("Hello, Bitcoin.")).toHex(),  Ecdsa.sign(Buffer.from(Hash.sha256(Buffer.from("Hello, Bitcoin.")).toBytes()), KeyPair.fromPrivKey(js_private_key)).toHex() );
+    assert.equal(wasm_private_key.signMessage(Buffer.from("Hello, Bitcoin.")).toHex(),  Ecdsa.sign(Buffer.from(Hash.sha256(Buffer.from("Hello, Bitcoin.")).toBytes()), KeyPair.fromPrivKey(js_private_key)).toHex() );
     
     assert.equal(js_tx.id(), wasm_tx.getIdHex(), "Transaction IDs dont match");
     

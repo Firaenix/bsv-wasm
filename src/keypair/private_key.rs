@@ -1,5 +1,6 @@
-use crate::{get_hash_digest, Hash, PublicKey};
-use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
+use crate::get_hash_digest;
+use crate::{sha256r_digest::Sha256r, ECDSA};
+use crate::{Hash, PublicKey, SigningHash};
 use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
 use k256::ecdsa::digest::Digest;
@@ -12,14 +13,7 @@ use wasm_bindgen::throw_str;
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
 pub struct PrivateKey {
-    secret_key: SecretKey,
-}
-
-#[wasm_bindgen]
-#[derive(PartialEq, Eq)]
-pub enum SigningHash {
-    Sha256,
-    Sha256d,
+    pub(crate) secret_key: SecretKey,
 }
 
 /**
@@ -27,32 +21,10 @@ pub enum SigningHash {
  */
 impl PrivateKey {
     /**
-     * SHA256s and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+     * Standard ECDSA Message Signing
      */
-    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
-        self.sign_with_k_impl(msg, SigningHash::Sha256, false)
-    }
-
-    /**
-     * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length.
-     * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
-     */
-    pub(crate) fn sign_with_k_impl(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
-        // let digest = get_hash_digest(hash_algo, preimage.clone());
-        // let signature_result = sign_custom_preimage(&self.secret_key, digest, reverse_k);
-
-        let signature_result = match hash_algo {
-            SigningHash::Sha256 => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(preimage.clone()), reverse_k),
-            SigningHash::Sha256d => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(Sha256r::digest(preimage.clone())), reverse_k),
-        };
-
-        let (sig, is_recoverable) = signature_result.map_err(|e| PrivateKeyErrors::SignatureError { error: anyhow!(e) })?;
-        match Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(PrivateKeyErrors::SignatureError { error: anyhow!(e) }),
-        }
+    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature> {
+        ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
     pub(crate) fn to_wif_impl(&self, compressed: bool) -> Result<String, PrivateKeyErrors> {
@@ -205,10 +177,9 @@ impl PrivateKey {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signMessage))]
     /**
-     * SHA256s and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+     * Standard ECDSA Message Signing using SHA256 as the digestg
      */
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, JsValue> {
         match PrivateKey::sign_message_impl(&self, msg) {
@@ -228,19 +199,6 @@ impl PrivateKey {
     #[wasm_bindgen(js_name = fromBytes)]
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, JsValue> {
         match Self::from_bytes_impl(bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length.
-     * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
-     */
-    #[wasm_bindgen(js_name = signWithK)]
-    pub fn sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
-        match PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -265,20 +223,10 @@ impl PrivateKey {
     }
 
     /**
-     * SHA256s and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length, SHA256 is to ensure this.
+     * Standard ECDSA Message Signing using SHA256 as the digestg
      */
-    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, PrivateKeyErrors> {
+    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature> {
         PrivateKey::sign_message_impl(&self, msg)
-    }
-
-    /**
-     * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
-     * Secp256k1 signature inputs must be 32 bytes in length.
-     * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
-     */
-    pub fn sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
-        PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k)
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {

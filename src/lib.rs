@@ -1,3 +1,4 @@
+#![feature(trait_alias)]
 #![cfg_attr(not(target_arch = "wasm32"), allow(dead_code, unused_imports))]
 
 #[macro_use]
@@ -43,3 +44,9 @@ pub use kdf::*;
 
 pub mod encryption;
 pub use encryption::*;
+
+pub mod ecdsa;
+pub use crate::ecdsa::*;
+
+pub mod bsm;
+pub use bsm::*;
