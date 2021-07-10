@@ -1,4 +1,4 @@
-use crate::Hash;
+use crate::{get_hash_digest, Hash, PublicKey};
 use crate::{sha256r_digest::Sha256r, sign_custom_preimage};
 use crate::{PrivateKeyErrors, Signature, ToHex};
 use anyhow::*;
@@ -38,27 +38,16 @@ impl PrivateKey {
      * Secp256k1 signature inputs must be 32 bytes in length.
      * K can be reversed if necessary (Bitcoin Sighash generates K with LE hash).
      */
-    pub(crate) fn sign_with_k_impl(
-        &self,
-        preimage: &[u8],
-        hash_algo: SigningHash,
-        reverse_k: bool,
-    ) -> Result<Signature, PrivateKeyErrors> {
+    pub(crate) fn sign_with_k_impl(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
+        // let digest = get_hash_digest(hash_algo, preimage.clone());
+        // let signature_result = sign_custom_preimage(&self.secret_key, digest, reverse_k);
+
         let signature_result = match hash_algo {
-            SigningHash::Sha256 => sign_custom_preimage(
-                &self.secret_key,
-                Sha256r::default().chain(preimage.clone()),
-                reverse_k,
-            ),
-            SigningHash::Sha256d => sign_custom_preimage(
-                &self.secret_key,
-                Sha256r::default().chain(Sha256r::digest(preimage.clone())),
-                reverse_k,
-            ),
+            SigningHash::Sha256 => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(preimage.clone()), reverse_k),
+            SigningHash::Sha256d => sign_custom_preimage(&self.secret_key, Sha256r::default().chain(Sha256r::digest(preimage.clone())), reverse_k),
         };
 
-        let (sig, _) =
-            signature_result.map_err(|e| PrivateKeyErrors::SignatureError { error: anyhow!(e) })?;
+        let (sig, _) = signature_result.map_err(|e| PrivateKeyErrors::SignatureError { error: anyhow!(e) })?;
         match Signature::from_der_impl(sig.to_der().as_bytes().to_vec()) {
             Ok(v) => Ok(v),
             Err(e) => Err(PrivateKeyErrors::SignatureError { error: anyhow!(e) }),
@@ -184,9 +173,12 @@ impl PrivateKey {
 
     #[wasm_bindgen(js_name = getPoint)]
     pub fn get_point(&self, compressed: bool) -> Vec<u8> {
-        EncodedPoint::from_secret_key(&self.secret_key, compressed)
-            .as_bytes()
-            .into()
+        EncodedPoint::from_secret_key(&self.secret_key, compressed).as_bytes().into()
+    }
+
+    #[wasm_bindgen(js_name = getPublicKey)]
+    pub fn get_public_key(&self, compressed: bool) -> PublicKey {
+        PublicKey::from_private_key_impl(&self, compressed)
     }
 }
 
@@ -241,12 +233,7 @@ impl PrivateKey {
     }
 
     #[wasm_bindgen(js_name = signWithK)]
-    pub fn sign_sign_with_k(
-        &self,
-        preimage: &[u8],
-        hash_algo: SigningHash,
-        reverse_k: bool,
-    ) -> Result<Signature, JsValue> {
+    pub fn sign_sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -279,12 +266,7 @@ impl PrivateKey {
         PrivateKey::sign_message_impl(&self, msg)
     }
 
-    pub fn sign_with_k(
-        &self,
-        preimage: &[u8],
-        hash_algo: SigningHash,
-        reverse_k: bool,
-    ) -> Result<Signature, PrivateKeyErrors> {
+    pub fn sign_with_k(&self, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, PrivateKeyErrors> {
         PrivateKey::sign_with_k_impl(&self, preimage, hash_algo, reverse_k)
     }
 

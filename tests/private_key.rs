@@ -27,10 +27,7 @@ mod tests {
 
         let wif = key.unwrap().to_wif(false);
 
-        assert_eq!(
-            wif.unwrap(),
-            "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ"
-        )
+        assert_eq!(wif.unwrap(), "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
     }
 
     #[test]
@@ -42,10 +39,7 @@ mod tests {
 
         let private_key_hex = key.to_hex();
 
-        assert_eq!(
-            private_key_hex,
-            "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D".to_lowercase()
-        )
+        assert_eq!(private_key_hex, "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D".to_lowercase())
     }
 
     #[test]
@@ -57,9 +51,6 @@ mod tests {
 
         let private_key_hex = key.to_hex();
 
-        assert_eq!(
-            private_key_hex,
-            "ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".to_lowercase()
-        )
+        assert_eq!(private_key_hex, "ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2".to_lowercase())
     }
 }

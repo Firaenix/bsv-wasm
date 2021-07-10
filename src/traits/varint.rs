@@ -29,14 +29,11 @@ impl VarInt for Cursor<Vec<u8>> {
             if varint <= 252 {
                 self.write_u8(varint as u8)
             } else if varint <= 0xffff {
-                self.write_u8(0xfd)
-                    .and_then(|_| self.write_u16::<LittleEndian>(varint as u16))
+                self.write_u8(0xfd).and_then(|_| self.write_u16::<LittleEndian>(varint as u16))
             } else if varint <= 0xffffffff {
-                self.write_u8(0xfe)
-                    .and_then(|_| self.write_u32::<LittleEndian>(varint as u32))
+                self.write_u8(0xfe).and_then(|_| self.write_u32::<LittleEndian>(varint as u32))
             } else {
-                self.write_u8(0xff)
-                    .and_then(|_| self.write_u64::<LittleEndian>(varint))
+                self.write_u8(0xff).and_then(|_| self.write_u64::<LittleEndian>(varint))
             }
         };
 
@@ -65,14 +62,11 @@ impl VarInt for Vec<u8> {
             if varint <= 252 {
                 self.write_u8(varint as u8)
             } else if varint <= 0xffff {
-                self.write_u8(0xfd)
-                    .and_then(|_| self.write_u16::<LittleEndian>(varint as u16))
+                self.write_u8(0xfd).and_then(|_| self.write_u16::<LittleEndian>(varint as u16))
             } else if varint <= 0xffffffff {
-                self.write_u8(0xfe)
-                    .and_then(|_| self.write_u32::<LittleEndian>(varint as u32))
+                self.write_u8(0xfe).and_then(|_| self.write_u32::<LittleEndian>(varint as u32))
             } else {
-                self.write_u8(0xff)
-                    .and_then(|_| self.write_u64::<LittleEndian>(varint))
+                self.write_u8(0xff).and_then(|_| self.write_u64::<LittleEndian>(varint))
             }
         };
 

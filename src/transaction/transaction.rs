@@ -12,15 +12,9 @@ use wasm_bindgen::{prelude::*, throw_str, JsValue};
 #[derive(Debug, Snafu)]
 pub enum TransactionErrors {
     #[snafu(display("Error deserialising transaction field {:?}: {}", field, error))]
-    Deserialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Deserialise { field: Option<String>, error: anyhow::Error },
     #[snafu(display("Error serialising TxIn field {:?}: {}", field, error))]
-    Serialise {
-        field: Option<String>,
-        error: anyhow::Error,
-    },
+    Serialise { field: Option<String>, error: anyhow::Error },
 
     #[snafu(display("Error serialising Tx to serde_json: {}", error))]
     JsonSerialise { error: serde_json::Error },
@@ -38,12 +32,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    pub(crate) fn new_impl(
-        version: u32,
-        inputs: Vec<TxIn>,
-        outputs: Vec<TxOut>,
-        n_locktime: u32,
-    ) -> Transaction {
+    pub(crate) fn new_impl(version: u32, inputs: Vec<TxIn>, outputs: Vec<TxOut>, n_locktime: u32) -> Transaction {
         Transaction {
             version,
             inputs,
@@ -56,12 +45,7 @@ impl Transaction {
     pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
         let tx_bytes = match hex::decode(&hex_str) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: None,
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
         };
 
         Transaction::from_bytes_impl(tx_bytes)
@@ -261,10 +245,7 @@ impl Transaction {
     pub(crate) fn to_json_string_impl(&self) -> Result<String, TransactionErrors> {
         match serde_json::to_string(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TransactionErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TransactionErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 
@@ -504,10 +485,7 @@ impl Transaction {
     pub fn to_json(&self) -> Result<serde_json::Value, TransactionErrors> {
         match serde_json::to_value(self) {
             Ok(v) => Ok(v),
-            Err(e) => Err(TransactionErrors::Serialise {
-                field: None,
-                error: anyhow!(e),
-            }),
+            Err(e) => Err(TransactionErrors::Serialise { field: None, error: anyhow!(e) }),
         }
     }
 

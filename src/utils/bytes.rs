@@ -9,9 +9,7 @@ use wasm_bindgen::{throw_str, JsValue};
  */
 #[wasm_bindgen]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Bytes(
-    #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>,
-);
+pub struct Bytes(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>);
 
 impl Bytes {
     pub(crate) fn from_hex_impl(hex_str: &str) -> Result<Bytes, FromHexError> {

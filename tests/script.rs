@@ -19,7 +19,10 @@ mod tests {
     fn to_21e8_script_hex_debug() {
         let script = Script::from_hex("20d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a20221e8825479a87c7f758875ac".into()).unwrap();
 
-        assert_eq!(script.to_extended_asm_string().unwrap(), "OP_PUSH 32 d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 OP_PUSH 2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
+        assert_eq!(
+            script.to_extended_asm_string().unwrap(),
+            "OP_PUSH 32 d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 OP_PUSH 2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
     }
 
     #[test]
@@ -27,7 +30,10 @@ mod tests {
     fn to_21e8_script_hex() {
         let script = Script::from_hex("20d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a20221e8825479a87c7f758875ac".into()).unwrap();
 
-        assert_eq!(script.to_asm_string().unwrap(), "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
+        assert_eq!(
+            script.to_asm_string().unwrap(),
+            "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
     }
 
     #[test]
@@ -41,10 +47,19 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_21e8_asm_string() {
-        let script = Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG".into()).unwrap();
+        let script = Script::from_asm_string(
+            "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG".into(),
+        )
+        .unwrap();
 
-        assert_eq!(script.to_asm_string().unwrap(), "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
-        assert_eq!(script.to_extended_asm_string().unwrap(), "OP_PUSH 32 d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 OP_PUSH 2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
+        assert_eq!(
+            script.to_asm_string().unwrap(),
+            "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
+        assert_eq!(
+            script.to_extended_asm_string().unwrap(),
+            "OP_PUSH 32 d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 OP_PUSH 2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
     }
 
     #[test]
@@ -67,16 +82,9 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_p2pkh_asm_string() {
-        let script = Script::from_asm_string(
-            "OP_DUP OP_HASH160 6fa5502ea094d59576898b490d866b32a61b89f6 OP_EQUALVERIFY OP_CHECKSIG"
-                .into(),
-        )
-        .unwrap();
+        let script = Script::from_asm_string("OP_DUP OP_HASH160 6fa5502ea094d59576898b490d866b32a61b89f6 OP_EQUALVERIFY OP_CHECKSIG".into()).unwrap();
 
-        assert_eq!(
-            script.to_asm_string().unwrap(),
-            "OP_DUP OP_HASH160 6fa5502ea094d59576898b490d866b32a61b89f6 OP_EQUALVERIFY OP_CHECKSIG"
-        );
+        assert_eq!(script.to_asm_string().unwrap(), "OP_DUP OP_HASH160 6fa5502ea094d59576898b490d866b32a61b89f6 OP_EQUALVERIFY OP_CHECKSIG");
     }
 
     #[test]
@@ -84,10 +92,7 @@ mod tests {
     fn from_problematic_asm_string() {
         let script = Script::from_asm_string("OP_RETURN 026d02 0568656c6c6f".into()).unwrap();
 
-        assert_eq!(
-            script.to_asm_string().unwrap(),
-            "OP_RETURN 026d02 0568656c6c6f"
-        );
+        assert_eq!(script.to_asm_string().unwrap(), "OP_RETURN 026d02 0568656c6c6f");
     }
 
     #[test]
@@ -100,9 +105,15 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_standard_21e8_asm_format() {
-        let script = Script::from_asm_string("0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG".into()).unwrap();
+        let script = Script::from_asm_string(
+            "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG".into(),
+        )
+        .unwrap();
 
-        assert_eq!(script.to_asm_string().unwrap(), "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
+        assert_eq!(
+            script.to_asm_string().unwrap(),
+            "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
     }
 
     #[test]
@@ -110,6 +121,9 @@ mod tests {
     fn another_hex_21e8_script() {
         let script = Script::from_hex("200a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e758461440221e8825479a87c7f758875ac".into()).unwrap();
 
-        assert_eq!(script.to_asm_string().unwrap(), "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG");
+        assert_eq!(
+            script.to_asm_string().unwrap(),
+            "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
+        );
     }
 }

@@ -20,17 +20,12 @@ pub enum ScriptErrors {
     Deserialise { error: anyhow::Error },
 
     #[snafu(display("Error serialising Script field {}: {}", reason, error))]
-    Serialise {
-        reason: String,
-        error: anyhow::Error,
-    },
+    Serialise { reason: String, error: anyhow::Error },
 }
 
 #[wasm_bindgen]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Script(
-    #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>,
-);
+pub struct Script(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>);
 
 /**
  * Serialise Methods
@@ -43,12 +38,7 @@ impl Script {
         Ok(self.read_opcodes(&mut cursor, String::new(), extended)?)
     }
 
-    fn read_opcodes(
-        &self,
-        cursor: &mut Cursor<Vec<u8>>,
-        builder_str: String,
-        extended: bool,
-    ) -> Result<String, ScriptErrors> {
+    fn read_opcodes(&self, cursor: &mut Cursor<Vec<u8>>, builder_str: String, extended: bool) -> Result<String, ScriptErrors> {
         if cursor.position() >= self.0.len() as u64 {
             return Ok(builder_str);
         }
@@ -94,18 +84,11 @@ impl Script {
         Script::read_opcodes(&self, cursor, new_str, extended)
     }
 
-    fn get_pushdata_length(
-        cursor: &mut Cursor<Vec<u8>>,
-        opcode: OpCodes,
-    ) -> Result<usize, ScriptErrors> {
+    fn get_pushdata_length(cursor: &mut Cursor<Vec<u8>>, opcode: OpCodes) -> Result<usize, ScriptErrors> {
         let result = match opcode {
             OpCodes::OP_PUSHDATA1 => cursor.read_u8().and_then(|x| Ok(x as usize)),
-            OpCodes::OP_PUSHDATA2 => cursor
-                .read_u16::<LittleEndian>()
-                .and_then(|x| Ok(x as usize)),
-            OpCodes::OP_PUSHDATA4 => cursor
-                .read_u32::<LittleEndian>()
-                .and_then(|x| Ok(x as usize)),
+            OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>().and_then(|x| Ok(x as usize)),
+            OpCodes::OP_PUSHDATA4 => cursor.read_u32::<LittleEndian>().and_then(|x| Ok(x as usize)),
             _ => {
                 return Err(ScriptErrors::Serialise {
                     reason: format!("Given opcode {} is not pushdata", opcode),
@@ -136,11 +119,7 @@ impl Script {
     /**
      * OpCodes such as OP_PUSH or the numerical OpCodes (OP_1-OP_16)
      */
-    fn get_special_opcode(
-        byte: u8,
-        extended: bool,
-        cursor: &mut Cursor<Vec<u8>>,
-    ) -> Result<Option<String>, ScriptErrors> {
+    fn get_special_opcode(byte: u8, extended: bool, cursor: &mut Cursor<Vec<u8>>) -> Result<Option<String>, ScriptErrors> {
         let code = match byte {
             size @ 0x01..=0x4b => {
                 let pushdata = Script::get_pushdata(cursor, size as usize)?;
@@ -159,11 +138,7 @@ impl Script {
         Ok(code)
     }
 
-    fn format_pushdata_string(
-        cursor: &mut Cursor<Vec<u8>>,
-        v: OpCodes,
-        extended: bool,
-    ) -> Result<String, ScriptErrors> {
+    fn format_pushdata_string(cursor: &mut Cursor<Vec<u8>>, v: OpCodes, extended: bool) -> Result<String, ScriptErrors> {
         let size = Script::get_pushdata_length(cursor, v)?;
         let pushdata = Script::get_pushdata(cursor, size)?;
         Ok(match extended {
@@ -297,12 +272,7 @@ impl Script {
     }
 
     pub fn remove_codeseparators(&mut self) {
-        self.0 = self
-            .0
-            .clone()
-            .into_iter()
-            .filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap())
-            .collect();
+        self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
     }
 }
 
