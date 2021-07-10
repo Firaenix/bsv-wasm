@@ -10,7 +10,7 @@ impl ECDSA {
     let point = EncodedPoint::from_bytes(pub_key_bytes)?;
     let key = VerifyingKey::from_encoded_point(&point)?;
     let digest = get_hash_digest(hash_algo, message);
-    let result = key.verify_digest(digest, &signature.sig)?;
+    key.verify_digest(digest, &signature.sig)?;
 
     Ok(true)
   }
