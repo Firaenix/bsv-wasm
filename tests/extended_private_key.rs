@@ -1,3 +1,4 @@
+#[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod xpriv_tests {
     use bsv_wasm::{hash::Hash, keypair::*};
@@ -143,6 +144,7 @@ mod xpriv_tests {
 
     #[test]
     #[wasm_bindgen_test]
+    #[allow(non_snake_case)]
     fn non_standard__long_seed_to_xprv() {
         let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
         let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
@@ -152,6 +154,7 @@ mod xpriv_tests {
 
     #[test]
     #[wasm_bindgen_test]
+    #[allow(non_snake_case)]
     fn non_standard__massive_seed_to_xpriv() {
         let mut seed = vec![0; 4096];
         getrandom::getrandom(&mut seed).unwrap();
@@ -162,6 +165,7 @@ mod xpriv_tests {
     }
 
     #[test]
+    #[allow(non_snake_case)]
     fn non_standard__short_seed_to_xprv() {
         let bytes = hex::decode("deadbeef").unwrap();
         let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
