@@ -1,6 +1,5 @@
 use std::any;
 
-use crate::PublicKeyErrors;
 use thiserror::*;
 
 #[derive(Debug, Error)]

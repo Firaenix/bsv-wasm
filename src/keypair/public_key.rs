@@ -1,4 +1,4 @@
-use crate::{P2PKHAddress, PublicKeyErrors, Signature, SigningHash, ECDSA};
+use crate::{P2PKHAddress, Signature, SigningHash, ECDSA};
 
 use anyhow::*;
 use elliptic_curve::sec1::*;

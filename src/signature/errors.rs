@@ -1,4 +1,3 @@
-use crate::PublicKeyErrors;
 use hex::FromHexError;
 use thiserror::*;
 
@@ -17,9 +16,6 @@ pub enum SignatureErrors {
 
     #[error("{}", error)]
     SecpError { error: k256::ecdsa::Error },
-
-    #[error("{}", error)]
-    PublicKeyError { error: PublicKeyErrors },
 
     #[error("Something went wrong: {}", message)]
     Other { message: String },

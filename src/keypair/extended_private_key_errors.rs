@@ -1,5 +1,4 @@
 use crate::PrivateKeyErrors;
-use crate::PublicKeyErrors;
 use anyhow::*;
 use thiserror::*;
 
