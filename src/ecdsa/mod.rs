@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::*;
 pub struct ECDSA {}
 
 #[wasm_bindgen]
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SigningHash {
   Sha256,
   Sha256d,

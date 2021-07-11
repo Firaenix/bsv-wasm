@@ -15,6 +15,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 pub struct Signature {
     pub(crate) sig: k256::ecdsa::Signature,
     pub(crate) recovery_i: u8,
+    // pub(crate) compressed_pub_key: Option<bool>,
 }
 
 /**
@@ -50,31 +51,23 @@ impl Signature {
         })
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, SignatureErrors> {
-        let recovery_id = match recoverable::Id::new(self.recovery_i) {
+    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey> {
+        let is_second_key = self.recovery_i >> 1;
+
+        println!("Second key? {}", is_second_key);
+
+        let recovery_id_main = match recoverable::Id::new(self.recovery_i) {
             Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
+            Err(e) => return Err(anyhow!("Recovery I ({}) is too large, must be between 0 or 1 for this library. {}", self.recovery_i, e)),
         };
 
-        let recoverable_sig = match recoverable::Signature::new(&self.sig, recovery_id) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
-        };
+        let recoverable_sig = recoverable::Signature::new(&self.sig, recovery_id_main)?;
 
-        let message_digest = match hash_algo {
-            SigningHash::Sha256 => Sha256r::default().chain(message.clone()),
-            SigningHash::Sha256d => Sha256r::default().chain(Sha256r::digest(message.clone())),
-        };
+        let message_digest = get_hash_digest(hash_algo, message);
 
-        let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
-        };
+        let verify_key = recoverable_sig.recover_verify_key_from_digest(message_digest)?;
 
-        let pub_key = match PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec()) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
-        };
+        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec())?;
 
         Ok(pub_key)
     }
@@ -92,10 +85,12 @@ impl Signature {
     }
 
     pub(crate) fn from_compact_impl(compact_bytes: Vec<u8>) -> Result<Signature> {
-        let mut i = compact_bytes[0] - 27 - 4;
-        if i < 0 {
-            i = compact_bytes[0] - 27;
-        }
+        // 27-30: P2PKH uncompressed
+        // 31-34: P2PKH compressed
+        let i = match compact_bytes[0] - 27 {
+            x if x > 4 => x - 4,
+            x => x,
+        };
 
         let r = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[1..33]));
         let s = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[33..65]));
@@ -202,7 +197,7 @@ impl Signature {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey, SignatureErrors> {
+    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey> {
         Signature::get_public_key(&self, &message, hash_algo)
     }
 }

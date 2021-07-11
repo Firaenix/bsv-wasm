@@ -113,9 +113,17 @@ impl PrivateKey {
             false => wif_without_checksum[1..].to_hex(),
         };
 
-        let mut priv_key = PrivateKey::from_hex_impl(private_key_hex.into())?;
-        priv_key.compress_public_key(is_compressed_pub_key);
-        Ok(priv_key)
+        Ok(PrivateKey::from_hex_impl(private_key_hex.into())?.compress_public_key(is_compressed_pub_key))
+    }
+
+    pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey> {
+        let pub_key = PublicKey::from_private_key_impl(&self);
+
+        if !self.is_pub_key_compressed {
+            return Ok(pub_key.to_decompressed_impl()?);
+        }
+
+        return Ok(pub_key);
     }
 }
 
@@ -150,11 +158,6 @@ impl PrivateKey {
      */
     pub fn get_point(&self) -> Vec<u8> {
         EncodedPoint::from_secret_key(&self.secret_key, true).as_bytes().into()
-    }
-
-    #[wasm_bindgen(js_name = getPublicKey)]
-    pub fn get_public_key(&self) -> PublicKey {
-        PublicKey::from_private_key_impl(&self)
     }
 
     #[wasm_bindgen(js_name = compressPublicKey)]
@@ -213,6 +216,14 @@ impl PrivateKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[wasm_bindgen(js_name = getPublicKey)]
+    pub fn get_public_key(&self) -> Result<PublicKey, JsValue> {
+        match self.get_public_key_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -241,5 +252,9 @@ impl PrivateKey {
 
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {
         Self::from_bytes_impl(bytes)
+    }
+
+    pub fn get_public_key(&self) -> Result<PublicKey> {
+        self.get_public_key_impl()
     }
 }

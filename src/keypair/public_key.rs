@@ -1,4 +1,4 @@
-use crate::{PublicKeyErrors, Signature, SigningHash, ECDSA};
+use crate::{P2PKHAddress, PublicKeyErrors, Signature, SigningHash, ECDSA};
 
 use anyhow::*;
 use elliptic_curve::sec1::*;
@@ -45,7 +45,7 @@ impl PublicKey {
         }
     }
 
-    pub(crate) fn to_decompressed(&self) -> Result<PublicKey> {
+    pub(crate) fn to_decompressed_impl(&self) -> Result<PublicKey> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         if let Some(decompressed_point) = point.decompress() {
             return Ok(PublicKey::from_encoded_point(&decompressed_point));
@@ -54,7 +54,7 @@ impl PublicKey {
         Ok(PublicKey::from_encoded_point(&point))
     }
 
-    pub(crate) fn to_compressed(&self) -> Result<PublicKey> {
+    pub(crate) fn to_compressed_impl(&self) -> Result<PublicKey> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         Ok(PublicKey::from_encoded_point(&point.compress()))
     }
@@ -69,6 +69,10 @@ impl PublicKey {
      */
     pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool> {
         ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256)
+    }
+
+    pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress> {
+        P2PKHAddress::from_pubkey_impl(self)
     }
 }
 
@@ -138,6 +142,30 @@ impl PublicKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[wasm_bindgen(js_name = toAddress)]
+    pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, JsValue> {
+        match self.to_p2pkh_address_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[wasm_bindgen(js_name = toCompressed)]
+    pub fn to_compressed(&self) -> Result<PublicKey, JsValue> {
+        match self.to_compressed_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[wasm_bindgen(js_name = toDecompressed)]
+    pub fn to_decompressed(&self) -> Result<PublicKey, JsValue> {
+        match self.to_decompressed_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -167,5 +195,17 @@ impl PublicKey {
 
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool> {
         self.verify_message_impl(message, signature)
+    }
+
+    pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress> {
+        self.to_p2pkh_address_impl()
+    }
+
+    pub fn to_compressed(&self) -> Result<PublicKey> {
+        self.to_compressed_impl()
+    }
+
+    pub fn to_decompressed(&self) -> Result<PublicKey> {
+        self.to_decompressed_impl()
     }
 }

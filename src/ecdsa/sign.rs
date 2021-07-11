@@ -53,7 +53,7 @@ impl ECDSA {
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
      */
-    pub(crate) fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+    pub fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
         let digest = get_hash_digest(hash_algo, preimage.clone());
         let (sig, is_recoverable) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
@@ -67,7 +67,7 @@ impl ECDSA {
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
      */
-    pub(crate) fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+    pub fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
         let digest = get_hash_digest(hash_algo, preimage.clone());
         let (sig, is_recoverable) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest, reverse_k)?;
 
