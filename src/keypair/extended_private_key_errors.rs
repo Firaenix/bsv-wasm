@@ -12,7 +12,7 @@ pub enum ExtendedPrivateKeyErrors {
     #[error("Could not calculate private key: {:#?}", error)]
     InvalidPrivateKeyError { error: PrivateKeyErrors },
     #[error("Could not calculate public key: {}", error)]
-    InvalidPublicKeyError { error: PublicKeyErrors },
+    InvalidPublicKeyError { error: anyhow::Error },
     #[error("Could not serialise xpriv: {}", error)]
     SerialisationError { error: anyhow::Error },
 

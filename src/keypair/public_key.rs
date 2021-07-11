@@ -15,50 +15,53 @@ pub struct PublicKey {
 }
 
 impl PublicKey {
-    pub(crate) fn from_private_key_impl(priv_key: &PrivateKey, compress: bool) -> PublicKey {
+    pub(crate) fn from_private_key_impl(priv_key: &PrivateKey) -> PublicKey {
+        let compressed_point = priv_key.get_point();
         PublicKey {
-            point: priv_key.get_point(compress),
-            is_compressed: compress,
+            point: compressed_point,
+            is_compressed: true,
         }
     }
 
-    pub(crate) fn to_hex_impl(&self) -> Result<String, PublicKeyErrors> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String> {
         let bytes = self.to_bytes_impl()?;
         return Ok(hex::encode(bytes));
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, PublicKeyErrors> {
-        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(&self.point.clone()) {
-            Ok(v) => v,
-            Err(e) => return Err(PublicKeyErrors::InvalidPoint { error: e }),
-        };
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>> {
+        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         Ok(point.as_bytes().to_vec())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        let point: EncodedPoint<Secp256k1> = match EncodedPoint::from_bytes(bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(PublicKeyErrors::InvalidPoint { error: e }),
-        };
-
-        let point_bytes = match compress {
-            true => point.compress().as_bytes().to_vec(),
-            false => point.as_bytes().to_vec(),
-        };
-
-        Ok(PublicKey {
-            point: point_bytes,
-            is_compressed: compress,
-        })
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PublicKey> {
+        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(bytes)?;
+        Ok(PublicKey::from_encoded_point(&point))
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        let point_bytes = match hex::decode(hex_str) {
-            Ok(v) => v,
-            Err(e) => return Err(PublicKeyErrors::ParseHex { error: e }),
-        };
+    fn from_encoded_point(point: &EncodedPoint<Secp256k1>) -> PublicKey {
+        PublicKey {
+            point: point.as_bytes().to_vec(),
+            is_compressed: point.is_compressed(),
+        }
+    }
 
-        PublicKey::from_bytes_impl(&point_bytes, compress)
+    pub(crate) fn to_decompressed(&self) -> Result<PublicKey> {
+        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
+        if let Some(decompressed_point) = point.decompress() {
+            return Ok(PublicKey::from_encoded_point(&decompressed_point));
+        }
+
+        Ok(PublicKey::from_encoded_point(&point))
+    }
+
+    pub(crate) fn to_compressed(&self) -> Result<PublicKey> {
+        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
+        Ok(PublicKey::from_encoded_point(&point.compress()))
+    }
+
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PublicKey> {
+        let point_bytes = hex::decode(hex_str)?;
+        PublicKey::from_bytes_impl(&point_bytes)
     }
 
     /**
@@ -78,6 +81,11 @@ impl PublicKey {
             Err(_) => false,
         }
     }
+
+    #[wasm_bindgen(js_name = isCompressed)]
+    pub fn is_compressed(&self) -> bool {
+        self.is_compressed
+    }
 }
 
 /**
@@ -86,24 +94,17 @@ impl PublicKey {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl PublicKey {
-    fn param_is_compressed(compress: Option<bool>) -> bool {
-        match compress {
-            Some(v) => v,
-            None => true,
-        }
-    }
-
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String, compress: Option<bool>) -> Result<PublicKey, JsValue> {
-        match PublicKey::from_hex_impl(hex_str, PublicKey::param_is_compressed(compress)) {
+    pub fn from_hex(hex_str: String) -> Result<PublicKey, JsValue> {
+        match PublicKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(bytes: &[u8], compress: Option<bool>) -> Result<PublicKey, JsValue> {
-        match PublicKey::from_bytes_impl(bytes, PublicKey::param_is_compressed(compress)) {
+    pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey, JsValue> {
+        match PublicKey::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -126,8 +127,8 @@ impl PublicKey {
     }
 
     #[wasm_bindgen(js_name = fromPrivateKey)]
-    pub fn from_private_key(priv_key: &PrivateKey, compress: Option<bool>) -> PublicKey {
-        PublicKey::from_private_key_impl(priv_key, PublicKey::param_is_compressed(compress))
+    pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
+        PublicKey::from_private_key_impl(priv_key)
     }
 
     #[wasm_bindgen(js_name = verifyMessage)]
@@ -144,24 +145,24 @@ impl PublicKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PublicKey {
-    pub fn from_hex(hex_str: String, compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        PublicKey::from_hex_impl(hex_str, compress)
+    pub fn from_hex(hex_str: String) -> Result<PublicKey> {
+        PublicKey::from_hex_impl(hex_str)
     }
 
-    pub fn from_bytes(bytes: &[u8], compress: bool) -> Result<PublicKey, PublicKeyErrors> {
-        PublicKey::from_bytes_impl(bytes, compress)
+    pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey> {
+        PublicKey::from_bytes_impl(bytes)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>, PublicKeyErrors> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
         PublicKey::to_bytes_impl(&self)
     }
 
-    pub fn to_hex(&self) -> Result<String, PublicKeyErrors> {
+    pub fn to_hex(&self) -> Result<String> {
         PublicKey::to_hex_impl(&self)
     }
 
-    pub fn from_private_key(priv_key: &PrivateKey, compress: bool) -> PublicKey {
-        PublicKey::from_private_key_impl(priv_key, compress)
+    pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
+        PublicKey::from_private_key_impl(priv_key)
     }
 
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool> {

@@ -1,3 +1,5 @@
+use std::any;
+
 use crate::PublicKeyErrors;
 use thiserror::*;
 
@@ -10,7 +12,7 @@ pub enum ExtendedPublicKeyErrors {
     InvalidSeedHmacError { error: anyhow::Error },
 
     #[error("Could not calculate public key: {}", error)]
-    InvalidPublicKeyError { error: PublicKeyErrors },
+    InvalidPublicKeyError { error: anyhow::Error },
 
     #[error("Could not get public key point: {}", error)]
     PublicKeyPointError { error: anyhow::Error },

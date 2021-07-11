@@ -29,10 +29,10 @@ describe("Bitcoin Signed Messages", function() {
         const signature_wasm_b64 = Buffer.from(signature_wasm.toCompactBytes()).toString('base64')
         const verification_wasm = Bsm.verify(message, signature_wasm_b64, address_js)
         assert.equal(verification_wasm, true);
-        
-        // assert.equal(address_wasm.verifyBitcoinMessage(message, signature_wasm), true);
-        // assert.equal(BSM.verifyMessage(message, signature_wasm, address_wasm), true);
-        // assert.equal(BSM.isValidMessage(message, signature_wasm, address_wasm), true);
+      
+        assert.equal(address_wasm.verifyBitcoinMessage(message, signature_wasm), true);
+        assert.equal(BSM.verifyMessage(message, signature_wasm, address_wasm), true);
+        assert.equal(BSM.isValidMessage(message, signature_wasm, address_wasm), true);
         
         const validSignature = 'IEASldKxt6sTOO1vMc3x2wN2qa5iZAUUHcj+fzekoLpOL5fl/W8ZApmSGzT211K83hHD3EQ6VE4RFEezVmPWd6Q='
         assert.equal(address_js.toString(), address_wasm.toString());

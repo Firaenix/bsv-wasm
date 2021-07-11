@@ -71,7 +71,7 @@ impl Signature {
             Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };
 
-        let pub_key = match PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec(), true) {
+        let pub_key = match PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec()) {
             Ok(v) => v,
             Err(e) => return Err(SignatureErrors::DerivePublicKey { error: anyhow!(e) }),
         };

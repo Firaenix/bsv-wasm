@@ -81,7 +81,7 @@ impl ExtendedPublicKey {
 
         let mut pub_key_bytes = vec![0; 33];
         cursor.read_exact(&mut pub_key_bytes)?;
-        let public_key = match PublicKey::from_bytes_impl(&pub_key_bytes, true) {
+        let public_key = match PublicKey::from_bytes_impl(&pub_key_bytes) {
             Ok(v) => v,
             Err(e) => return Err(anyhow!(e)),
         };
@@ -182,7 +182,7 @@ impl ExtendedPublicKey {
             Ok(v) => v,
             Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
         };
-        let child_pub_key = match PublicKey::from_bytes_impl(&internal_pub_key.to_encoded_point(true).as_bytes(), true) {
+        let child_pub_key = match PublicKey::from_bytes_impl(&internal_pub_key.to_encoded_point(true).as_bytes()) {
             Ok(v) => v,
             Err(e) => return Err(ExtendedPublicKeyErrors::PublicKeyPointError { error: anyhow!(e) }),
         };

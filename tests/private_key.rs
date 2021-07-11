@@ -1,6 +1,6 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
-mod tests {
+mod private_key_tests {
     use bsv_wasm::keypair::*;
     use core::time;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -23,11 +23,13 @@ mod tests {
     fn private_key_to_wif_verify() {
         let priv_key = "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D";
 
-        let key = PrivateKey::from_hex(priv_key.into());
+        let key = PrivateKey::from_hex(priv_key.into()).unwrap();
 
-        let wif = key.unwrap().to_wif(false);
+        let wif = key.compress_public_key(false).to_wif();
+        assert_eq!(wif.unwrap(), "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ");
 
-        assert_eq!(wif.unwrap(), "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
+        let wif2 = key.compress_public_key(true).to_wif();
+        assert_eq!(wif2.unwrap(), "KwdMAjGmerYanjeui5SHS7JkmpZvVipYvB2LJGU1ZxJwYvP98617");
     }
 
     #[test]

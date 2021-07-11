@@ -33,7 +33,7 @@ impl ExtendedPrivateKey {
 
         ExtendedPrivateKey {
             private_key: private_key.clone(),
-            public_key: PublicKey::from_private_key_impl(private_key, true),
+            public_key: PublicKey::from_private_key_impl(private_key),
             chain_code: chain_code.to_vec(),
             depth: *depth,
             index: *index,
@@ -93,7 +93,7 @@ impl ExtendedPrivateKey {
             Ok(v) => v,
             Err(e) => return Err(anyhow!(e)),
         };
-        let public_key = PublicKey::from_private_key_impl(&private_key, true);
+        let public_key = PublicKey::from_private_key_impl(&private_key);
 
         let mut checksum = vec![0; 4];
         cursor.read_exact(&mut checksum)?;
@@ -145,7 +145,7 @@ impl ExtendedPrivateKey {
             Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPrivateKeyError { error: e }),
         };
 
-        let pub_key = PublicKey::from_private_key_impl(&priv_key, true);
+        let pub_key = PublicKey::from_private_key_impl(&priv_key);
 
         Ok(Self {
             private_key: priv_key.clone(),
@@ -237,7 +237,7 @@ impl ExtendedPrivateKey {
         };
 
         let child_chain_code_bytes = child_chain_code.to_vec();
-        let child_pub_key = PublicKey::from_private_key_impl(&child_private_key, true);
+        let child_pub_key = PublicKey::from_private_key_impl(&child_private_key);
 
         Ok(ExtendedPrivateKey {
             chain_code: child_chain_code_bytes,

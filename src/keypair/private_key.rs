@@ -14,6 +14,7 @@ use wasm_bindgen::throw_str;
 #[derive(Debug, Clone)]
 pub struct PrivateKey {
     pub(crate) secret_key: SecretKey,
+    pub(crate) is_pub_key_compressed: bool,
 }
 
 /**
@@ -27,12 +28,13 @@ impl PrivateKey {
         ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
-    pub(crate) fn to_wif_impl(&self, compressed: bool) -> Result<String, PrivateKeyErrors> {
+    pub(crate) fn to_wif_impl(&self) -> Result<String, PrivateKeyErrors> {
         // 1. Get Private Key hex
         let priv_key_hex = self.to_hex();
 
         // 2. Add 0x80 in front + 0x01 to end if compressed pub key
-        let padded_hex = match compressed {
+
+        let padded_hex = match self.is_pub_key_compressed {
             true => format!("80{}01", priv_key_hex),
             false => format!("80{}", priv_key_hex),
         };
@@ -66,30 +68,21 @@ impl PrivateKey {
             Err(e) => return Err(PrivateKeyErrors::SecretKey { error: anyhow!(e) }),
         };
 
-        Ok(PrivateKey { secret_key })
+        Ok(PrivateKey {
+            secret_key,
+            is_pub_key_compressed: true,
+        })
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
-        let bytes = match hex::decode(hex_str) {
-            Ok(bytes) => bytes,
-            Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
-        };
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey> {
+        let bytes = hex::decode(hex_str)?;
 
-        Self::from_bytes_impl(&bytes)
+        Ok(Self::from_bytes_impl(&bytes)?)
     }
 
-    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
+    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey> {
         // 1. Decode from Base58
-        let wif_bytes = match bs58::decode(wif_string.clone()).into_vec() {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(PrivateKeyErrors::Base58Decode {
-                    string: wif_string,
-                    error: anyhow!(e),
-                })
-            }
-        };
-
+        let wif_bytes = bs58::decode(wif_string.clone()).into_vec()?;
         let wif_without_checksum = wif_bytes[0..wif_bytes.len() - 4].to_vec();
 
         // 2. Check the Checksum
@@ -113,14 +106,16 @@ impl PrivateKey {
             }
         }
 
+        let is_compressed_pub_key = is_compressed(&wif_without_checksum);
         // 3. Check if compressed public key, return private key string
-
-        let private_key_hex = match is_compressed(&wif_without_checksum) {
+        let private_key_hex = match is_compressed_pub_key {
             true => wif_without_checksum[1..wif_without_checksum.len() - 1].to_hex(),
             false => wif_without_checksum[1..].to_hex(),
         };
 
-        PrivateKey::from_hex_impl(private_key_hex.into())
+        let mut priv_key = PrivateKey::from_hex_impl(private_key_hex.into())?;
+        priv_key.compress_public_key(is_compressed_pub_key);
+        Ok(priv_key)
     }
 }
 
@@ -141,17 +136,32 @@ impl PrivateKey {
     pub fn from_random() -> PrivateKey {
         let secret_key = k256::SecretKey::random(&mut OsRng);
 
-        PrivateKey { secret_key }
+        PrivateKey {
+            secret_key,
+            is_pub_key_compressed: true,
+        }
     }
 
     #[wasm_bindgen(js_name = getPoint)]
-    pub fn get_point(&self, compressed: bool) -> Vec<u8> {
-        EncodedPoint::from_secret_key(&self.secret_key, compressed).as_bytes().into()
+    /**
+     * Finds the Public Key Point.
+     * Always returns the compressed point.
+     * To get the decompressed point: PublicKey::from_bytes(point).to_decompressed()
+     */
+    pub fn get_point(&self) -> Vec<u8> {
+        EncodedPoint::from_secret_key(&self.secret_key, true).as_bytes().into()
     }
 
     #[wasm_bindgen(js_name = getPublicKey)]
-    pub fn get_public_key(&self, compressed: bool) -> PublicKey {
-        PublicKey::from_private_key_impl(&self, compressed)
+    pub fn get_public_key(&self) -> PublicKey {
+        PublicKey::from_private_key_impl(&self)
+    }
+
+    #[wasm_bindgen(js_name = compressPublicKey)]
+    pub fn compress_public_key(&self, should_compress: bool) -> PrivateKey {
+        let mut priv_key = self.clone();
+        priv_key.is_pub_key_compressed = should_compress;
+        priv_key
     }
 }
 
@@ -189,8 +199,8 @@ impl PrivateKey {
     }
 
     #[wasm_bindgen(js_name = toWIF)]
-    pub fn to_wif(&self, compressed: bool) -> Result<String, JsValue> {
-        match PrivateKey::to_wif_impl(&self, compressed) {
+    pub fn to_wif(&self) -> Result<String, JsValue> {
+        match PrivateKey::to_wif_impl(&self) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -210,15 +220,15 @@ impl PrivateKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
-    pub fn to_wif(&self, compressed: bool) -> Result<String, PrivateKeyErrors> {
-        PrivateKey::to_wif_impl(&self, compressed)
+    pub fn to_wif(&self) -> Result<String, PrivateKeyErrors> {
+        PrivateKey::to_wif_impl(&self)
     }
 
-    pub fn from_wif(wif_string: String) -> Result<PrivateKey, PrivateKeyErrors> {
+    pub fn from_wif(wif_string: String) -> Result<PrivateKey> {
         PrivateKey::from_wif_impl(wif_string)
     }
 
-    pub fn from_hex(hex_str: String) -> Result<PrivateKey, PrivateKeyErrors> {
+    pub fn from_hex(hex_str: String) -> Result<PrivateKey> {
         PrivateKey::from_hex_impl(hex_str)
     }
 
