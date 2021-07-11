@@ -57,7 +57,7 @@ impl ECDSA {
      * HASH+HMAC can be reversed for K generation if necessary.
      */
     pub(crate) fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
-        let digest = get_hash_digest(hash_algo, preimage.clone());
+        let digest = get_hash_digest(hash_algo, preimage);
         let (sig, is_recoverable) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
         let signature = Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable)?;
@@ -71,7 +71,7 @@ impl ECDSA {
      * HASH+HMAC can be reversed for K generation if necessary.
      */
     pub(crate) fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
-        let digest = get_hash_digest(hash_algo, preimage.clone());
+        let digest = get_hash_digest(hash_algo, preimage);
         let (sig, is_recoverable) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest, reverse_k)?;
 
         let signature = Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable)?;
