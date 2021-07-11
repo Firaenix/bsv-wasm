@@ -1,4 +1,4 @@
-use crate::{AddressErrors, Hash, Script, ScriptErrors, BSM};
+use crate::{Hash, Script, ScriptErrors, BSM};
 use crate::{PrivateKey, PublicKey, Signature};
 use anyhow::*;
 use wasm_bindgen::JsValue;
