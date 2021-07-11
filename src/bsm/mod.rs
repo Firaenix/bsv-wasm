@@ -18,12 +18,10 @@ impl BSM {
   fn prepend_magic_bytes(msg: &[u8]) -> Result<Vec<u8>> {
     let mut buffer: Vec<u8> = vec![];
 
-    // // buffer.write_varint(MAGIC_BYTES.len() as u64)?;
+    buffer.write_varint(MAGIC_BYTES.len() as u64)?;
     buffer.write(MAGIC_BYTES)?;
-    // buffer.write_varint(msg.len() as u64)?;
+    buffer.write_varint(msg.len() as u64)?;
     buffer.write(msg)?;
-
-    println!("{}", std::str::from_utf8(&buffer)?);
 
     Ok(buffer)
   }
