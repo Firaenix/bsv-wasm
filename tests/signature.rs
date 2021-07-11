@@ -62,7 +62,7 @@ mod tests {
         let pub_key = PublicKey::from_private_key(&key);
 
         let is_verified = signature.verify_message(message.to_vec(), &pub_key);
-        assert_eq!(is_verified, true);
+        assert!(is_verified);
 
         let recovered_pub_key = signature.recover_public_key(message.to_vec(), SigningHash::Sha256).unwrap();
         assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
