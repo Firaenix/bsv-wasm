@@ -14,6 +14,9 @@ use k256::FieldBytes;
 use k256::{ecdsa::Signature as SecpSignature, Scalar, SecretKey};
 use rand_core::OsRng;
 use rand_core::RngCore;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::throw_str;
+use wasm_bindgen::JsValue;
 
 impl ECDSA {
     fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, bool), ecdsa::Error>
@@ -53,7 +56,7 @@ impl ECDSA {
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
      */
-    pub fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+    pub(crate) fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
         let digest = get_hash_digest(hash_algo, preimage.clone());
         let (sig, is_recoverable) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
@@ -67,12 +70,43 @@ impl ECDSA {
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
      */
-    pub fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+    pub(crate) fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
         let digest = get_hash_digest(hash_algo, preimage.clone());
         let (sig, is_recoverable) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest, reverse_k)?;
 
         let signature = Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable)?;
 
         Ok(signature)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl ECDSA {
+    #[wasm_bindgen(js_name = signWithRandomK)]
+    pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
+        match ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[wasm_bindgen(js_name = sign)]
+    pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
+        match ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl ECDSA {
+    pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+        ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)
+    }
+
+    pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature> {
+        ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)
     }
 }

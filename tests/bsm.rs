@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod bitcoin_signed_message_tests {
-    use anyhow::*;
-    use bsv_wasm::{encryption::AESAlgorithms, hash::Hash, AES};
-    use bsv_wasm::{PrivateKey, BSM, ECDSA};
-    use rand_core::{OsRng, RngCore};
+
+    use bsv_wasm::{PrivateKey, BSM};
+
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
