@@ -12,6 +12,6 @@ pub struct ECDSA {}
 #[wasm_bindgen]
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SigningHash {
-  Sha256,
-  Sha256d,
+    Sha256,
+    Sha256d,
 }

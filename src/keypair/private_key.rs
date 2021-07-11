@@ -1,7 +1,7 @@
 use crate::get_hash_digest;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
-use crate::{PrivateKeyErrors, Signature, ToHex};
+use crate::{Signature, ToHex};
 use anyhow::*;
 use k256::ecdsa::digest::Digest;
 use k256::ecdsa::recoverable;
@@ -28,7 +28,7 @@ impl PrivateKey {
         ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
-    pub(crate) fn to_wif_impl(&self) -> Result<String, PrivateKeyErrors> {
+    pub(crate) fn to_wif_impl(&self) -> Result<String> {
         // 1. Get Private Key hex
         let priv_key_hex = self.to_hex();
 
@@ -54,19 +54,13 @@ impl PrivateKey {
         let extended_key = format!("{}{}", padded_hex, checksum);
 
         // 6 Base58 Result
-        let extended_key_bytes = match hex::decode(extended_key) {
-            Ok(v) => v,
-            Err(e) => return Err(PrivateKeyErrors::ByteDecode { error: anyhow!(e) }),
-        };
+        let extended_key_bytes = hex::decode(extended_key)?;
 
         Ok(bs58::encode(extended_key_bytes).into_string())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {
-        let secret_key = match SecretKey::from_bytes(bytes) {
-            Ok(key) => key,
-            Err(e) => return Err(PrivateKeyErrors::SecretKey { error: anyhow!(e) }),
-        };
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey> {
+        let secret_key = SecretKey::from_bytes(bytes)?;
 
         Ok(PrivateKey {
             secret_key,
@@ -231,7 +225,7 @@ impl PrivateKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
-    pub fn to_wif(&self) -> Result<String, PrivateKeyErrors> {
+    pub fn to_wif(&self) -> Result<String> {
         PrivateKey::to_wif_impl(&self)
     }
 
@@ -250,7 +244,7 @@ impl PrivateKey {
         PrivateKey::sign_message_impl(&self, msg)
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, PrivateKeyErrors> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey> {
         Self::from_bytes_impl(bytes)
     }
 

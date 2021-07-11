@@ -142,7 +142,7 @@ impl ExtendedPrivateKey {
 
         let priv_key = match PrivateKey::from_bytes_impl(private_key_bytes) {
             Ok(v) => v,
-            Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPrivateKeyError { error: e }),
+            Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidSeedHmacError { error: anyhow!(e) }),
         };
 
         let pub_key = PublicKey::from_private_key_impl(&priv_key);
@@ -233,7 +233,7 @@ impl ExtendedPrivateKey {
 
         let child_private_key = match PrivateKey::from_bytes_impl(&derived_private_key.to_bytes()) {
             Ok(v) => v,
-            Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPrivateKeyError { error: e }),
+            Err(e) => return Err(ExtendedPrivateKeyErrors::DerivationError { error: anyhow!(e) }),
         };
 
         let child_chain_code_bytes = child_chain_code.to_vec();

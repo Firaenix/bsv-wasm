@@ -1,4 +1,3 @@
-mod errors;
 mod extended_private_key;
 mod extended_private_key_errors;
 mod extended_public_key;
@@ -6,7 +5,6 @@ mod extended_public_key_errors;
 mod private_key;
 mod public_key;
 
-pub use errors::*;
 pub use extended_private_key::*;
 pub use extended_private_key_errors::*;
 pub use extended_public_key::*;
