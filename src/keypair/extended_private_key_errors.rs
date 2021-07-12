@@ -1,6 +1,8 @@
 use anyhow::*;
 use thiserror::*;
 
+use crate::ECDSAErrors;
+
 #[derive(Debug, Error)]
 pub enum ExtendedPrivateKeyErrors {
     #[error("Could not generate randomness: {}", error)]
@@ -14,4 +16,10 @@ pub enum ExtendedPrivateKeyErrors {
 
     #[error("Could not derive xpriv: {}", error)]
     DerivationError { error: anyhow::Error },
+
+    #[error("{}", source)]
+    ECDSA {
+        #[from]
+        source: ECDSAErrors,
+    },
 }

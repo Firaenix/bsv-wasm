@@ -23,10 +23,7 @@ pub struct Signature {
  */
 impl Signature {
     pub(crate) fn from_der_impl(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
-        let sig = match SecpSignature::from_der(&bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::SecpError { error: e }),
-        };
+        let sig = SecpSignature::from_der(&bytes)?;
 
         Ok(Signature {
             sig,
@@ -35,15 +32,8 @@ impl Signature {
     }
 
     pub(crate) fn from_hex_der_impl(hex: String, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
-        let bytes = match hex::decode(hex) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::ParseHex { error: e }),
-        };
-
-        let sig = match SecpSignature::from_der(&bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::SecpError { error: e }),
-        };
+        let bytes = hex::decode(hex)?;
+        let sig = SecpSignature::from_der(&bytes)?;
 
         Ok(Signature {
             sig,

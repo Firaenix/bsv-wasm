@@ -1,4 +1,6 @@
 use crate::get_hash_digest;
+use crate::ECDSAErrors;
+use crate::PrivateKeyErrors;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
 use crate::{Signature, ToHex};
@@ -24,11 +26,11 @@ impl PrivateKey {
     /**
      * Standard ECDSA Message Signing
      */
-    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature> {
+    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, ECDSAErrors> {
         ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
-    pub(crate) fn to_wif_impl(&self) -> Result<String> {
+    pub(crate) fn to_wif_impl(&self) -> Result<String, PrivateKeyErrors> {
         // 1. Get Private Key hex
         let priv_key_hex = self.to_hex();
 
@@ -42,7 +44,12 @@ impl PrivateKey {
         // 3. SHA256d
         let bytes = match hex::decode(padded_hex.clone()) {
             Ok(v) => v,
-            Err(e) => wasm_bindgen::throw_str(&e.to_string()),
+            Err(e) => {
+                return Err(PrivateKeyErrors::ToWIF {
+                    message: format!("Unable to decode padded hex"),
+                    error: anyhow!(e),
+                })
+            }
         };
 
         let shad_hex = Hash::sha_256d(&bytes).to_bytes();
@@ -225,7 +232,7 @@ impl PrivateKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
-    pub fn to_wif(&self) -> Result<String> {
+    pub fn to_wif(&self) -> Result<String, PrivateKeyErrors> {
         PrivateKey::to_wif_impl(&self)
     }
 
@@ -240,7 +247,7 @@ impl PrivateKey {
     /**
      * Standard ECDSA Message Signing using SHA256 as the digestg
      */
-    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature> {
+    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, ECDSAErrors> {
         PrivateKey::sign_message_impl(&self, msg)
     }
 

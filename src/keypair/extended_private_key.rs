@@ -178,10 +178,7 @@ impl ExtendedPrivateKey {
             false => {
                 let mut bytes: Vec<u8> = vec![];
 
-                let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
-                    Ok(v) => v,
-                    Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e }),
-                };
+                let pub_key_bytes = &self.public_key.clone().to_bytes_impl()?;
 
                 bytes.extend_from_slice(&pub_key_bytes);
                 bytes.extend_from_slice(&index.clone().to_be_bytes());
@@ -189,10 +186,7 @@ impl ExtendedPrivateKey {
             }
         };
 
-        let pub_key_bytes = &match self.public_key.clone().to_bytes_impl() {
-            Ok(v) => v,
-            Err(e) => return Err(ExtendedPrivateKeyErrors::InvalidPublicKeyError { error: e }),
-        };
+        let pub_key_bytes = &self.public_key.clone().to_bytes_impl()?;
         let hash = Hash::hash_160(&pub_key_bytes);
         let fingerprint = &hash.to_bytes()[0..4];
 

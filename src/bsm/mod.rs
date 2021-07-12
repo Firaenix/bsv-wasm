@@ -30,7 +30,7 @@ impl BSM {
      * Sign a message with the intention of verifying with this same Address.
      * Used when using Bitcoin Signed Messages ()
      */
-    pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature> {
+    pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, ECDSAErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
         ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)

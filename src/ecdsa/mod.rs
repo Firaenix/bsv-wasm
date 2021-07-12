@@ -1,5 +1,7 @@
+pub mod errors;
 pub mod sign;
 pub mod verify;
+pub use errors::*;
 
 use wasm_bindgen::prelude::*;
 
