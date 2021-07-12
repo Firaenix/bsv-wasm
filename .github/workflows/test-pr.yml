@@ -29,9 +29,9 @@ jobs:
         version: 'latest'
 
     - name: Run tests
-      run: cargo test --verbose -j 1
+      run: cargo test --verbose
     - name: Run WASM tests
-      run: wasm-pack test --node -- -j 1
+      run: wasm-pack test --node
 
   node-test:
       runs-on: ubuntu-latest
