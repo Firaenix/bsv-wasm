@@ -24,9 +24,9 @@ jobs:
         # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
         version: 'latest'
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose -j 1
     - name: Run WASM tests
-      run: wasm-pack test --node
+      run: wasm-pack test --node -- -j 1
 
   node-test:
       runs-on: ubuntu-latest
