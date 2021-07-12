@@ -1,9 +1,9 @@
+use crate::BSVErrors;
 use crate::ECDSA;
 use std::convert::TryFrom;
 use std::io::{Cursor, Write};
 
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature, VarInt};
-use anyhow::*;
 use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use strum_macros::EnumString;
@@ -60,10 +60,10 @@ pub enum SigHash {
 }
 
 impl TryFrom<u8> for SigHash {
-    type Error = anyhow::Error;
+    type Error = BSVErrors;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        FromPrimitive::from_u8(value).ok_or(anyhow!("Could not convert {} into a valid SigHash value", value))
+        FromPrimitive::from_u8(value).ok_or(BSVErrors::ToSighash(format!("Could not convert {} into a valid SigHash value", value)))
     }
 }
 
@@ -107,7 +107,7 @@ impl Transaction {
     /**
      * Calculates the SIGHASH buffer and then signs it
      */
-    pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature> {
+    pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
         let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, true)?;
 
@@ -121,7 +121,7 @@ impl Transaction {
     /**
      * Calculates the SIGHASH Buffer to be signed
      */
-    pub(crate) fn sighash_preimage_impl(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>> {
+    pub(crate) fn sighash_preimage_impl(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
         // If uses any of the FORK_ID sighash variants
         // Gross, fix this. Maybe a nice method on SigHash enum to check if contains another SigHash type
         match sighash {
@@ -132,7 +132,7 @@ impl Transaction {
         }
     }
 
-    pub(crate) fn sighash_legacy(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script) -> Result<Vec<u8>> {
+    pub(crate) fn sighash_legacy(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script) -> Result<Vec<u8>, BSVErrors> {
         let mut tx = self.clone();
         let mut script = unsigned_script.clone();
         script.remove_codeseparators();
@@ -140,7 +140,7 @@ impl Transaction {
         // Empty scripts
         tx.inputs.iter_mut().for_each(|txin| txin.set_script(&Script::default()));
 
-        let mut prev_txin = tx.get_input(n_tx_in).ok_or(anyhow!(format!("Could not get TxIn at index {}", n_tx_in)))?;
+        let mut prev_txin = tx.get_input(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
         prev_txin.set_script(&script);
         tx.set_input(n_tx_in, &prev_txin);
 
@@ -153,7 +153,7 @@ impl Transaction {
                 //   return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?)
                 // }
 
-                let txout = tx.get_output(n_tx_in).ok_or(anyhow!(format!("Could not get TxOut at index {}", n_tx_in)))?;
+                let txout = tx.get_output(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not get TxOut at index {}", n_tx_in)))?;
                 tx.outputs = vec![txout];
 
                 for i in 0..tx.outputs.len() {
@@ -191,17 +191,17 @@ impl Transaction {
             tx.add_input(&input);
         }
 
-        let mut buffer = tx.to_bytes_impl().map_err(|e| anyhow!(e))?;
-        let sighash_i32 = sighash.to_i32().ok_or(anyhow!(format!("Cannot convert SigHash {:?} into i32", sighash)))?;
+        let mut buffer = tx.to_bytes_impl()?;
+        let sighash_i32 = sighash.to_i32().ok_or(BSVErrors::FromSighash(format!("Cannot convert SigHash {:?} into i32", sighash)))?;
         buffer.write_i32::<LittleEndian>(sighash_i32)?;
 
         Ok(buffer)
     }
 
-    pub(crate) fn sighash_bip143(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>> {
+    pub(crate) fn sighash_bip143(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
         let mut buffer: Vec<u8> = vec![];
 
-        let input = self.get_input(n_tx_in).ok_or(anyhow!(format!("Could not get TxIn at index {}", n_tx_in)))?;
+        let input = self.get_input(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
 
         let hashed_outputs = self.hash_outputs(sighash, n_tx_in)?;
 
@@ -216,7 +216,7 @@ impl Transaction {
         buffer.write(&hashed_outputs)?;
         buffer.write_u32::<LittleEndian>(self.n_locktime)?;
 
-        let sighash_u32 = sighash.to_u32().ok_or(anyhow!(format!("Cannot convert SigHash {:?} into u32", sighash)))?;
+        let sighash_u32 = sighash.to_u32().ok_or(BSVErrors::FromSighash(format!("Cannot convert SigHash {:?} into u32", sighash)))?;
         buffer.write_u32::<LittleEndian>(sighash_u32)?;
 
         Ok(buffer)
@@ -244,7 +244,7 @@ impl Transaction {
     /**
      * Checks the hash cache to see if there already are hashed outputs, otherwise calculates the hash and adds it to the cache
      */
-    fn hash_outputs(&mut self, sighash: SigHash, n_tx_in: usize) -> Result<Vec<u8>> {
+    fn hash_outputs(&mut self, sighash: SigHash, n_tx_in: usize) -> Result<Vec<u8>, BSVErrors> {
         if let Some(x) = &self.hash_cache.hash_outputs {
             return Ok(x.to_bytes());
         }
@@ -253,10 +253,10 @@ impl Transaction {
             // Only sign the output at the same index as the given txin
             SigHash::SINGLE | SigHash::InputOutput | SigHash::Legacy_InputOutput | SigHash::InputsOutput => {
                 if n_tx_in > self.get_noutputs() as usize {
-                    return Err(anyhow!("Cannot sign with SIGHASH_SINGLE given input index greater than number of outputs"));
+                    return Err(BSVErrors::OutOfBounds(format!("Cannot sign with SIGHASH_SINGLE given input index greater than number of outputs")));
                 }
 
-                let output = self.get_output(n_tx_in).ok_or(anyhow!(format!("Could not find output at index {}", n_tx_in)))?;
+                let output = self.get_output(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not find output at index {}", n_tx_in)))?;
                 let output_bytes = output.to_bytes_impl()?;
                 Ok(Hash::sha_256d(&output_bytes).to_bytes())
             }
@@ -313,11 +313,11 @@ impl Transaction {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Transaction {
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature> {
+    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)
     }
 
-    pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>> {
+    pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
         Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value)
     }
 }
@@ -350,13 +350,16 @@ pub struct SighashSignature {
 }
 
 impl SighashSignature {
-    pub(crate) fn to_hex_impl(&self) -> Result<String> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         Ok(hex::encode(self.to_bytes_impl()?))
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>> {
-        let mut sig_bytes = self.signature.to_der_bytes_impl();
-        let sighash_u8 = self.sighash_type.to_u8().ok_or(anyhow!(format!("Cannot convert SigHash {:?} into u8", self.sighash_type)))?;
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
+        let mut sig_bytes = self.signature.to_der_bytes();
+        let sighash_u8 = self
+            .sighash_type
+            .to_u8()
+            .ok_or(BSVErrors::FromSighash(format!("Cannot convert SigHash {:?} into u8", self.sighash_type)))?;
 
         sig_bytes.push(sighash_u8);
         Ok(sig_bytes)
@@ -377,11 +380,11 @@ impl SighashSignature {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl SighashSignature {
-    pub fn to_hex(&self) -> Result<String> {
+    pub fn to_hex(&self) -> Result<String, BSVErrors> {
         self.to_hex_impl()
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         self.to_bytes_impl()
     }
 }

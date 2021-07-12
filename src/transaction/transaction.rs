@@ -2,23 +2,12 @@ use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
 
+use crate::BSVErrors;
 use crate::{Hash, HashCache, TxIn, TxOut, VarInt};
-use anyhow::*;
 use byteorder::*;
 use serde::{Deserialize, Serialize};
 use thiserror::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
-
-#[derive(Debug, Error)]
-pub enum TransactionErrors {
-    #[error("Error deserialising transaction field {:?}: {}", field, error)]
-    Deserialise { field: Option<String>, error: anyhow::Error },
-    #[error("Error serialising TxIn field {:?}: {}", field, error)]
-    Serialise { field: Option<String>, error: anyhow::Error },
-
-    #[error("Error serialising Tx to serde_json: {}", error)]
-    JsonSerialise { error: serde_json::Error },
-}
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
@@ -42,92 +31,51 @@ impl Transaction {
         }
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, TransactionErrors> {
-        let tx_bytes = match hex::decode(&hex_str) {
-            Ok(v) => v,
-            Err(e) => return Err(TransactionErrors::Deserialise { field: None, error: anyhow!(e) }),
-        };
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, BSVErrors> {
+        let tx_bytes = hex::decode(&hex_str)?;
 
         Transaction::from_bytes_impl(tx_bytes)
     }
 
-    pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
+    pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
         let mut cursor = Cursor::new(tx_bytes);
 
         // Version - 4 bytes
         let version = match cursor.read_u32::<LittleEndian>() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: Some("version".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTransaction("version".to_string(), e)),
         };
 
         // In Counter - 1-9 tx_bytes
         let n_inputs = match cursor.read_varint() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: Some("n_inputs".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTransaction("n_inputs".to_string(), e)),
         };
 
-        let mut inputs: Vec<TxIn> = Vec::with_capacity(n_inputs as usize);
-
+        let mut inputs: Vec<TxIn> = Vec::new();
         // List of Inputs
-        for i in 0..n_inputs {
-            let tx_in = match TxIn::read_in(&mut cursor) {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(TransactionErrors::Deserialise {
-                        field: Some(format!("tx_in {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
-            };
+        for _ in 0..n_inputs {
+            let tx_in = TxIn::read_in(&mut cursor)?;
             inputs.push(tx_in);
         }
 
         // Out Counter - 1-9 bytes
         let n_outputs = match cursor.read_varint() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: Some("n_outputs".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTransaction("n_outputs".to_string(), e)),
         };
 
         // List of  Outputs
-        let mut outputs: Vec<TxOut> = Vec::with_capacity(n_outputs as usize);
-        for i in 0..n_outputs {
-            let tx_out = match TxOut::read_in(&mut cursor) {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(TransactionErrors::Deserialise {
-                        field: Some(format!("tx_out {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
-            };
-
+        let mut outputs: Vec<TxOut> = Vec::new();
+        for _ in 0..n_outputs {
+            let tx_out = TxOut::read_in(&mut cursor)?;
             outputs.push(tx_out);
         }
 
         // nLocktime - 4 bytes
         let n_locktime = match cursor.read_u32::<LittleEndian>() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: Some("n_locktime".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTransaction("n_locktime".to_string(), e)),
         };
 
         Ok(Transaction {
@@ -139,114 +87,66 @@ impl Transaction {
         })
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TransactionErrors> {
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
         let mut buffer = Vec::new();
 
         // Version - 4 bytes
         match buffer.write_u32::<LittleEndian>(self.version) {
             Ok(_) => (),
-            Err(e) => {
-                return Err(TransactionErrors::Serialise {
-                    field: Some("version".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTransaction("version".to_string(), e)),
         };
 
         // In Counter - 1-9 tx_bytes
         match buffer.write_varint(self.get_ninputs()) {
             Ok(_) => (),
-            Err(e) => {
-                return Err(TransactionErrors::Serialise {
-                    field: Some("n_inputs".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e)),
         };
 
         // Inputs
         for i in 0..self.get_ninputs() {
             let input = &self.inputs[i as usize];
-            let input_bytes = match input.to_bytes_impl() {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(TransactionErrors::Serialise {
-                        field: Some(format!("input {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
-            };
+            let input_bytes = input.to_bytes_impl()?;
 
             match buffer.write(&input_bytes) {
                 Ok(_) => (),
-                Err(e) => {
-                    return Err(TransactionErrors::Serialise {
-                        field: Some(format!("input {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
+                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("input {}", i), e)),
             };
         }
 
         // Out Counter - 1-9 tx_bytes
         match buffer.write_varint(self.get_noutputs()) {
             Ok(_) => (),
-            Err(e) => {
-                return Err(TransactionErrors::Serialise {
-                    field: Some("n_outputs".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e)),
         };
 
         // Outputs
         for i in 0..self.get_noutputs() {
             let output = &self.outputs[i as usize];
-            let output_bytes = match output.to_bytes_impl() {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(TransactionErrors::Serialise {
-                        field: Some(format!("output {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
-            };
+            let output_bytes = output.to_bytes_impl()?;
 
             match buffer.write(&output_bytes) {
                 Ok(_) => (),
-                Err(e) => {
-                    return Err(TransactionErrors::Serialise {
-                        field: Some(format!("output {}", i)),
-                        error: anyhow!(e),
-                    })
-                }
+                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("output {}", i), e)),
             };
         }
 
         // nLocktime - 4 bytes
         match buffer.write_u32::<LittleEndian>(self.n_locktime) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TransactionErrors::Deserialise {
-                    field: Some("n_locktime".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_locktime".to_string(), e)),
         };
 
         // Write out bytes
         Ok(buffer)
     }
 
-    pub(crate) fn to_hex_impl(&self) -> Result<String, TransactionErrors> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         Ok(hex::encode(&self.to_bytes_impl()?))
     }
 
-    pub(crate) fn to_json_string_impl(&self) -> Result<String, TransactionErrors> {
-        match serde_json::to_string(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TransactionErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
+        let json = serde_json::to_string(self)?;
+        Ok(json)
     }
 
     /**
@@ -255,7 +155,7 @@ impl Transaction {
      *
      * Txid is the reverse of the hash result.
      */
-    pub(crate) fn get_id_impl(&self) -> Result<Hash, TransactionErrors> {
+    pub(crate) fn get_id_impl(&self) -> Result<Hash, BSVErrors> {
         let tx_bytes = self.to_bytes_impl()?;
         let mut hash = Hash::sha_256d(&tx_bytes);
         hash.0.reverse();
@@ -455,47 +355,45 @@ impl Transaction {
     /**
      * Gets the ID of the current transaction as a hex string.
      */
-    pub fn get_id_hex(&self) -> Result<String, TransactionErrors> {
+    pub fn get_id_hex(&self) -> Result<String, BSVErrors> {
         Ok(self.get_id_impl()?.to_hex())
     }
 
     /**
      * Gets the ID of the current transaction as a Vec<u8>.
      */
-    pub fn get_id_bytes(&self) -> Result<Vec<u8>, TransactionErrors> {
+    pub fn get_id_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         Ok(self.get_id_impl()?.to_bytes())
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex(hex_str: String) -> Result<Transaction, TransactionErrors> {
+    pub fn from_hex(hex_str: String) -> Result<Transaction, BSVErrors> {
         return Transaction::from_hex_impl(hex_str);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, TransactionErrors> {
+    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
         Transaction::from_bytes_impl(tx_bytes)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json_string(&self) -> Result<String, TransactionErrors> {
+    pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         Transaction::to_json_string_impl(&self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json(&self) -> Result<serde_json::Value, TransactionErrors> {
-        match serde_json::to_value(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TransactionErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
+        let json = serde_json::to_value(self)?;
+        Ok(json)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, TransactionErrors> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         Transaction::to_bytes_impl(&self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_hex(&self) -> Result<String, TransactionErrors> {
+    pub fn to_hex(&self) -> Result<String, BSVErrors> {
         Transaction::to_hex_impl(&self)
     }
 

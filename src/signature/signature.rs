@@ -1,32 +1,27 @@
-use crate::{get_hash_digest, PublicKey, Sha256r, SignatureErrors, SigningHash, ECDSA};
-use anyhow::*;
+use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigningHash, ECDSA};
 use digest::Digest;
-use ecdsa::signature::DigestVerifier;
+use ecdsa::signature::{DigestVerifier, Signature as SigTrait};
 use elliptic_curve::sec1::*;
 use k256::{
     ecdsa::Signature as SecpSignature,
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
     EncodedPoint, FieldBytes, Scalar,
 };
-use wasm_bindgen::{prelude::*, throw_str};
+use wasm_bindgen::{convert::OptionIntoWasmAbi, prelude::*, throw_str};
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     pub(crate) sig: k256::ecdsa::Signature,
     pub(crate) recovery_i: u8,
-    // pub(crate) compressed_pub_key: Option<bool>,
 }
 
 /**
  * Implementation Methods
  */
 impl Signature {
-    pub(crate) fn from_der_impl(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
-        let sig = match SecpSignature::from_der(&bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::SecpError { error: e }),
-        };
+    pub(crate) fn from_der_impl(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, BSVErrors> {
+        let sig = SecpSignature::from_der(&bytes)?;
 
         Ok(Signature {
             sig,
@@ -34,16 +29,9 @@ impl Signature {
         })
     }
 
-    pub(crate) fn from_hex_der_impl(hex: String, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
-        let bytes = match hex::decode(hex) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::ParseHex { error: e }),
-        };
-
-        let sig = match SecpSignature::from_der(&bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(SignatureErrors::SecpError { error: e }),
-        };
+    pub(crate) fn from_hex_der_impl(hex: String, is_recoverable: bool) -> Result<Signature, BSVErrors> {
+        let bytes = hex::decode(hex)?;
+        let sig = SecpSignature::from_der(&bytes)?;
 
         Ok(Signature {
             sig,
@@ -51,40 +39,32 @@ impl Signature {
         })
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey> {
-        let is_second_key = self.recovery_i >> 1;
-
-        println!("Second key? {}", is_second_key);
-
+    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         let recovery_id_main = match recoverable::Id::new(self.recovery_i) {
             Ok(v) => v,
-            Err(e) => return Err(anyhow!("Recovery I ({}) is too large, must be between 0 or 1 for this library. {}", self.recovery_i, e)),
+            Err(e) => {
+                return Err(BSVErrors::PublicKeyRecoveryError(
+                    format!("Recovery I ({}) is too large, must be 0 or 1 for this library. {}", self.recovery_i, e),
+                    None,
+                ))
+            }
         };
 
         let recoverable_sig = recoverable::Signature::new(&self.sig, recovery_id_main)?;
-
         let message_digest = get_hash_digest(hash_algo, message);
-
-        let verify_key = recoverable_sig.recover_verify_key_from_digest(message_digest)?;
+        let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {}", self.to_hex(), self.recovery_i), Some(e)));
+            }
+        };
 
         let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec())?;
 
         Ok(pub_key)
     }
 
-    pub(crate) fn to_hex_impl(&self) -> String {
-        let bytes = self.sig.to_der();
-
-        hex::encode(bytes)
-    }
-
-    pub(crate) fn to_der_bytes_impl(&self) -> Vec<u8> {
-        let bytes = self.sig.to_der();
-
-        bytes.as_bytes().to_vec()
-    }
-
-    pub(crate) fn from_compact_impl(compact_bytes: Vec<u8>) -> Result<Signature> {
+    pub(crate) fn from_compact_impl(compact_bytes: Vec<u8>) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
         let i = match compact_bytes[0] - 27 {
@@ -103,14 +83,18 @@ impl Signature {
 
 #[wasm_bindgen]
 impl Signature {
-    #[wasm_bindgen(js_name = toDER)]
-    pub fn to_der_bytes(&self) -> Vec<u8> {
-        Signature::to_der_bytes_impl(&self)
-    }
-
     #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> String {
-        Signature::to_hex_impl(&self)
+        let bytes = self.sig.to_der();
+
+        hex::encode(bytes)
+    }
+
+    #[wasm_bindgen(js_name = toDER)]
+    pub fn to_der_bytes(&self) -> Vec<u8> {
+        let bytes = self.sig.to_der();
+
+        bytes.as_bytes().to_vec()
     }
 
     #[wasm_bindgen(js_name = toCompactBytes)]
@@ -183,21 +167,21 @@ impl Signature {
 #[cfg(not(target_arch = "wasm32"))]
 impl Signature {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_der(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
+    pub fn from_der(bytes: Vec<u8>, is_recoverable: bool) -> Result<Signature, BSVErrors> {
         Signature::from_der_impl(bytes, is_recoverable)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex_der(hex: String, is_recoverable: bool) -> Result<Signature, SignatureErrors> {
+    pub fn from_hex_der(hex: String, is_recoverable: bool) -> Result<Signature, BSVErrors> {
         Signature::from_hex_der_impl(hex, is_recoverable)
     }
 
-    pub fn from_compact_bytes(compact_bytes: Vec<u8>) -> Result<Signature> {
+    pub fn from_compact_bytes(compact_bytes: Vec<u8>) -> Result<Signature, BSVErrors> {
         Signature::from_compact_impl(compact_bytes)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey> {
+    pub fn recover_public_key(&self, message: Vec<u8>, hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         Signature::get_public_key(&self, &message, hash_algo)
     }
 }

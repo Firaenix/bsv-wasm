@@ -1,3 +1,4 @@
+use crate::BSVErrors;
 use std::io::Read;
 use std::io::{Cursor, Write};
 
@@ -9,18 +10,8 @@ use serde::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::throw_str;
 
-use anyhow::*;
 use byteorder::*;
 use thiserror::*;
-
-#[derive(Debug, Error)]
-pub enum TxOutErrors {
-    #[error("Error deserialising TxOut field {:?}: {}", field, error)]
-    Deserialise { field: Option<String>, error: anyhow::Error },
-
-    #[error("Error serialising TxOut field {:?}: {}", field, error)]
-    Serialise { field: Option<String>, error: anyhow::Error },
-}
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -31,56 +22,38 @@ pub struct TxOut {
 }
 
 impl TxOut {
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxOut, TxOutErrors> {
-        let txout_bytes = match hex::decode(&hex_str) {
-            Ok(v) => v,
-            Err(e) => return Err(TxOutErrors::Deserialise { field: None, error: anyhow!(e) }),
-        };
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxOut, BSVErrors> {
+        let txout_bytes = hex::decode(&hex_str)?;
 
         let mut cursor = Cursor::new(txout_bytes);
 
         TxOut::read_in(&mut cursor)
     }
 
-    pub fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxOut, TxOutErrors> {
+    pub fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxOut, BSVErrors> {
         // Satoshi Value - 8 bytes
         let satoshis = match cursor.read_u64::<LittleEndian>() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxOutErrors::Deserialise {
-                    field: Some("satoshis".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxOut("satoshis".to_string(), e)),
         };
 
         // Script Pub Key Size - 1-9 bytes
         let script_pub_key_size = match cursor.read_varint() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxOutErrors::Deserialise {
-                    field: Some("script_pub_key_size".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxOut("script_pub_key_size".to_string(), e)),
         };
 
         // Script Pub Key
         let mut script_pub_key = vec![0; script_pub_key_size as usize];
         match cursor.read(&mut script_pub_key) {
-            Err(e) => {
-                return Err(TxOutErrors::Deserialise {
-                    field: Some("script_pub_key".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxOut("script_pub_key".to_string(), e)),
             _ => (),
         };
 
         Ok(TxOut { value: satoshis, script_pub_key })
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> std::io::Result<Vec<u8>> {
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
         let mut buffer = Vec::new();
 
         // Satoshi Value - 8 bytes
@@ -96,15 +69,13 @@ impl TxOut {
         Ok(buffer)
     }
 
-    pub(crate) fn to_hex_impl(&self) -> Result<String> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         Ok(hex::encode(&self.to_bytes_impl()?))
     }
 
-    pub(crate) fn to_json_string_impl(&self) -> Result<String, TxOutErrors> {
-        match serde_json::to_string_pretty(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TxOutErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
+        let json = serde_json::to_string_pretty(self)?;
+        Ok(json)
     }
 }
 
@@ -187,28 +158,26 @@ impl TxOut {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl TxOut {
-    pub fn from_hex(hex_str: String) -> Result<TxOut, TxOutErrors> {
+    pub fn from_hex(hex_str: String) -> Result<TxOut, BSVErrors> {
         TxOut::from_hex_impl(hex_str)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        TxOut::to_bytes_impl(&self).map_err(|e| anyhow!(e))
+    pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
+        TxOut::to_bytes_impl(&self)
     }
 
-    pub fn to_hex(&self) -> Result<String> {
+    pub fn to_hex(&self) -> Result<String, BSVErrors> {
         TxOut::to_hex_impl(&self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json(&self) -> Result<serde_json::Value, TxOutErrors> {
-        match serde_json::to_value(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TxOutErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
+        let json = serde_json::to_value(self)?;
+        Ok(json)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json_string(&self) -> Result<String, TxOutErrors> {
+    pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         TxOut::to_json_string_impl(&self)
     }
 }

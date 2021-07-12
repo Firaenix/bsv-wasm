@@ -1,6 +1,5 @@
-use crate::{P2PKHAddress, Signature, SigningHash, ECDSA};
+use crate::{BSVErrors, P2PKHAddress, Signature, SigningHash, ECDSA};
 
-use anyhow::*;
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -23,17 +22,17 @@ impl PublicKey {
         }
     }
 
-    pub(crate) fn to_hex_impl(&self) -> Result<String> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         let bytes = self.to_bytes_impl()?;
         return Ok(hex::encode(bytes));
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>> {
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         Ok(point.as_bytes().to_vec())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PublicKey> {
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PublicKey, BSVErrors> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(bytes)?;
         Ok(PublicKey::from_encoded_point(&point))
     }
@@ -45,7 +44,7 @@ impl PublicKey {
         }
     }
 
-    pub(crate) fn to_decompressed_impl(&self) -> Result<PublicKey> {
+    pub(crate) fn to_decompressed_impl(&self) -> Result<PublicKey, BSVErrors> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         if let Some(decompressed_point) = point.decompress() {
             return Ok(PublicKey::from_encoded_point(&decompressed_point));
@@ -54,24 +53,24 @@ impl PublicKey {
         Ok(PublicKey::from_encoded_point(&point))
     }
 
-    pub(crate) fn to_compressed_impl(&self) -> Result<PublicKey> {
+    pub(crate) fn to_compressed_impl(&self) -> Result<PublicKey, BSVErrors> {
         let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
         Ok(PublicKey::from_encoded_point(&point.compress()))
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PublicKey> {
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PublicKey, BSVErrors> {
         let point_bytes = hex::decode(hex_str)?;
-        PublicKey::from_bytes_impl(&point_bytes)
+        Ok(PublicKey::from_bytes_impl(&point_bytes)?)
     }
 
     /**
      * Standard ECDSA Message Verification
      */
-    pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool> {
+    pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
         ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256)
     }
 
-    pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress> {
+    pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(self)
     }
 }
@@ -173,19 +172,19 @@ impl PublicKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PublicKey {
-    pub fn from_hex(hex_str: String) -> Result<PublicKey> {
+    pub fn from_hex(hex_str: String) -> Result<PublicKey, BSVErrors> {
         PublicKey::from_hex_impl(hex_str)
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey, BSVErrors> {
         PublicKey::from_bytes_impl(bytes)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         PublicKey::to_bytes_impl(&self)
     }
 
-    pub fn to_hex(&self) -> Result<String> {
+    pub fn to_hex(&self) -> Result<String, BSVErrors> {
         PublicKey::to_hex_impl(&self)
     }
 
@@ -193,19 +192,19 @@ impl PublicKey {
         PublicKey::from_private_key_impl(priv_key)
     }
 
-    pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool> {
+    pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
         self.verify_message_impl(message, signature)
     }
 
-    pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress> {
+    pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, BSVErrors> {
         self.to_p2pkh_address_impl()
     }
 
-    pub fn to_compressed(&self) -> Result<PublicKey> {
+    pub fn to_compressed(&self) -> Result<PublicKey, BSVErrors> {
         self.to_compressed_impl()
     }
 
-    pub fn to_decompressed(&self) -> Result<PublicKey> {
+    pub fn to_decompressed(&self) -> Result<PublicKey, BSVErrors> {
         self.to_decompressed_impl()
     }
 }

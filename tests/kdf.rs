@@ -2,14 +2,12 @@
 #[cfg(test)]
 mod kdf_tests {
     extern crate wasm_bindgen_test;
-    use std::str::from_utf8;
-
-    use anyhow::*;
     use bsv_wasm::{hash::Hash, KDF};
     use pbkdf2::{
         password_hash::{Ident, PasswordHasher, Salt, SaltString},
         Params, Pbkdf2,
     };
+    use std::str::from_utf8;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

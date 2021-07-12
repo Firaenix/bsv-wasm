@@ -1,3 +1,4 @@
+use crate::BSVErrors;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
@@ -9,18 +10,8 @@ use crate::{
 use serde::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
-use anyhow::*;
 use byteorder::*;
 use thiserror::*;
-
-#[derive(Debug, Error)]
-pub enum TxInErrors {
-    #[error("Error deserialising TxIn field {:?}: {}", field, error)]
-    Deserialise { field: Option<String>, error: anyhow::Error },
-
-    #[error("Error serialising TxIn field {:?}: {}", field, error)]
-    Serialise { field: Option<String>, error: anyhow::Error },
-}
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,33 +24,19 @@ pub struct TxIn {
 }
 
 impl TxIn {
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, TxInErrors> {
-        let txin_bytes = match hex::decode(&hex_str) {
-            Ok(v) => v,
-            Err(e) => return Err(TxInErrors::Deserialise { field: None, error: anyhow!(e) }),
-        };
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, BSVErrors> {
+        let txin_bytes = hex::decode(&hex_str)?;
 
         let mut cursor = Cursor::new(txin_bytes);
 
         TxIn::read_in(&mut cursor)
     }
 
-    pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, TxInErrors> {
+    pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
         // PrevTxId - 32 bytes
         let mut prev_tx_id = vec![0; 32];
         match cursor.read(&mut prev_tx_id) {
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("prev_tx_id".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            Ok(0) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("prev_tx_id".to_string()),
-                    error: anyhow!("Read zero bytes for Prev TX Id!"),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e)),
             Ok(_) => (),
         };
         // Error in the original bitcoin client means that all txids in TxIns are reversed
@@ -68,46 +45,26 @@ impl TxIn {
         // VOut - 4 bytes
         let vout = match cursor.read_u32::<LittleEndian>() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("vout".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("vout".to_string(), e)),
         };
 
         // Script Sig Size - VarInt
         let script_sig_size = match cursor.read_varint() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("script_sig_size".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig_size".to_string(), e)),
         };
 
         // Script Sig
         let mut script_sig = vec![0; script_sig_size as usize];
         match cursor.read(&mut script_sig) {
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("script_sig".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e)),
             _ => (),
         };
 
         // Sequence - 4 bytes
         let sequence = match cursor.read_u32::<LittleEndian>() {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Deserialise {
-                    field: Some("sequence".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("sequence".to_string(), e)),
         };
 
         Ok(TxIn {
@@ -118,7 +75,7 @@ impl TxIn {
         })
     }
 
-    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, TxInErrors> {
+    pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
         let mut buffer = vec![];
 
         // Bitcoin TX Hex serialises txids in reverse.
@@ -126,78 +83,45 @@ impl TxIn {
         prev_tx_id.reverse();
         // Write Prev TxID first
         match buffer.write(&prev_tx_id) {
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("prev_tx_id".to_string()),
-                    error: anyhow!(e),
-                })
-            }
-            Ok(0) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("prev_tx_id".to_string()),
-                    error: anyhow!("Wrote zero bytes for Prev TX Id!"),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e)),
             Ok(_) => (),
         };
 
         // Vout
         match buffer.write_u32::<LittleEndian>(self.vout) {
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("vout".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e)),
             _ => (),
         };
 
         // Script Sig Size
         match buffer.write_varint(self.get_script_sig_size()) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("script_sig_size".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig_size".to_string(), e)),
         };
 
         // Script Sig
         match buffer.write(&self.script_sig.0) {
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("script_sig".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e)),
             _ => (),
         };
 
         // Sequence
         match buffer.write_u32::<LittleEndian>(self.sequence) {
             Ok(v) => v,
-            Err(e) => {
-                return Err(TxInErrors::Serialise {
-                    field: Some("sequence".to_string()),
-                    error: anyhow!(e),
-                })
-            }
+            Err(e) => return Err(BSVErrors::SerialiseTxIn("sequence".to_string(), e)),
         };
 
         // Write out bytes
         Ok(buffer)
     }
 
-    pub(crate) fn to_hex_impl(&self) -> Result<String, TxInErrors> {
+    pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         Ok(hex::encode(&self.to_bytes_impl()?))
     }
 
-    pub(crate) fn to_json_string_impl(&self) -> Result<String, TxInErrors> {
-        match serde_json::to_string_pretty(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TxInErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
+        let json = serde_json::to_string_pretty(self)?;
+        Ok(json)
     }
 }
 
@@ -349,28 +273,26 @@ impl TxIn {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl TxIn {
-    pub fn from_hex(hex_str: String) -> Result<TxIn, TxInErrors> {
+    pub fn from_hex(hex_str: String) -> Result<TxIn, BSVErrors> {
         TxIn::from_hex_impl(hex_str)
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>, TxInErrors> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         TxIn::to_bytes_impl(&self)
     }
 
-    pub fn to_hex(&self) -> Result<String, TxInErrors> {
+    pub fn to_hex(&self) -> Result<String, BSVErrors> {
         TxIn::to_hex_impl(&self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json_string(&self) -> Result<String, TxInErrors> {
+    pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         TxIn::to_json_string_impl(&self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_json(&self) -> Result<serde_json::Value, TxInErrors> {
-        match serde_json::to_value(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(TxInErrors::Serialise { field: None, error: anyhow!(e) }),
-        }
+    pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
+        let json = serde_json::to_value(self)?;
+        Ok(json)
     }
 }

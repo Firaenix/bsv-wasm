@@ -1,5 +1,4 @@
-use crate::{hash::Hash, PBKDF2Errors, KDF};
-use anyhow::*;
+use crate::{hash::Hash, KDF};
 use hmac::Hmac;
 use pbkdf2::{
     password_hash::{Ident, PasswordHasher, Salt, SaltString},
