@@ -20,14 +20,14 @@ jobs:
           toolchain: nightly
           override: true
     - uses: Swatinem/rust-cache@v1
+      with:
+          cache-on-failure: true
+
     - uses: jetli/wasm-pack-action@v0.3.0
       with:
         # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
         version: 'latest'
-    - uses: actions-rs/toolchain@v1
-      with:
-          toolchain: nightly
-          override: true
+
     - name: Run tests
       run: cargo test --verbose -j 1
     - name: Run WASM tests
@@ -50,7 +50,10 @@ jobs:
         with:
             toolchain: nightly
             override: true
+
       - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
 
       - run: make build-nodejs
       - name: Use Node.js ${{ matrix.node-version }}
