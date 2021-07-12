@@ -12,7 +12,6 @@ pub use sha256r_digest::*;
 
 use crate::utils::{from_hex, to_hex};
 use crate::ToHex;
-use anyhow::*;
 use digest::Digest;
 use hmac::crypto_mac::Key;
 use hmac::digest::{BlockInput, FixedOutput, Reset, Update};

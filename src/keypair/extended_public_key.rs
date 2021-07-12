@@ -5,7 +5,6 @@ use crate::{HARDENED_KEY_OFFSET, XPUB_VERSION_BYTE};
 use std::io::{Cursor, Read, Write};
 
 use crate::{hash::Hash, BSVErrors, ExtendedPrivateKey, PublicKey};
-use anyhow::*;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -35,7 +34,7 @@ impl ExtendedPublicKey {
         }
     }
 
-    pub fn to_string_impl(&self) -> Result<String> {
+    pub fn to_string_impl(&self) -> Result<String, BSVErrors> {
         let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
         cursor
@@ -45,10 +44,7 @@ impl ExtendedPublicKey {
             .and_then(|_| cursor.write_u32::<BigEndian>(self.index))
             .and_then(|_| cursor.write(&self.chain_code))?;
 
-        let pub_key_bytes = match self.public_key.to_bytes_impl() {
-            Ok(v) => v,
-            Err(e) => return Err(anyhow!(e)),
-        };
+        let pub_key_bytes = self.public_key.to_bytes_impl()?;
         cursor.write(&pub_key_bytes)?;
 
         let mut serialised = Vec::new();
@@ -65,7 +61,7 @@ impl ExtendedPublicKey {
         Ok(bs58::encode(serialised).into_string())
     }
 
-    pub fn from_string_impl(xpub_string: &str) -> Result<Self> {
+    pub fn from_string_impl(xpub_string: &str) -> Result<Self, BSVErrors> {
         let mut cursor = Cursor::new(bs58::decode(xpub_string).into_vec()?);
 
         // Skip the first 4 bytes "xprv"
@@ -81,10 +77,7 @@ impl ExtendedPublicKey {
 
         let mut pub_key_bytes = vec![0; 33];
         cursor.read_exact(&mut pub_key_bytes)?;
-        let public_key = match PublicKey::from_bytes_impl(&pub_key_bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(anyhow!(e)),
-        };
+        let public_key = PublicKey::from_bytes_impl(&pub_key_bytes)?;
 
         let mut checksum = vec![0; 4];
         cursor.read_exact(&mut checksum)?;
@@ -313,10 +306,10 @@ impl ExtendedPublicKey {
     pub fn from_random() -> Result<ExtendedPublicKey, BSVErrors> {
         Self::from_random_impl()
     }
-    pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey> {
+    pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::from_string_impl(xpub_string)
     }
-    pub fn to_string(&self) -> Result<String> {
+    pub fn to_string(&self) -> Result<String, BSVErrors> {
         Self::to_string_impl(&self)
     }
 }

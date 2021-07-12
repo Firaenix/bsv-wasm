@@ -5,7 +5,6 @@ use crate::PrivateKey;
 use crate::Signature;
 use crate::ECDSA;
 use crate::{reverse_digest::ReversibleDigest, Sha256r, SigningHash};
-use anyhow::*;
 use digest::{consts::U32, BlockInput, Digest, FixedOutput, Reset, Update};
 use ecdsa::{
     hazmat::{FromDigest, RecoverableSignPrimitive},

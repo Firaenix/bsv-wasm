@@ -1,7 +1,6 @@
 use crate::BSVErrors;
 use crate::Signature;
 use crate::{get_hash_digest, PublicKey, SigningHash, ECDSA};
-use anyhow::*;
 use ecdsa::signature::DigestVerifier;
 use k256::{ecdsa::VerifyingKey, EncodedPoint};
 use wasm_bindgen::prelude::*;

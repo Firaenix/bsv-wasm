@@ -1,14 +1,12 @@
 use crate::{BSVErrors, HARDENED_KEY_OFFSET, KDF, XPRIV_VERSION_BYTE};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use getrandom::*;
 use k256::{Scalar, SecretKey};
 use std::{
     io::{Cursor, Read, Write},
     ops::Add,
     vec,
 };
-
-use anyhow::*;
-use getrandom::*;
 
 use wasm_bindgen::{prelude::*, throw_str};
 
@@ -41,7 +39,7 @@ impl ExtendedPrivateKey {
         }
     }
 
-    pub fn to_string_impl(&self) -> Result<String> {
+    pub fn to_string_impl(&self) -> Result<String, BSVErrors> {
         let mut buffer: Vec<u8> = vec![];
 
         buffer
@@ -70,7 +68,7 @@ impl ExtendedPrivateKey {
         Self::from_seed_impl(seed_bytes)
     }
 
-    pub fn from_string_impl(xprv_string: &str) -> Result<Self> {
+    pub fn from_string_impl(xprv_string: &str) -> Result<Self, BSVErrors> {
         let mut cursor = Cursor::new(bs58::decode(xprv_string).into_vec()?);
 
         // Skip the first 4 bytes "xprv"
@@ -89,10 +87,7 @@ impl ExtendedPrivateKey {
 
         let mut private_key_bytes = vec![0; 32];
         cursor.read_exact(&mut private_key_bytes)?;
-        let private_key = match PrivateKey::from_bytes_impl(&private_key_bytes) {
-            Ok(v) => v,
-            Err(e) => return Err(anyhow!(e)),
-        };
+        let private_key = PrivateKey::from_bytes_impl(&private_key_bytes)?;
         let public_key = PublicKey::from_private_key_impl(&private_key);
 
         let mut checksum = vec![0; 4];
@@ -361,11 +356,11 @@ impl ExtendedPrivateKey {
         Self::from_random_impl()
     }
 
-    pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey> {
+    pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey, BSVErrors> {
         Self::from_string_impl(xprv_string)
     }
 
-    pub fn to_string(&self) -> Result<String> {
+    pub fn to_string(&self) -> Result<String, BSVErrors> {
         Self::to_string_impl(&self)
     }
 

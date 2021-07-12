@@ -1,6 +1,5 @@
-use crate::{BSVErrors, P2PKHAddress, PublicKeyErrors, Signature, SigningHash, ECDSA};
+use crate::{BSVErrors, P2PKHAddress, Signature, SigningHash, ECDSA};
 
-use anyhow::*;
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
 use wasm_bindgen::{prelude::*, throw_str};

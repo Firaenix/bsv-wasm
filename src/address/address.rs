@@ -1,6 +1,5 @@
 use crate::{BSVErrors, Hash, Script, BSM};
 use crate::{PrivateKey, PublicKey, Signature};
-use anyhow::*;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::{prelude::*, throw_str};
 

@@ -1,9 +1,6 @@
 pub mod pbkdf2_kdf;
 pub use pbkdf2_kdf::*;
 
-pub mod pbkdf2_errors;
-pub use pbkdf2_errors::*;
-
 use crate::utils::{from_hex, to_hex};
 use crate::Hash;
 use serde::*;

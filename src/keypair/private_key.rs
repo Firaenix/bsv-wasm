@@ -1,10 +1,8 @@
 use crate::get_hash_digest;
 use crate::BSVErrors;
-use crate::PrivateKeyErrors;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
 use crate::{Signature, ToHex};
-use anyhow::*;
 use k256::ecdsa::digest::Digest;
 use k256::ecdsa::recoverable;
 use k256::{EncodedPoint, SecretKey};
@@ -30,7 +28,7 @@ impl PrivateKey {
         ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
-    pub(crate) fn to_wif_impl(&self) -> Result<String, PrivateKeyErrors> {
+    pub(crate) fn to_wif_impl(&self) -> Result<String, BSVErrors> {
         // 1. Get Private Key hex
         let priv_key_hex = self.to_hex();
 
@@ -42,15 +40,7 @@ impl PrivateKey {
         };
 
         // 3. SHA256d
-        let bytes = match hex::decode(padded_hex.clone()) {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(PrivateKeyErrors::ToWIF {
-                    message: format!("Unable to decode padded hex"),
-                    error: anyhow!(e),
-                })
-            }
-        };
+        let bytes = hex::decode(padded_hex.clone())?;
 
         let shad_hex = Hash::sha_256d(&bytes).to_bytes();
 
@@ -75,13 +65,13 @@ impl PrivateKey {
         })
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey> {
+    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey, BSVErrors> {
         let bytes = hex::decode(hex_str)?;
 
         Ok(Self::from_bytes_impl(&bytes)?)
     }
 
-    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey> {
+    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey, BSVErrors> {
         // 1. Decode from Base58
         let wif_bytes = bs58::decode(wif_string.clone()).into_vec()?;
         let wif_without_checksum = wif_bytes[0..wif_bytes.len() - 4].to_vec();
@@ -92,7 +82,7 @@ impl PrivateKey {
         let check_string = check_hash.to_vec()[0..4].to_hex();
 
         if check_string.ne(&checksum) {
-            return Err(anyhow!("Checksum does not match! Invalid WIF"));
+            return Err(BSVErrors::FromWIF(format!("Checksum does not match!")));
         }
 
         // Private Key is 32 bytes + prefix is 33 bytes, if 34 bytes and ends with 01, compressed is true
@@ -232,15 +222,15 @@ impl PrivateKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
-    pub fn to_wif(&self) -> Result<String, PrivateKeyErrors> {
+    pub fn to_wif(&self) -> Result<String, BSVErrors> {
         PrivateKey::to_wif_impl(&self)
     }
 
-    pub fn from_wif(wif_string: String) -> Result<PrivateKey> {
+    pub fn from_wif(wif_string: String) -> Result<PrivateKey, BSVErrors> {
         PrivateKey::from_wif_impl(wif_string)
     }
 
-    pub fn from_hex(hex_str: String) -> Result<PrivateKey> {
+    pub fn from_hex(hex_str: String) -> Result<PrivateKey, BSVErrors> {
         PrivateKey::from_hex_impl(hex_str)
     }
 

@@ -8,7 +8,6 @@ use crate::{
     utils::{from_hex, to_hex},
     BSVErrors,
 };
-use anyhow::*;
 use byteorder::{LittleEndian, ReadBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::*;

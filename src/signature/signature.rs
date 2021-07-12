@@ -1,5 +1,4 @@
-use crate::{get_hash_digest, BSVErrors, PublicKey, PublicKeyErrors, Sha256r, SigningHash, ECDSA};
-use anyhow::*;
+use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigningHash, ECDSA};
 use digest::Digest;
 use ecdsa::signature::{DigestVerifier, Signature as SigTrait};
 use elliptic_curve::sec1::*;

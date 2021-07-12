@@ -1,8 +1,8 @@
+use crate::BSVErrors;
 use aes::{
     cipher::{NewCipher, StreamCipher, StreamCipherSeek},
     Aes128, Aes128Ctr, Aes256, Aes256Ctr,
 };
-use anyhow::*;
 use block_modes::{block_padding::Pkcs7, BlockMode, Cbc};
 use wasm_bindgen::{prelude::*, throw_str};
 
@@ -20,7 +20,7 @@ pub enum AESAlgorithms {
 }
 
 impl AES {
-    pub fn encrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
+    pub fn encrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         let result = match algo {
             AESAlgorithms::AES128_CBC => Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
             AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
@@ -31,7 +31,7 @@ impl AES {
         Ok(result)
     }
 
-    pub fn decrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
+    pub fn decrypt_impl(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         let result = match algo {
             AESAlgorithms::AES128_CBC => Cbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(message)?,
             AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(message)?,
@@ -73,11 +73,11 @@ impl AES {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl AES {
-    pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
+    pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         AES::encrypt_impl(key, iv, message, algo)
     }
 
-    pub fn decrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>> {
+    pub fn decrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         AES::decrypt_impl(key, iv, message, algo)
     }
 }

@@ -3,7 +3,6 @@ use crate::Hash;
 use std::io::Write;
 
 use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, VarInt, ECDSA};
-use anyhow::*;
 use thiserror::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{throw_str, JsValue};

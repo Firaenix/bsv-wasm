@@ -2,7 +2,6 @@
 #[cfg(test)]
 mod tests {
     extern crate wasm_bindgen_test;
-    use anyhow::*;
     use bsv_wasm::hash::Hash;
     use pbkdf2::{
         password_hash::{Ident, PasswordHasher, Salt, SaltString},
