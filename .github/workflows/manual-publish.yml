@@ -78,7 +78,7 @@ jobs:
       with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-    - run: sed -i "s/version = "0.0.0"/version = "${{ github.event.inputs.version }}"/" ./Cargo.toml
+    - run: sed -i "s/version = \"0.0.0\"/version = \"${{ github.event.inputs.version }}\"/" ./Cargo.toml
 
     - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
