@@ -4,7 +4,7 @@ use k256::{ProjectivePoint, PublicKey as K256PublicKey, Scalar, SecretKey};
 use crate::{HARDENED_KEY_OFFSET, XPUB_VERSION_BYTE};
 use std::io::{Cursor, Read, Write};
 
-use crate::{hash::Hash, ExtendedPrivateKey, ExtendedPublicKeyErrors, PublicKey};
+use crate::{hash::Hash, BSVErrors, ExtendedPrivateKey, PublicKey};
 use anyhow::*;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
@@ -98,22 +98,22 @@ impl ExtendedPublicKey {
         })
     }
 
-    pub fn from_random_impl() -> Result<Self, ExtendedPublicKeyErrors> {
+    pub fn from_random_impl() -> Result<Self, BSVErrors> {
         let mut seed = vec![0; 64];
         getrandom(&mut seed)?;
 
         Self::from_seed_impl(seed)
     }
 
-    pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, ExtendedPublicKeyErrors> {
+    pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, BSVErrors> {
         let xpriv = ExtendedPrivateKey::from_seed_impl(seed)?;
 
         Ok(Self::from_xpriv(&xpriv))
     }
 
-    pub fn derive_impl(&self, index: u32) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive_impl(&self, index: u32) -> Result<ExtendedPublicKey, BSVErrors> {
         if index >= HARDENED_KEY_OFFSET {
-            return Err(ExtendedPublicKeyErrors::DerivationError(format!(
+            return Err(BSVErrors::DerivationError(format!(
                 "Cannot generate a hardened xpub, choose an index between 0 and {}.",
                 HARDENED_KEY_OFFSET - 1
             )));
@@ -135,11 +135,11 @@ impl ExtendedPublicKey {
         // let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
         let child_public_key_bytes = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for private key"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for private key"))),
         };
         let child_chain_code = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(ExtendedPublicKeyErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for chain code"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for chain code"))),
         };
 
         let parent_pub_key_bytes = self.public_key.to_bytes_impl()?;
@@ -161,16 +161,16 @@ impl ExtendedPublicKey {
         })
     }
 
-    pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPublicKey, BSVErrors> {
         if path.to_ascii_lowercase().starts_with('m') == false {
-            return Err(ExtendedPublicKeyErrors::DerivationError(format!("Path did not begin with 'm'")));
+            return Err(BSVErrors::DerivationError(format!("Path did not begin with 'm'")));
         }
 
         let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
-        let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, ExtendedPublicKeyErrors>>()?;
+        let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, BSVErrors>>()?;
 
         if child_indices.len() <= 0 {
-            return Err(ExtendedPublicKeyErrors::DerivationError(format!(
+            return Err(BSVErrors::DerivationError(format!(
                 "No path was provided. Please provide a string of the form m/0. Given path: {}",
                 path
             )));
@@ -184,18 +184,18 @@ impl ExtendedPublicKey {
         return Ok(xpriv);
     }
 
-    fn parse_str_to_idx(x: &str) -> Result<u32, ExtendedPublicKeyErrors> {
+    fn parse_str_to_idx(x: &str) -> Result<u32, BSVErrors> {
         let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
         let index_str = x.trim_end_matches("'").trim_end_matches("h").trim_end_matches("H");
 
         let index = match u32::from_str_radix(index_str, 10) {
             Ok(v) => v,
             // TODO: Make this error handling nicer
-            Err(e) => return Err(ExtendedPublicKeyErrors::DerivationError(e.to_string())),
+            Err(e) => return Err(BSVErrors::DerivationError(e.to_string())),
         };
 
         if index >= HARDENED_KEY_OFFSET {
-            return Err(ExtendedPublicKeyErrors::DerivationError(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET - 1)));
+            return Err(BSVErrors::DerivationError(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET - 1)));
         }
 
         Ok(match is_hardened {
@@ -298,19 +298,19 @@ impl ExtendedPublicKey {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl ExtendedPublicKey {
-    pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::derive_impl(&self, index)
     }
 
-    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::derive_from_path_impl(&self, path)
     }
 
-    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::from_seed_impl(seed)
     }
 
-    pub fn from_random() -> Result<ExtendedPublicKey, ExtendedPublicKeyErrors> {
+    pub fn from_random() -> Result<ExtendedPublicKey, BSVErrors> {
         Self::from_random_impl()
     }
     pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey> {

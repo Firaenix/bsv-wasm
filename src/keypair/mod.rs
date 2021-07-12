@@ -1,16 +1,12 @@
 mod extended_private_key;
-mod extended_private_key_errors;
 mod extended_public_key;
-mod extended_public_key_errors;
 mod private_key;
 mod private_key_errors;
 mod public_key;
 mod public_key_errors;
 
 pub use extended_private_key::*;
-pub use extended_private_key_errors::*;
 pub use extended_public_key::*;
-pub use extended_public_key_errors::*;
 pub use private_key::*;
 pub use private_key_errors::*;
 pub use public_key::*;

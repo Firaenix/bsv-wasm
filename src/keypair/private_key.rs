@@ -1,5 +1,5 @@
 use crate::get_hash_digest;
-use crate::ECDSAErrors;
+use crate::BSVErrors;
 use crate::PrivateKeyErrors;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
@@ -26,7 +26,7 @@ impl PrivateKey {
     /**
      * Standard ECDSA Message Signing
      */
-    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, ECDSAErrors> {
+    pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
         ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
     }
 
@@ -66,7 +66,7 @@ impl PrivateKey {
         Ok(bs58::encode(extended_key_bytes).into_string())
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey> {
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey, BSVErrors> {
         let secret_key = SecretKey::from_bytes(bytes)?;
 
         Ok(PrivateKey {
@@ -117,7 +117,7 @@ impl PrivateKey {
         Ok(PrivateKey::from_hex_impl(private_key_hex.into())?.compress_public_key(is_compressed_pub_key))
     }
 
-    pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey> {
+    pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
         let pub_key = PublicKey::from_private_key_impl(&self);
 
         if !self.is_pub_key_compressed {
@@ -247,15 +247,15 @@ impl PrivateKey {
     /**
      * Standard ECDSA Message Signing using SHA256 as the digestg
      */
-    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, ECDSAErrors> {
+    pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
         PrivateKey::sign_message_impl(&self, msg)
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, BSVErrors> {
         Self::from_bytes_impl(bytes)
     }
 
-    pub fn get_public_key(&self) -> Result<PublicKey> {
+    pub fn get_public_key(&self) -> Result<PublicKey, BSVErrors> {
         self.get_public_key_impl()
     }
 }

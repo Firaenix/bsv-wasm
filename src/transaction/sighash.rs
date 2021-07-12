@@ -355,7 +355,7 @@ impl SighashSignature {
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>> {
-        let mut sig_bytes = self.signature.to_der_bytes_impl();
+        let mut sig_bytes = self.signature.to_der_bytes();
         let sighash_u8 = self.sighash_type.to_u8().ok_or(anyhow!(format!("Cannot convert SigHash {:?} into u8", self.sighash_type)))?;
 
         sig_bytes.push(sighash_u8);

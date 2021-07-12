@@ -1,4 +1,4 @@
-use crate::ECDSAErrors;
+use crate::BSVErrors;
 use hex::FromHexError;
 use thiserror::*;
 
@@ -11,8 +11,8 @@ pub enum PublicKeyErrors {
   },
 
   #[error("{}", source)]
-  ECDSA {
+  BSVErrors {
     #[from]
-    source: ECDSAErrors,
+    source: BSVErrors,
   },
 }
