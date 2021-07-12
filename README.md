@@ -15,6 +15,18 @@ Webpack:
 Rust:  
 https://crates.io/crates/bsv-wasm
 
+
+## Usage
+### Note: Rust and JS/TS method names and structs are the same
+
+- Derive private key from XPriv and log out P2PKH String
+`ExtendedPrivateKey.fromWIF('LMyWif...').getPrivateKey().getPublicKey().toAddress().toString()`
+
+
+## Caveats
+- Bitcoin Signed Message (BSM) struct does not implement any base64 string parsing, please pass the raw Signature type or call `fromCompactBytes` on the Signature struct and pass it to the BSM.verify function.
+
+
 ## Features
 - Hash (SHA256, SHA256d, SHA1, RIPEMD160, Hash160, SHA512)
 - KDF (PBKDF2)
