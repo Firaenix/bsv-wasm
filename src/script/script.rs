@@ -78,7 +78,7 @@ impl Script {
     fn get_pushdata(cursor: &mut Cursor<Vec<u8>>, size: usize) -> Result<String, BSVErrors> {
         let mut data_buf = vec![0; size];
         match cursor.read(&mut data_buf) {
-            _ => Ok(hex::encode(data_buf)),
+            Ok(_) => Ok(hex::encode(data_buf)),
             Err(e) => Err(BSVErrors::SerialiseScript(format!("Read {} OP_PUSHDATA bytes", size), Some(e))),
         }
     }

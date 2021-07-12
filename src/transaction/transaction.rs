@@ -52,10 +52,9 @@ impl Transaction {
             Err(e) => return Err(BSVErrors::DeserialiseTransaction("n_inputs".to_string(), e)),
         };
 
-        let mut inputs: Vec<TxIn> = Vec::with_capacity(n_inputs as usize);
-
+        let mut inputs: Vec<TxIn> = Vec::new();
         // List of Inputs
-        for i in 0..n_inputs {
+        for _ in 0..n_inputs {
             let tx_in = TxIn::read_in(&mut cursor)?;
             inputs.push(tx_in);
         }
@@ -67,8 +66,8 @@ impl Transaction {
         };
 
         // List of  Outputs
-        let mut outputs: Vec<TxOut> = Vec::with_capacity(n_outputs as usize);
-        for i in 0..n_outputs {
+        let mut outputs: Vec<TxOut> = Vec::new();
+        for _ in 0..n_outputs {
             let tx_out = TxOut::read_in(&mut cursor)?;
             outputs.push(tx_out);
         }
