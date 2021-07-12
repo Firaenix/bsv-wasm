@@ -85,7 +85,7 @@ impl PrivateKey {
         let check_string = check_hash.to_vec()[0..4].to_hex();
 
         if check_string.ne(&checksum) {
-            throw_str("Checksum does not match! Invalid WIF");
+            return Err(anyhow!("Checksum does not match! Invalid WIF"));
         }
 
         // Private Key is 32 bytes + prefix is 33 bytes, if 34 bytes and ends with 01, compressed is true
