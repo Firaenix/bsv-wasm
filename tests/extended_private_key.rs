@@ -48,12 +48,12 @@ mod xpriv_tests {
         // m/0/0
         let derived_key = key.derive(0).unwrap().derive(0).unwrap();
 
-        assert_eq!(derived_key.get_private_key().to_wif(true).unwrap(), "L5LxK8WV9wNDemaYBtpEURWi3sHmGsEHpSGmSfahQrreTYKukp9W");
+        assert_eq!(derived_key.get_private_key().to_wif().unwrap(), "L5LxK8WV9wNDemaYBtpEURWi3sHmGsEHpSGmSfahQrreTYKukp9W");
         assert_eq!(derived_key.get_public_key().to_hex().unwrap(), "02756de182c5dd4b717ea87e693006da62dbb3cddaa4a5cad2ed1f5bbab755f0f5");
 
         // m/0/0/12
         let second_derived = derived_key.derive(12).unwrap();
-        assert_eq!(second_derived.get_private_key().to_wif(true).unwrap(), "KwX8mbobXJQ89SzPXHJ8fLGZ7ya6GyqAMLEZ8Cs2QWSm6GSAvQVg");
+        assert_eq!(second_derived.get_private_key().to_wif().unwrap(), "KwX8mbobXJQ89SzPXHJ8fLGZ7ya6GyqAMLEZ8Cs2QWSm6GSAvQVg");
         assert_eq!(second_derived.get_public_key().to_hex().unwrap(), "02c815eb6b999ae9ac4edba5ca1b9a57723b4fa749afe3d3994462f0c4f2efc7dd");
     }
 
@@ -99,7 +99,7 @@ mod xpriv_tests {
 
         // m/0'
         let derived_key = key.derive_from_path("m/0'/12'").unwrap();
-        assert_eq!(derived_key.get_private_key().to_wif(true).unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
+        assert_eq!(derived_key.get_private_key().to_wif().unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
         assert_eq!(derived_key.get_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
     }
 

@@ -11,14 +11,14 @@ use wasm_bindgen::throw_str;
 
 use anyhow::*;
 use byteorder::*;
-use snafu::*;
+use thiserror::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum TxOutErrors {
-    #[snafu(display("Error deserialising TxOut field {:?}: {}", field, error))]
+    #[error("Error deserialising TxOut field {:?}: {}", field, error)]
     Deserialise { field: Option<String>, error: anyhow::Error },
 
-    #[snafu(display("Error serialising TxOut field {:?}: {}", field, error))]
+    #[error("Error serialising TxOut field {:?}: {}", field, error)]
     Serialise { field: Option<String>, error: anyhow::Error },
 }
 

@@ -1,20 +1,17 @@
-use crate::PrivateKeyErrors;
-use crate::PublicKeyErrors;
-use snafu::*;
+use anyhow::*;
+use thiserror::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, Error)]
 pub enum ExtendedPrivateKeyErrors {
-    #[snafu(display("Could not generate randomness: {}", error))]
+    #[error("Could not generate randomness: {}", error)]
     RandomnessGenerationError { error: anyhow::Error },
-    #[snafu(display("Could not calculate private key bytes from seed: {}", error))]
+    #[error("Could not calculate private key bytes from seed: {}", error)]
     InvalidSeedHmacError { error: anyhow::Error },
-    #[snafu(display("Could not calculate private key: {}", error))]
-    InvalidPrivateKeyError { error: PrivateKeyErrors },
-    #[snafu(display("Could not calculate public key: {}", error))]
-    InvalidPublicKeyError { error: PublicKeyErrors },
-    #[snafu(display("Could not serialise xpriv: {}", error))]
+    #[error("Could not calculate public key: {}", error)]
+    InvalidPublicKeyError { error: anyhow::Error },
+    #[error("Could not serialise xpriv: {}", error)]
     SerialisationError { error: anyhow::Error },
 
-    #[snafu(display("Could not derive xpriv: {}", error))]
+    #[error("Could not derive xpriv: {}", error)]
     DerivationError { error: anyhow::Error },
 }

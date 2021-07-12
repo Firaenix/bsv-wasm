@@ -1,9 +1,9 @@
 use byteorder::LittleEndian;
 use byteorder::ReadBytesExt;
 use byteorder::WriteBytesExt;
-use snafu::*;
 use std::io::Cursor;
 use std::io::Result;
+use thiserror::*;
 
 pub trait VarInt {
     fn read_varint(&mut self) -> Result<u64>;

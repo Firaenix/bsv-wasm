@@ -1,5 +1,5 @@
-use crate::{AddressErrors, Hash};
-use crate::{PublicKey, Script, ScriptErrors};
+use crate::{Hash, Script, ScriptErrors, BSM};
+use crate::{PrivateKey, PublicKey, Signature};
 use anyhow::*;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -11,27 +11,18 @@ pub struct P2PKHAddress {
 }
 
 impl P2PKHAddress {
-    fn from_pubkey_hash_impl(hash_bytes: Vec<u8>) -> P2PKHAddress {
+    pub(crate) fn from_pubkey_hash_impl(hash_bytes: Vec<u8>) -> P2PKHAddress {
         P2PKHAddress { pubkey_hash: hash_bytes }
     }
 
-    fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, AddressErrors> {
-        let pub_key_hex = match pub_key.to_hex_impl() {
-            Ok(v) => v,
-            Err(e) => return Err(AddressErrors::PublicKeyError { error: e }),
-        };
-
-        let pub_key_bytes = match hex::decode(&pub_key_hex) {
-            Ok(v) => v,
-            Err(e) => return Err(AddressErrors::ParseHex { hex: pub_key_hex, error: e }),
-        };
-
+    pub(crate) fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress> {
+        let pub_key_bytes = pub_key.to_bytes_impl()?;
         let pub_key_hash = Hash::hash_160(&pub_key_bytes);
 
         Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_bytes()))
     }
 
-    fn to_address_string_impl(&self) -> Result<String, AddressErrors> {
+    pub(crate) fn to_address_string_impl(&self) -> Result<String> {
         let mut pub_key_hash_bytes = self.pubkey_hash.clone();
 
         let mut address_bytes: Vec<u8> = vec![00];
@@ -47,18 +38,9 @@ impl P2PKHAddress {
         Ok(address.into_string())
     }
 
-    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
+    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress> {
         let decoded = bs58::decode(address_string.clone());
-
-        let address_bytes = match decoded.into_vec() {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(AddressErrors::Base58Decode {
-                    error: anyhow!(e),
-                    string: address_string,
-                })
-            }
-        };
+        let address_bytes = decoded.into_vec()?;
 
         // Remove 0x00 from the front and the 4 byte checksum off the end
         let pub_key_hash = address_bytes[1..address_bytes.len() - 4].to_vec();
@@ -66,8 +48,30 @@ impl P2PKHAddress {
         Ok(P2PKHAddress { pubkey_hash: pub_key_hash })
     }
 
-    pub(crate) fn to_tx_out_script_impl(&self) -> Result<Script, ScriptErrors> {
+    /**
+     * Produces the locking script for a P2PKH address.
+     * Should be inserted into a new TxOut.
+     */
+    pub(crate) fn to_locking_script_impl(&self) -> Result<Script, ScriptErrors> {
         Script::from_asm_string_impl(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
+    }
+
+    /**
+     * Produces the unlocking script for a P2PKH address.
+     * Should be inserted into a TxIn.
+     */
+    pub(crate) fn to_unlocking_script_impl(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script> {
+        // Make sure the given Public Key matches this address.
+        let verifying_address = P2PKHAddress::from_pubkey_impl(pub_key)?;
+
+        if verifying_address != *self {
+            return Err(anyhow!("Given public key does not correspond to this address"));
+        }
+
+        let pub_key_hex = pub_key.to_hex_impl()?;
+        let script = Script::from_asm_string_impl(format!("{} {}", sig.to_hex_impl(), pub_key_hex))?;
+
+        Ok(script)
     }
 }
 
@@ -84,6 +88,19 @@ impl P2PKHAddress {
     #[wasm_bindgen(js_name = toPubKeyHashHex)]
     pub fn to_pubkey_hash_hex(&self) -> String {
         hex::encode(self.pubkey_hash.clone())
+    }
+
+    /**
+     * Check if message is signed by this Address.
+     *
+     * Returns a boolean
+     */
+    #[wasm_bindgen(js_name = isValidBitcoinMessage)]
+    pub fn is_valid_bitcoin_message(&self, message: &[u8], signature: &Signature) -> bool {
+        match BSM::verify_message_impl(message, signature, self) {
+            Ok(_) => true,
+            Err(_) => false,
+        }
     }
 }
 
@@ -120,9 +137,30 @@ impl P2PKHAddress {
         }
     }
 
-    #[wasm_bindgen(js_name = toTxOutScript)]
-    pub fn to_tx_out_script(&self) -> Result<Script, JsValue> {
-        match self.to_tx_out_script_impl() {
+    #[wasm_bindgen(js_name = toLockingScript)]
+    pub fn get_locking_script(&self) -> Result<Script, JsValue> {
+        match self.to_locking_script_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[wasm_bindgen(js_name = toUnlockingScript)]
+    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script, JsValue> {
+        match self.to_unlocking_script_impl(pub_key, sig) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Verify if message is signed by this Address.
+     *
+     * Throws an error if invalid.
+     */
+    #[wasm_bindgen(js_name = verifyBitcoinMessage)]
+    pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, JsValue> {
+        match BSM::verify_message_impl(message, signature, self) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -139,19 +177,32 @@ impl P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, AddressErrors> {
+    pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn to_address_string(&self) -> Result<String, AddressErrors> {
+    pub fn to_address_string(&self) -> Result<String> {
         P2PKHAddress::to_address_string_impl(&self)
     }
 
-    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, AddressErrors> {
+    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress> {
         P2PKHAddress::from_p2pkh_string_impl(address_string)
     }
 
-    pub fn to_tx_out_script(&self) -> Result<Script, ScriptErrors> {
-        self.to_tx_out_script_impl()
+    pub fn get_locking_script(&self) -> Result<Script, ScriptErrors> {
+        self.to_locking_script_impl()
+    }
+
+    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script> {
+        self.to_unlocking_script_impl(pub_key, sig)
+    }
+
+    /**
+     * Verify if message is signed by this Address.
+     *
+     * Returns a Result
+     */
+    pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool> {
+        BSM::verify_message_impl(message, signature, self)
     }
 }

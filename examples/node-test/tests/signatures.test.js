@@ -15,7 +15,7 @@ describe("Signature Tests", function() {
       assert.equal("3044022032c4ac1fe69db038e55e5848ddf99865167a4f5172d5acf910c7ac5d66729cb8022049821966a892afc494777f6445d4757e5662b60d9acb1b2c810a5001892774ac", signature.toHex());
 
       let wasmPrivKey = PrivateKey.fromWIF(wif);
-      let wasmSignature = wasmPrivKey.sign(signatureMessage)
+      let wasmSignature = wasmPrivKey.signMessage(signatureMessage)
 
       assert.equal("3044022032c4ac1fe69db038e55e5848ddf99865167a4f5172d5acf910c7ac5d66729cb8022049821966a892afc494777f6445d4757e5662b60d9acb1b2c810a5001892774ac", wasmSignature.toHex())
 
@@ -35,7 +35,7 @@ describe("Signature Tests", function() {
       assert.equal(signature.toHex(), "30440220210e4c7968daf9e023e0d813419a8f1be9fd49bd98446205a26a97b5b7b216cd02201d8fea7429c0b94238d94dc910e21c4f6a749bdc28057ba9f7462f214f425e68", "1.");
 
       let wasmPrivKey = PrivateKey.fromWIF(wif);
-      let wasmSignature = wasmPrivKey.sign(WASMHash.sha256(signatureMessage).toBytes())
+      let wasmSignature = wasmPrivKey.signMessage(WASMHash.sha256(signatureMessage).toBytes())
 
       assert.equal(wasmSignature.toHex(), "30440220210e4c7968daf9e023e0d813419a8f1be9fd49bd98446205a26a97b5b7b216cd02201d8fea7429c0b94238d94dc910e21c4f6a749bdc28057ba9f7462f214f425e68", "2.")
 

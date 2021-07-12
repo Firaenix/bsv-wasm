@@ -1,3 +1,4 @@
+use crate::ECDSA;
 use std::convert::TryFrom;
 use std::io::{Cursor, Write};
 
@@ -108,10 +109,7 @@ impl Transaction {
      */
     pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
-        let signature = match priv_key.sign_with_k_impl(&buffer, crate::SigningHash::Sha256d, true) {
-            Ok(v) => v,
-            Err(e) => return Err(anyhow!(e)),
-        };
+        let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, true)?;
 
         Ok(SighashSignature {
             signature,
@@ -306,7 +304,7 @@ impl Transaction {
 #[wasm_bindgen]
 impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
-        match sig.signature.verify_digest_impl(&sig.sighash_buffer, pub_key, crate::SigningHash::Sha256d) {
+        match ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d) {
             Ok(v) => v,
             Err(_) => false,
         }
