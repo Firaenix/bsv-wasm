@@ -145,7 +145,7 @@ impl P2PKHAddress {
     }
 
     #[wasm_bindgen(js_name = toUnlockingScript)]
-    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script, JsValue> {
+    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, JsValue> {
         match self.to_unlocking_script_impl(pub_key, sig) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -192,7 +192,7 @@ impl P2PKHAddress {
         self.to_locking_script_impl()
     }
 
-    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script, BSVErrors> {
+    pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, BSVErrors> {
         self.to_unlocking_script_impl(pub_key, sig)
     }
 
