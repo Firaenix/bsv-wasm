@@ -1,4 +1,4 @@
-use crate::{BSVErrors, Hash, Script, BSM};
+use crate::{BSVErrors, Hash, Script, SighashSignature, BSM};
 use crate::{PrivateKey, PublicKey, Signature};
 use wasm_bindgen::JsValue;
 use wasm_bindgen::{prelude::*, throw_str};
@@ -59,7 +59,7 @@ impl P2PKHAddress {
      * Produces the unlocking script for a P2PKH address.
      * Should be inserted into a TxIn.
      */
-    pub(crate) fn to_unlocking_script_impl(&self, pub_key: &PublicKey, sig: &Signature) -> Result<Script, BSVErrors> {
+    pub(crate) fn to_unlocking_script_impl(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, BSVErrors> {
         // Make sure the given Public Key matches this address.
         let verifying_address = P2PKHAddress::from_pubkey_impl(pub_key)?;
 
@@ -68,7 +68,7 @@ impl P2PKHAddress {
         }
 
         let pub_key_hex = pub_key.to_hex_impl()?;
-        let script = Script::from_asm_string_impl(format!("{} {}", sig.to_hex(), pub_key_hex))?;
+        let script = Script::from_asm_string_impl(format!("{} {}", sig.to_hex_impl()?, pub_key_hex))?;
 
         Ok(script)
     }
