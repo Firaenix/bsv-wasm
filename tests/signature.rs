@@ -9,7 +9,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn import_signature() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
-        let sig = Signature::from_der(hex::decode(sig_hex).unwrap(), false).unwrap();
+        let sig = Signature::from_der(&hex::decode(sig_hex).unwrap(), false).unwrap();
         assert_eq!(sig.to_hex(), sig_hex)
     }
 
@@ -43,7 +43,7 @@ mod tests {
         let signature = key.sign_message(message).unwrap();
         let pub_key = PublicKey::from_private_key(&key);
 
-        let is_verified = signature.verify_message(message.to_vec(), &pub_key);
+        let is_verified = signature.verify_message(message, &pub_key);
         assert_eq!(is_verified, true);
         assert_eq!(
             signature.to_hex(),
@@ -61,10 +61,10 @@ mod tests {
         let signature = key.sign_message(message).unwrap();
         let pub_key = PublicKey::from_private_key(&key);
 
-        let is_verified = signature.verify_message(message.to_vec(), &pub_key);
+        let is_verified = signature.verify_message(message, &pub_key);
         assert!(is_verified);
 
-        let recovered_pub_key = signature.recover_public_key(message.to_vec(), SigningHash::Sha256).unwrap();
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256).unwrap();
         assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
     }
 
@@ -78,7 +78,7 @@ mod tests {
         let signature = key.sign_message(message).unwrap();
 
         let compact_sig = signature.to_compact_bytes();
-        let uncompacted_sig = Signature::from_compact_bytes(compact_sig).unwrap();
+        let uncompacted_sig = Signature::from_compact_bytes(&compact_sig).unwrap();
 
         assert_eq!(uncompacted_sig.to_compact_bytes(), signature.to_compact_bytes());
         assert_eq!(uncompacted_sig.to_der_bytes(), signature.to_der_bytes());

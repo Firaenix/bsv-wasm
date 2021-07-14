@@ -24,8 +24,8 @@ pub struct TxIn {
 }
 
 impl TxIn {
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxIn, BSVErrors> {
-        let txin_bytes = hex::decode(&hex_str)?;
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<TxIn, BSVErrors> {
+        let txin_bytes = hex::decode(hex_str)?;
 
         let mut cursor = Cursor::new(txin_bytes);
 
@@ -132,12 +132,15 @@ impl TxIn {
 #[wasm_bindgen]
 impl TxIn {
     #[wasm_bindgen(constructor)]
-    pub fn new(prev_tx_id: Vec<u8>, vout: u32, script_sig: Vec<u8>, sequence: u32) -> TxIn {
+    pub fn new(prev_tx_id: &[u8], vout: u32, script_sig: &Script, sequence: Option<u32>) -> TxIn {
         TxIn {
-            prev_tx_id,
+            prev_tx_id: prev_tx_id.to_vec(),
             vout,
-            script_sig: Script(script_sig),
-            sequence,
+            script_sig: script_sig.clone(),
+            sequence: match sequence {
+                Some(v) => v,
+                None => u32::MAX,
+            },
         }
     }
 
@@ -228,7 +231,7 @@ impl TxIn {
 #[wasm_bindgen]
 impl TxIn {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String) -> Result<TxIn, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<TxIn, JsValue> {
         match TxIn::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -273,7 +276,7 @@ impl TxIn {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl TxIn {
-    pub fn from_hex(hex_str: String) -> Result<TxIn, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<TxIn, BSVErrors> {
         TxIn::from_hex_impl(hex_str)
     }
 

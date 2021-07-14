@@ -12,7 +12,7 @@ mod xpriv_tests {
     fn xpriv_parts_to_xpriv_string() {
         // let seed = "4a6b71c77d6d37b5b95b10659632e64341b985fadb37f55668b4de3f404473b47ec36bfebd30d9195ae4580f73c09dd492acab731eafd7f236e41e4818531368";
         let parent_chain_code = hex::decode("05aae71d7c080474efaab01fa79e96f4c6cfe243237780b0df4bc36106228e31").unwrap();
-        let private_key = PrivateKey::from_hex("39f329fedba2a68e2a804fcd9aeea4104ace9080212a52ce8b52c1fb89850c72".to_string()).unwrap();
+        let private_key = PrivateKey::from_hex("39f329fedba2a68e2a804fcd9aeea4104ace9080212a52ce8b52c1fb89850c72").unwrap();
         let parent_public_key = "0252c616d91a2488c1fd1f0f172e98f7d1f6e51f8f389b2f8d632a8b490d5f6da9";
         let parent_fingerprint = &Hash::hash_160(&hex::decode(parent_public_key).unwrap()).to_bytes()[0..4];
 
@@ -133,7 +133,7 @@ mod xpriv_tests {
     #[wasm_bindgen_test]
     fn seed_to_xprv() {
         let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
-        let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
+        let key = ExtendedPrivateKey::from_seed(&bytes).unwrap();
 
         assert_eq!(
             key.to_string().unwrap(),
@@ -146,7 +146,7 @@ mod xpriv_tests {
     #[allow(non_snake_case)]
     fn non_standard__long_seed_to_xprv() {
         let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
-        let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
+        let key = ExtendedPrivateKey::from_seed(&bytes).unwrap();
 
         assert_eq!(
             key.to_string().unwrap(),
@@ -160,7 +160,7 @@ mod xpriv_tests {
     fn non_standard__massive_seed_to_xpriv() {
         let mut seed = vec![0; 4096];
         getrandom::getrandom(&mut seed).unwrap();
-        let key = ExtendedPrivateKey::from_seed(seed).unwrap();
+        let key = ExtendedPrivateKey::from_seed(&seed).unwrap();
 
         let new_key = ExtendedPrivateKey::from_string(&key.to_string().unwrap()).unwrap();
         assert_eq!(new_key.to_string().unwrap(), key.to_string().unwrap());
@@ -170,7 +170,7 @@ mod xpriv_tests {
     #[allow(non_snake_case)]
     fn non_standard__short_seed_to_xprv() {
         let bytes = hex::decode("deadbeef").unwrap();
-        let key = ExtendedPrivateKey::from_seed(bytes).unwrap();
+        let key = ExtendedPrivateKey::from_seed(&bytes).unwrap();
 
         assert_eq!(
             key.to_string().unwrap(),
@@ -181,7 +181,7 @@ mod xpriv_tests {
     #[test]
     fn from_mnemonic_xprv() {
         let mnemonic = "vapor cabbage jacket unveil permit web live pyramid husband final plug metal";
-        let key = ExtendedPrivateKey::from_mnemonic(mnemonic.as_bytes().to_vec(), None).unwrap();
+        let key = ExtendedPrivateKey::from_mnemonic(mnemonic.as_bytes(), None).unwrap();
         assert_eq!(
             key.to_string().unwrap(),
             "xprv9s21ZrQH143K3kV5ByEVyeoaC6TbWS9T3UrQamHwMgpbTghuLXUfiSgeK1TRr1K9xWVcJKdtQawEM1RGwAfCzwPHJXSCEzTSze7ZnduyQaU"

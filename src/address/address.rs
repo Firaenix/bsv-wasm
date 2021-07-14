@@ -10,15 +10,15 @@ pub struct P2PKHAddress {
 }
 
 impl P2PKHAddress {
-    pub(crate) fn from_pubkey_hash_impl(hash_bytes: Vec<u8>) -> P2PKHAddress {
-        P2PKHAddress { pubkey_hash: hash_bytes }
+    pub(crate) fn from_pubkey_hash_impl(hash_bytes: &[u8]) -> P2PKHAddress {
+        P2PKHAddress { pubkey_hash: hash_bytes.to_vec() }
     }
 
     pub(crate) fn from_pubkey_impl(pub_key: &PublicKey) -> Result<P2PKHAddress, BSVErrors> {
         let pub_key_bytes = pub_key.to_bytes_impl()?;
         let pub_key_hash = Hash::hash_160(&pub_key_bytes);
 
-        Ok(P2PKHAddress::from_pubkey_hash_impl(pub_key_hash.to_bytes()))
+        Ok(P2PKHAddress::from_pubkey_hash_impl(&pub_key_hash.to_bytes()))
     }
 
     pub(crate) fn to_address_string_impl(&self) -> Result<String, BSVErrors> {
@@ -37,8 +37,8 @@ impl P2PKHAddress {
         Ok(address.into_string())
     }
 
-    pub(crate) fn from_p2pkh_string_impl(address_string: String) -> Result<P2PKHAddress, BSVErrors> {
-        let decoded = bs58::decode(address_string.clone());
+    pub(crate) fn from_p2pkh_string_impl(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
+        let decoded = bs58::decode(address_string);
         let address_bytes = decoded.into_vec()?;
 
         // Remove 0x00 from the front and the 4 byte checksum off the end
@@ -52,7 +52,7 @@ impl P2PKHAddress {
      * Should be inserted into a new TxOut.
      */
     pub(crate) fn to_locking_script_impl(&self) -> Result<Script, BSVErrors> {
-        Script::from_asm_string_impl(format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
+        Script::from_asm_string_impl(&format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
     }
 
     /**
@@ -68,7 +68,7 @@ impl P2PKHAddress {
         }
 
         let pub_key_hex = pub_key.to_hex_impl()?;
-        let script = Script::from_asm_string_impl(format!("{} {}", sig.to_hex_impl()?, pub_key_hex))?;
+        let script = Script::from_asm_string_impl(&format!("{} {}", sig.to_hex_impl()?, pub_key_hex))?;
 
         Ok(script)
     }
@@ -110,7 +110,7 @@ impl P2PKHAddress {
 #[wasm_bindgen]
 impl P2PKHAddress {
     #[wasm_bindgen(js_name = fromPubKeyHash)]
-    pub fn from_pubkey_hash(hash_bytes: Vec<u8>) -> P2PKHAddress {
+    pub fn from_pubkey_hash(hash_bytes: &[u8]) -> P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
     #[wasm_bindgen(js_name = fromPubKey)]
@@ -129,7 +129,7 @@ impl P2PKHAddress {
     }
 
     #[wasm_bindgen(js_name = fromP2PKHString)]
-    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, JsValue> {
+    pub fn from_p2pkh_string(address_string: &str) -> Result<P2PKHAddress, JsValue> {
         match P2PKHAddress::from_p2pkh_string_impl(address_string) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -172,7 +172,7 @@ impl P2PKHAddress {
 #[cfg(not(target_arch = "wasm32"))]
 impl P2PKHAddress {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_pubkey_hash(hash_bytes: Vec<u8>) -> P2PKHAddress {
+    pub fn from_pubkey_hash(hash_bytes: &[u8]) -> P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -184,7 +184,7 @@ impl P2PKHAddress {
         P2PKHAddress::to_address_string_impl(&self)
     }
 
-    pub fn from_p2pkh_string(address_string: String) -> Result<P2PKHAddress, BSVErrors> {
+    pub fn from_p2pkh_string(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_p2pkh_string_impl(address_string)
     }
 

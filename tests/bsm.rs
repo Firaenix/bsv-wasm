@@ -14,7 +14,7 @@ mod bitcoin_signed_message_tests {
         let message = b"Hello Bitcoin!";
 
         let msg_sig = priv_key.sign_message(message).unwrap();
-        assert!(msg_sig.verify_message(message.to_vec(), &priv_key.get_public_key().unwrap()), "Normal messages match");
+        assert!(msg_sig.verify_message(message, &priv_key.get_public_key().unwrap()), "Normal messages match");
 
         let signature = BSM::sign_message(&priv_key, message).unwrap();
 

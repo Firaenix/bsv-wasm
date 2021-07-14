@@ -31,14 +31,14 @@ impl Transaction {
         }
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, BSVErrors> {
-        let tx_bytes = hex::decode(&hex_str)?;
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<Transaction, BSVErrors> {
+        let tx_bytes = hex::decode(hex_str)?;
 
-        Transaction::from_bytes_impl(tx_bytes)
+        Transaction::from_bytes_impl(&tx_bytes)
     }
 
-    pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
-        let mut cursor = Cursor::new(tx_bytes);
+    pub(crate) fn from_bytes_impl(tx_bytes: &[u8]) -> Result<Transaction, BSVErrors> {
+        let mut cursor = Cursor::new(tx_bytes.to_vec());
 
         // Version - 4 bytes
         let version = match cursor.read_u32::<LittleEndian>() {
@@ -104,7 +104,7 @@ impl Transaction {
 
         // Inputs
         for i in 0..self.get_ninputs() {
-            let input = &self.inputs[i as usize];
+            let input = &self.inputs[i];
             let input_bytes = input.to_bytes_impl()?;
 
             match buffer.write(&input_bytes) {
@@ -247,7 +247,7 @@ impl Transaction {
 #[wasm_bindgen]
 impl Transaction {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String) -> Result<Transaction, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
         return match Transaction::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -255,7 +255,7 @@ impl Transaction {
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, JsValue> {
+    pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, JsValue> {
         return match Transaction::from_bytes_impl(tx_bytes) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -367,12 +367,12 @@ impl Transaction {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex(hex_str: String) -> Result<Transaction, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<Transaction, BSVErrors> {
         return Transaction::from_hex_impl(hex_str);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
+    pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, BSVErrors> {
         Transaction::from_bytes_impl(tx_bytes)
     }
 

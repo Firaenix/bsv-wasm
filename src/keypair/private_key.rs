@@ -65,15 +65,15 @@ impl PrivateKey {
         })
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PrivateKey, BSVErrors> {
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<PrivateKey, BSVErrors> {
         let bytes = hex::decode(hex_str)?;
 
         Ok(Self::from_bytes_impl(&bytes)?)
     }
 
-    pub(crate) fn from_wif_impl(wif_string: String) -> Result<PrivateKey, BSVErrors> {
+    pub(crate) fn from_wif_impl(wif_string: &str) -> Result<PrivateKey, BSVErrors> {
         // 1. Decode from Base58
-        let wif_bytes = bs58::decode(wif_string.clone()).into_vec()?;
+        let wif_bytes = bs58::decode(wif_string).into_vec()?;
         let wif_without_checksum = wif_bytes[0..wif_bytes.len() - 4].to_vec();
 
         // 2. Check the Checksum
@@ -104,7 +104,7 @@ impl PrivateKey {
             false => wif_without_checksum[1..].to_hex(),
         };
 
-        Ok(PrivateKey::from_hex_impl(private_key_hex.into())?.compress_public_key(is_compressed_pub_key))
+        Ok(PrivateKey::from_hex_impl(&private_key_hex)?.compress_public_key(is_compressed_pub_key))
     }
 
     pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
@@ -166,7 +166,7 @@ impl PrivateKey {
 #[wasm_bindgen]
 impl PrivateKey {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromWIF))]
-    pub fn from_wif(wif_string: String) -> Result<PrivateKey, JsValue> {
+    pub fn from_wif(wif_string: &str) -> Result<PrivateKey, JsValue> {
         match PrivateKey::from_wif_impl(wif_string) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -174,7 +174,7 @@ impl PrivateKey {
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex_str: String) -> Result<PrivateKey, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<PrivateKey, JsValue> {
         match PrivateKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -226,11 +226,11 @@ impl PrivateKey {
         PrivateKey::to_wif_impl(&self)
     }
 
-    pub fn from_wif(wif_string: String) -> Result<PrivateKey, BSVErrors> {
+    pub fn from_wif(wif_string: &str) -> Result<PrivateKey, BSVErrors> {
         PrivateKey::from_wif_impl(wif_string)
     }
 
-    pub fn from_hex(hex_str: String) -> Result<PrivateKey, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<PrivateKey, BSVErrors> {
         PrivateKey::from_hex_impl(hex_str)
     }
 
