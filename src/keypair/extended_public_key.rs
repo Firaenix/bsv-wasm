@@ -95,10 +95,10 @@ impl ExtendedPublicKey {
         let mut seed = vec![0; 64];
         getrandom(&mut seed)?;
 
-        Self::from_seed_impl(seed)
+        Self::from_seed_impl(&seed)
     }
 
-    pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, BSVErrors> {
+    pub fn from_seed_impl(seed: &[u8]) -> Result<Self, BSVErrors> {
         let xpriv = ExtendedPrivateKey::from_seed_impl(seed)?;
 
         Ok(Self::from_xpriv(&xpriv))
@@ -257,7 +257,7 @@ impl ExtendedPublicKey {
     }
 
     #[wasm_bindgen(js_name = fromSeed)]
-    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPublicKey, JsValue> {
+    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, JsValue> {
         match Self::from_seed_impl(seed) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -299,7 +299,7 @@ impl ExtendedPublicKey {
         Self::derive_from_path_impl(&self, path)
     }
 
-    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPublicKey, BSVErrors> {
+    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::from_seed_impl(seed)
     }
 

@@ -60,7 +60,7 @@ impl ECDSA {
         let digest = get_hash_digest(hash_algo, preimage);
         let (sig, is_recoverable) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
-        let signature = Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable)?;
+        let signature = Signature::from_der_impl(sig.to_der().as_bytes(), is_recoverable)?;
 
         Ok(signature)
     }
@@ -74,7 +74,7 @@ impl ECDSA {
         let digest = get_hash_digest(hash_algo, preimage);
         let (sig, is_recoverable) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest, reverse_k)?;
 
-        let signature = Signature::from_der_impl(sig.to_der().as_bytes().to_vec(), is_recoverable)?;
+        let signature = Signature::from_der_impl(sig.to_der().as_bytes(), is_recoverable)?;
 
         Ok(signature)
     }

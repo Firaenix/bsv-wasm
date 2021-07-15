@@ -1,4 +1,4 @@
-use crate::BSVErrors;
+use crate::{BSVErrors, Script};
 use std::io::Read;
 use std::io::{Cursor, Write};
 
@@ -14,16 +14,15 @@ use byteorder::*;
 use thiserror::*;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
     value: u64,
-    #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
-    script_pub_key: Vec<u8>,
+    script_pub_key: Script,
 }
 
 impl TxOut {
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<TxOut, BSVErrors> {
-        let txout_bytes = hex::decode(&hex_str)?;
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<TxOut, BSVErrors> {
+        let txout_bytes = hex::decode(hex_str)?;
 
         let mut cursor = Cursor::new(txout_bytes);
 
@@ -50,7 +49,10 @@ impl TxOut {
             _ => (),
         };
 
-        Ok(TxOut { value: satoshis, script_pub_key })
+        Ok(TxOut {
+            value: satoshis,
+            script_pub_key: Script(script_pub_key),
+        })
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
@@ -60,10 +62,10 @@ impl TxOut {
         buffer.write_u64::<LittleEndian>(self.value)?;
 
         // Script Pub Key Size - 1-9 bytes
-        buffer.write_varint(self.get_script_pub_key_size())?;
+        buffer.write_varint(self.get_script_pub_key_size() as u64)?;
 
         // Script Pub Key
-        buffer.write(&self.script_pub_key)?;
+        buffer.write(&self.script_pub_key.to_bytes())?;
 
         // Write out bytes
         Ok(buffer)
@@ -82,8 +84,11 @@ impl TxOut {
 #[wasm_bindgen]
 impl TxOut {
     #[wasm_bindgen(constructor)]
-    pub fn new(value: u64, script_pub_key: Vec<u8>) -> TxOut {
-        TxOut { value, script_pub_key }
+    pub fn new(value: u64, script_pub_key: &Script) -> TxOut {
+        TxOut {
+            value,
+            script_pub_key: script_pub_key.clone(),
+        }
     }
 
     #[wasm_bindgen(js_name = getSatoshis)]
@@ -97,18 +102,18 @@ impl TxOut {
     }
 
     #[wasm_bindgen(js_name = getScriptPubKeySize)]
-    pub fn get_script_pub_key_size(&self) -> u64 {
-        self.script_pub_key.len() as u64
+    pub fn get_script_pub_key_size(&self) -> usize {
+        self.script_pub_key.get_script_length()
     }
 
     #[wasm_bindgen(js_name = getScriptPubKey)]
-    pub fn get_script_pub_key(&self) -> Vec<u8> {
+    pub fn get_script_pub_key(&self) -> Script {
         self.script_pub_key.clone()
     }
 
     #[wasm_bindgen(js_name = getScriptPubKeyHex)]
     pub fn get_script_pub_key_hex(&self) -> String {
-        hex::encode(self.script_pub_key.clone())
+        self.script_pub_key.to_hex()
     }
 }
 
@@ -116,7 +121,7 @@ impl TxOut {
 #[wasm_bindgen]
 impl TxOut {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String) -> Result<TxOut, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<TxOut, JsValue> {
         match TxOut::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -158,7 +163,7 @@ impl TxOut {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl TxOut {
-    pub fn from_hex(hex_str: String) -> Result<TxOut, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<TxOut, BSVErrors> {
         TxOut::from_hex_impl(hex_str)
     }
 

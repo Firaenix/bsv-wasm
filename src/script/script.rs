@@ -28,14 +28,14 @@ impl Script {
         let mut cursor = Cursor::new(self.0.clone());
 
         // Read bytes until end of string
-        Ok(self.read_opcodes(&mut cursor, String::new(), extended)?)
+        Ok(self.read_opcodes(&mut cursor, "", extended)?)
     }
 
-    fn read_opcodes(&self, cursor: &mut Cursor<Vec<u8>>, builder_str: String, extended: bool) -> Result<String, BSVErrors> {
+    fn read_opcodes(&self, cursor: &mut Cursor<Vec<u8>>, builder_str: &str, extended: bool) -> Result<String, BSVErrors> {
         if cursor.position() >= self.0.len() as u64 {
-            return Ok(builder_str);
+            return Ok(builder_str.to_string());
         }
-        let mut new_str = builder_str.clone();
+        let mut new_str = builder_str.to_string();
 
         if cursor.position() > 0 {
             new_str.push_str(" ");
@@ -45,7 +45,7 @@ impl Script {
 
         if let Some(special_opcode) = Script::get_special_opcode(byte, extended, cursor)? {
             new_str.push_str(&special_opcode);
-            return Script::read_opcodes(&self, cursor, new_str, extended);
+            return Script::read_opcodes(&self, cursor, &new_str, extended);
         }
 
         let opcode_str = match FromPrimitive::from_u8(byte) {
@@ -61,7 +61,7 @@ impl Script {
         };
 
         new_str.push_str(&opcode_str);
-        Script::read_opcodes(&self, cursor, new_str, extended)
+        Script::read_opcodes(&self, cursor, &new_str, extended)
     }
 
     fn get_pushdata_length(cursor: &mut Cursor<Vec<u8>>, opcode: OpCodes) -> Result<usize, BSVErrors> {
@@ -119,11 +119,11 @@ impl Script {
  * Deserialise Methods
  */
 impl Script {
-    pub(crate) fn from_hex_impl(hex: String) -> Result<Script, BSVErrors> {
-        Ok(Script::from_bytes(hex::decode(hex)?))
+    pub(crate) fn from_hex_impl(hex: &str) -> Result<Script, BSVErrors> {
+        Ok(Script::from_bytes(&hex::decode(hex)?))
     }
 
-    pub(crate) fn from_asm_string_impl(asm: String) -> Result<Script, BSVErrors> {
+    pub(crate) fn from_asm_string_impl(asm: &str) -> Result<Script, BSVErrors> {
         let mut chunks = asm.split(" ").into_iter();
         let mut buffer: Vec<u8> = Vec::new();
 
@@ -202,8 +202,13 @@ impl Script {
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(bytes: Vec<u8>) -> Script {
-        Script(bytes)
+    pub fn from_bytes(bytes: &[u8]) -> Script {
+        Script(bytes.to_vec())
+    }
+
+    #[wasm_bindgen(js_name = getScriptLength)]
+    pub fn get_script_length(&self) -> usize {
+        self.0.len()
     }
 
     #[wasm_bindgen(js_name = toHex)]
@@ -229,11 +234,11 @@ impl Script {
         Script::to_asm_string_impl(&self, true)
     }
 
-    pub fn from_hex(hex: String) -> Result<Script, BSVErrors> {
+    pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
         Script::from_hex_impl(hex)
     }
 
-    pub fn from_asm_string(asm_string: String) -> Result<Script, BSVErrors> {
+    pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
         Script::from_asm_string_impl(asm_string)
     }
 }
@@ -261,7 +266,7 @@ impl Script {
     }
 
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex: String) -> Result<Script, JsValue> {
+    pub fn from_hex(hex: &str) -> Result<Script, JsValue> {
         match Script::from_hex_impl(hex) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -269,7 +274,7 @@ impl Script {
     }
 
     #[wasm_bindgen(js_name = fromASMString)]
-    pub fn from_asm_string(asm_string: String) -> Result<Script, JsValue> {
+    pub fn from_asm_string(asm_string: &str) -> Result<Script, JsValue> {
         match Script::from_asm_string_impl(asm_string) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),

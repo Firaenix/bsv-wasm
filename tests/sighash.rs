@@ -81,7 +81,7 @@ mod sighash_tests {
         let desired_sighash =
             "01000000019e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f0000000002006affffffff01206b1000000000001976a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac0000000083000000";
         let correct_tx = Transaction::from_hex(desired_sighash.into()).unwrap();
-        assert_eq!(Transaction::from_bytes(sighash_buffer.clone()).unwrap(), correct_tx);
+        assert_eq!(Transaction::from_bytes(&sighash_buffer).unwrap(), correct_tx);
         assert_eq!(sighash_buffer.to_hex(), desired_sighash);
 
         let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0).unwrap();
@@ -103,7 +103,7 @@ mod sighash_tests {
         let sighash_buffer = tx.sighash_preimage(sighash.try_into().unwrap(), 0, &signing_script, 0).unwrap();
         let desired_sighash = "01000000029e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f0000000002006affffffffa3195e7a1ab665473ff717814f6881485dc8759bebe97e31c301ffe7933a656f02000000000000000001206b1000000000001976a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac0000000003000000";
         let correct_tx = Transaction::from_hex(desired_sighash.into()).unwrap();
-        assert_eq!(Transaction::from_bytes(sighash_buffer.clone()).unwrap(), correct_tx);
+        assert_eq!(Transaction::from_bytes(&sighash_buffer).unwrap(), correct_tx);
         assert_eq!(sighash_buffer.to_hex(), desired_sighash);
 
         let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0).unwrap();

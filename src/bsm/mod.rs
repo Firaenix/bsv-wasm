@@ -16,7 +16,7 @@ pub struct BSM {}
 const MAGIC_BYTES: &[u8] = b"Bitcoin Signed Message:\n";
 
 impl BSM {
-    fn prepend_magic_bytes(msg: &[u8]) -> Result<Vec<u8>, std::io::Error> {
+    fn prepend_magic_bytes(msg: &[u8]) -> Result<Vec<u8>, BSVErrors> {
         let mut buffer: Vec<u8> = vec![];
 
         buffer.write_varint(MAGIC_BYTES.len() as u64)?;

@@ -31,14 +31,14 @@ impl Transaction {
         }
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<Transaction, BSVErrors> {
-        let tx_bytes = hex::decode(&hex_str)?;
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<Transaction, BSVErrors> {
+        let tx_bytes = hex::decode(hex_str)?;
 
-        Transaction::from_bytes_impl(tx_bytes)
+        Transaction::from_bytes_impl(&tx_bytes)
     }
 
-    pub(crate) fn from_bytes_impl(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
-        let mut cursor = Cursor::new(tx_bytes);
+    pub(crate) fn from_bytes_impl(tx_bytes: &[u8]) -> Result<Transaction, BSVErrors> {
+        let mut cursor = Cursor::new(tx_bytes.to_vec());
 
         // Version - 4 bytes
         let version = match cursor.read_u32::<LittleEndian>() {
@@ -97,14 +97,14 @@ impl Transaction {
         };
 
         // In Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_ninputs()) {
+        match buffer.write_varint(self.get_ninputs() as u64) {
             Ok(_) => (),
             Err(e) => return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e)),
         };
 
         // Inputs
         for i in 0..self.get_ninputs() {
-            let input = &self.inputs[i as usize];
+            let input = &self.inputs[i];
             let input_bytes = input.to_bytes_impl()?;
 
             match buffer.write(&input_bytes) {
@@ -114,7 +114,7 @@ impl Transaction {
         }
 
         // Out Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_noutputs()) {
+        match buffer.write_varint(self.get_noutputs() as u64) {
             Ok(_) => (),
             Err(e) => return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e)),
         };
@@ -176,13 +176,13 @@ impl Transaction {
     }
 
     #[wasm_bindgen(js_name = getInputsCount)]
-    pub fn get_ninputs(&self) -> u64 {
-        self.inputs.len() as u64
+    pub fn get_ninputs(&self) -> usize {
+        self.inputs.len()
     }
 
     #[wasm_bindgen(js_name = getOutputsCount)]
-    pub fn get_noutputs(&self) -> u64 {
-        self.outputs.len() as u64
+    pub fn get_noutputs(&self) -> usize {
+        self.outputs.len()
     }
 
     #[wasm_bindgen(js_name = getInput)]
@@ -247,7 +247,7 @@ impl Transaction {
 #[wasm_bindgen]
 impl Transaction {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String) -> Result<Transaction, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
         return match Transaction::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -255,7 +255,7 @@ impl Transaction {
     }
 
     #[wasm_bindgen(js_name = fromBytes)]
-    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, JsValue> {
+    pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, JsValue> {
         return match Transaction::from_bytes_impl(tx_bytes) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -367,12 +367,12 @@ impl Transaction {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex(hex_str: String) -> Result<Transaction, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<Transaction, BSVErrors> {
         return Transaction::from_hex_impl(hex_str);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_bytes(tx_bytes: Vec<u8>) -> Result<Transaction, BSVErrors> {
+    pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, BSVErrors> {
         Transaction::from_bytes_impl(tx_bytes)
     }
 

@@ -158,7 +158,7 @@ impl Transaction {
 
                 for i in 0..tx.outputs.len() {
                     if i < n_tx_in {
-                        tx.set_output(i, &TxOut::new(0xffffffffffffffff, Script::default().to_bytes()));
+                        tx.set_output(i, &TxOut::new(0xffffffffffffffff, &Script::default()));
                     }
                 }
 
@@ -369,11 +369,11 @@ impl SighashSignature {
 #[wasm_bindgen]
 impl SighashSignature {
     #[wasm_bindgen(constructor)]
-    pub fn new(signature: Signature, sighash_type: SigHash, sighash_buffer: Vec<u8>) -> SighashSignature {
+    pub fn new(signature: &Signature, sighash_type: SigHash, sighash_buffer: &[u8]) -> SighashSignature {
         SighashSignature {
-            signature,
+            signature: signature.clone(),
             sighash_type,
-            sighash_buffer,
+            sighash_buffer: sighash_buffer.to_vec(),
         }
     }
 }

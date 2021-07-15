@@ -15,10 +15,9 @@ pub struct PublicKey {
 
 impl PublicKey {
     pub(crate) fn from_private_key_impl(priv_key: &PrivateKey) -> PublicKey {
-        let compressed_point = priv_key.get_point();
         PublicKey {
-            point: compressed_point,
-            is_compressed: true,
+            point: priv_key.get_point(),
+            is_compressed: priv_key.is_pub_key_compressed,
         }
     }
 
@@ -58,7 +57,7 @@ impl PublicKey {
         Ok(PublicKey::from_encoded_point(&point.compress()))
     }
 
-    pub(crate) fn from_hex_impl(hex_str: String) -> Result<PublicKey, BSVErrors> {
+    pub(crate) fn from_hex_impl(hex_str: &str) -> Result<PublicKey, BSVErrors> {
         let point_bytes = hex::decode(hex_str)?;
         Ok(PublicKey::from_bytes_impl(&point_bytes)?)
     }
@@ -98,7 +97,7 @@ impl PublicKey {
 #[wasm_bindgen]
 impl PublicKey {
     #[wasm_bindgen(js_name = fromHex)]
-    pub fn from_hex(hex_str: String) -> Result<PublicKey, JsValue> {
+    pub fn from_hex(hex_str: &str) -> Result<PublicKey, JsValue> {
         match PublicKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -172,7 +171,7 @@ impl PublicKey {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl PublicKey {
-    pub fn from_hex(hex_str: String) -> Result<PublicKey, BSVErrors> {
+    pub fn from_hex(hex_str: &str) -> Result<PublicKey, BSVErrors> {
         PublicKey::from_hex_impl(hex_str)
     }
 

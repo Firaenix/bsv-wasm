@@ -2,6 +2,7 @@ use crate::{BSVErrors, HARDENED_KEY_OFFSET, KDF, XPRIV_VERSION_BYTE};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
 use k256::{Scalar, SecretKey};
+use std::borrow::Cow;
 use std::{
     io::{Cursor, Read, Write},
     ops::Add,
@@ -57,15 +58,15 @@ impl ExtendedPrivateKey {
         Ok(bs58::encode(buffer).into_string())
     }
 
-    pub fn from_mnemonic_and_passphrase_impl(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<Self, BSVErrors> {
+    pub fn from_mnemonic_and_passphrase_impl(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<Self, BSVErrors> {
         let fixed_phrase = match passphrase {
             Some(v) => v,
             None => b"mnemonic".to_vec(),
         };
 
-        let seed = KDF::pbkdf2(mnemonic, Some(fixed_phrase), crate::PBKDF2Hashes::SHA512, 2048, 64);
+        let seed = KDF::pbkdf2(mnemonic, Some(fixed_phrase.to_vec()), crate::PBKDF2Hashes::SHA512, 2048, 64);
         let seed_bytes = seed.get_hash().to_bytes();
-        Self::from_seed_impl(seed_bytes)
+        Self::from_seed_impl(&seed_bytes)
     }
 
     pub fn from_string_impl(xprv_string: &str) -> Result<Self, BSVErrors> {
@@ -107,10 +108,10 @@ impl ExtendedPrivateKey {
         let mut seed = vec![0; 64];
         getrandom(&mut seed)?;
 
-        Self::from_seed_impl(seed)
+        Self::from_seed_impl(&seed)
     }
 
-    pub fn from_seed_impl(seed: Vec<u8>) -> Result<Self, BSVErrors> {
+    pub fn from_seed_impl(seed: &[u8]) -> Result<Self, BSVErrors> {
         let seed_hmac = Hash::sha_512_hmac(&seed, b"Bitcoin seed");
 
         let seed_bytes = seed_hmac.to_bytes();
@@ -298,7 +299,7 @@ impl ExtendedPrivateKey {
     }
 
     #[wasm_bindgen(js_name = fromSeed)]
-    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPrivateKey, JsValue> {
+    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_seed_impl(seed) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -330,7 +331,7 @@ impl ExtendedPrivateKey {
     }
 
     #[wasm_bindgen(js_name = fromMnemonic)]
-    pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
+    pub fn from_mnemonic(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
@@ -348,7 +349,7 @@ impl ExtendedPrivateKey {
         Self::derive_from_path_impl(&self, path)
     }
 
-    pub fn from_seed(seed: Vec<u8>) -> Result<ExtendedPrivateKey, BSVErrors> {
+    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPrivateKey, BSVErrors> {
         Self::from_seed_impl(seed)
     }
 
@@ -364,7 +365,7 @@ impl ExtendedPrivateKey {
         Self::to_string_impl(&self)
     }
 
-    pub fn from_mnemonic(mnemonic: Vec<u8>, passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, BSVErrors> {
+    pub fn from_mnemonic(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, BSVErrors> {
         Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase)
     }
 }
