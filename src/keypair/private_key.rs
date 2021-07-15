@@ -148,7 +148,7 @@ impl PrivateKey {
      * To get the decompressed point: PublicKey::from_bytes(point).to_decompressed()
      */
     pub fn get_point(&self) -> Vec<u8> {
-        EncodedPoint::from_secret_key(&self.secret_key, true).as_bytes().into()
+        EncodedPoint::from_secret_key(&self.secret_key, self.is_pub_key_compressed).as_bytes().into()
     }
 
     #[wasm_bindgen(js_name = compressPublicKey)]

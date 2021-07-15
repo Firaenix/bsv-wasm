@@ -7,7 +7,7 @@ use thiserror::*;
 
 pub trait VarInt {
     fn read_varint(&mut self) -> Result<u64>;
-    fn write_varint(&mut self, varint: u64) -> std::io::Result<()>;
+    fn write_varint(&mut self, varint: u64) -> std::io::Result<usize>;
 }
 
 impl VarInt for Cursor<Vec<u8>> {
@@ -24,7 +24,7 @@ impl VarInt for Cursor<Vec<u8>> {
     /**
      * Borrowed from rust-sv by Brenton Gunning
      */
-    fn write_varint(&mut self, varint: u64) -> Result<()> {
+    fn write_varint(&mut self, varint: u64) -> Result<usize> {
         let mut write = || {
             if varint <= 252 {
                 self.write_u8(varint as u8)
@@ -37,7 +37,8 @@ impl VarInt for Cursor<Vec<u8>> {
             }
         };
 
-        write()
+        write()?;
+        Ok(varint as usize)
     }
 }
 
@@ -57,7 +58,7 @@ impl VarInt for Vec<u8> {
     /**
      * Borrowed from rust-sv by Brenton Gunning
      */
-    fn write_varint(&mut self, varint: u64) -> Result<()> {
+    fn write_varint(&mut self, varint: u64) -> Result<usize> {
         let mut write = || {
             if varint <= 252 {
                 self.write_u8(varint as u8)
@@ -70,6 +71,7 @@ impl VarInt for Vec<u8> {
             }
         };
 
-        write()
+        write()?;
+        Ok(varint as usize)
     }
 }

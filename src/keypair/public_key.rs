@@ -15,10 +15,9 @@ pub struct PublicKey {
 
 impl PublicKey {
     pub(crate) fn from_private_key_impl(priv_key: &PrivateKey) -> PublicKey {
-        let compressed_point = priv_key.get_point();
         PublicKey {
-            point: compressed_point,
-            is_compressed: true,
+            point: priv_key.get_point(),
+            is_compressed: priv_key.is_pub_key_compressed,
         }
     }
 
