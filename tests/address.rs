@@ -81,7 +81,7 @@ mod tests {
 
         assert_eq!(address_string, "1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem");
 
-        let decoded_address = P2PKHAddress::from_p2pkh_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem").unwrap();
+        let decoded_address = P2PKHAddress::from_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem").unwrap();
 
         assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
     }

@@ -37,7 +37,7 @@ impl P2PKHAddress {
         Ok(address.into_string())
     }
 
-    pub(crate) fn from_p2pkh_string_impl(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
+    pub(crate) fn from_string_impl(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
         let decoded = bs58::decode(address_string);
         let address_bytes = decoded.into_vec()?;
 
@@ -128,9 +128,9 @@ impl P2PKHAddress {
         }
     }
 
-    #[wasm_bindgen(js_name = fromP2PKHString)]
-    pub fn from_p2pkh_string(address_string: &str) -> Result<P2PKHAddress, JsValue> {
-        match P2PKHAddress::from_p2pkh_string_impl(address_string) {
+    #[wasm_bindgen(js_name = fromString)]
+    pub fn from_string(address_string: &str) -> Result<P2PKHAddress, JsValue> {
+        match P2PKHAddress::from_string_impl(address_string) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -184,8 +184,8 @@ impl P2PKHAddress {
         P2PKHAddress::to_address_string_impl(&self)
     }
 
-    pub fn from_p2pkh_string(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
-        P2PKHAddress::from_p2pkh_string_impl(address_string)
+    pub fn from_string(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
+        P2PKHAddress::from_string_impl(address_string)
     }
 
     pub fn get_locking_script(&self) -> Result<Script, BSVErrors> {
