@@ -1,6 +1,7 @@
 use std::{fmt::Display, num::ParseIntError};
 
 use thiserror::*;
+use wasm_bindgen::{convert::IntoWasmAbi, throw_str, JsValue};
 
 #[derive(Debug, Error)]
 pub enum BSVErrors {

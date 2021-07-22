@@ -1,5 +1,6 @@
 use crate::get_hash_digest;
 use crate::BSVErrors;
+use crate::ECIES;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
 use crate::{Signature, ToHex};
@@ -116,6 +117,24 @@ impl PrivateKey {
 
         return Ok(pub_key);
     }
+
+    /**
+     * Encrypt a message to be sent to the public key, if no public key is specified, it will be encrypted to the public key of this private key.
+     */
+    pub(crate) fn encrypt_message_impl(&self, message: &[u8], recipient_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
+        match recipient_pub_key {
+            Some(pk) => ECIES::encrypt_impl(message, Some(self.clone()), &pk),
+            None => ECIES::encrypt_impl(message, Some(self.clone()), &self.get_public_key_impl()?),
+        }
+    }
+
+    /**
+     * Decrypt a message that was sent to the public key corresponding to this private key.
+     * If no sender public key is specified, will assume it was sent by this private key.
+     */
+    pub(crate) fn decrypt_message_impl(&self, ciphertext: &[u8], sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
+        ECIES::decrypt_impl(ciphertext, &self, sender_pub_key)
+    }
 }
 
 #[wasm_bindgen]
@@ -215,6 +234,29 @@ impl PrivateKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    /**
+     * Encrypt a message to be sent to the public key, if no public key is specified, it will be encrypted to the public key of this private key.
+     */
+    #[wasm_bindgen(js_name = encryptMessage)]
+    pub fn encrypt_message(&self, message: &[u8], recipient_pub_key: Option<PublicKey>) -> Result<Vec<u8>, JsValue> {
+        match self.encrypt_message_impl(message, recipient_pub_key) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Decrypt a message that was sent to the public key corresponding to this private key.
+     * If no sender public key is specified, will assume it was sent by this private key.
+     */
+    #[wasm_bindgen(js_name = decryptMessage)]
+    pub fn decrypt_message(&self, ciphertext: &[u8], sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, JsValue> {
+        match self.decrypt_message_impl(ciphertext, sender_pub_key) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -247,5 +289,20 @@ impl PrivateKey {
 
     pub fn get_public_key(&self) -> Result<PublicKey, BSVErrors> {
         self.get_public_key_impl()
+    }
+
+    /**
+     * Encrypt a message to be sent to the public key, if no public key is specified, it will be encrypted to the public key of this private key.
+     */
+    pub fn encrypt_message(&self, message: &[u8], recipient_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
+        self.encrypt_message_impl(message, recipient_pub_key)
+    }
+
+    /**
+     * Decrypt a message that was sent to the public key corresponding to this private key.
+     * If no sender public key is specified, will assume it was sent by this private key.
+     */
+    pub fn decrypt_message(&self, ciphertext: &[u8], sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
+        self.decrypt_message_impl(ciphertext, sender_pub_key)
     }
 }

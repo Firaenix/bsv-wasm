@@ -1,5 +1,8 @@
+pub mod ecdh;
 pub mod sign;
 pub mod verify;
+
+pub use ecdh::*;
 
 use wasm_bindgen::prelude::*;
 
