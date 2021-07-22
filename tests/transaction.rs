@@ -79,7 +79,7 @@ mod transaction_tests {
         assert_eq!(tx.get_noutputs(), 0);
         assert_eq!(tx.get_output(0), None);
 
-        let input = TxIn::new(&vec![], 0, &Script::default(), None);
+        let input = TxIn::new(&[], 0, &Script::default(), None);
 
         tx.add_input(&input);
         assert_eq!(tx.get_ninputs(), 1);
