@@ -3,7 +3,7 @@ use aes::{
     cipher::{NewCipher, StreamCipher, StreamCipherSeek},
     Aes128, Aes128Ctr, Aes256, Aes256Ctr,
 };
-use block_modes::{block_padding::Pkcs7, BlockMode, Cbc};
+use block_modes::{BlockMode, Cbc, Ige, Pcbc, block_padding::Pkcs7, Cfb};
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[wasm_bindgen]
@@ -17,6 +17,10 @@ pub enum AESAlgorithms {
     AES256_CBC,
     AES128_CTR,
     AES256_CTR,
+    AES128_PCBC,
+    AES256_PCBC,
+    AES128_CFB,
+    AES256_CFB,
 }
 
 impl AES {
@@ -26,6 +30,10 @@ impl AES {
             AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
             AESAlgorithms::AES128_CTR => AES::aes_ctr::<Aes128Ctr>(key, iv, message),
             AESAlgorithms::AES256_CTR => AES::aes_ctr::<Aes256Ctr>(key, iv, message),
+            AESAlgorithms::AES128_PCBC => Pcbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
+            AESAlgorithms::AES256_PCBC => Pcbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
+            AESAlgorithms::AES128_CFB => Cfb::<Aes128, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
+            AESAlgorithms::AES256_CFB => Cfb::<Aes256, Pkcs7>::new_from_slices(key, iv)?.encrypt_vec(&message),
         };
 
         Ok(result)
@@ -37,8 +45,12 @@ impl AES {
             AESAlgorithms::AES256_CBC => Cbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(message)?,
             AESAlgorithms::AES128_CTR => AES::aes_ctr::<Aes128Ctr>(key, iv, message),
             AESAlgorithms::AES256_CTR => AES::aes_ctr::<Aes256Ctr>(key, iv, message),
+            AESAlgorithms::AES128_PCBC => Pcbc::<Aes128, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
+            AESAlgorithms::AES256_PCBC => Pcbc::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
+            AESAlgorithms::AES128_CFB => Cfb::<Aes128, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
+            AESAlgorithms::AES256_CFB => Cfb::<Aes256, Pkcs7>::new_from_slices(key, iv)?.decrypt_vec(&message)?,
         };
-
+    
         Ok(result)
     }
 
