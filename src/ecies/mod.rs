@@ -15,17 +15,21 @@ pub struct CipherKeys {
 
 impl ECIES {
   pub(crate) fn encrypt_impl(message: &[u8], sender_priv_key: Option<PrivateKey>, recipient_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
-    let shared_key = ECDH::derive_shared_key_impl(sender_priv_key.clone(), recipient_pub_key)?;
+    let private_key = match sender_priv_key {
+      Some(pk) => pk,
+      None => PrivateKey::from_random(),
+    };
+
+    let shared_key = ECDH::derive_shared_key_impl(&private_key, recipient_pub_key)?;
     let cipher = ECIES::derive_cipher_keys(&shared_key)?;
 
     let cipher_text = AES::encrypt_impl(&cipher.ke, &cipher.iv, message, crate::AESAlgorithms::AES128_CBC)?;
 
     let mut buffer: Vec<u8> = Vec::new();
     buffer.extend_from_slice(b"BIE1");
-    if let Some(pk) = sender_priv_key {
-      let r_buf = pk.get_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
-      buffer.extend_from_slice(&r_buf);
-    }
+
+    let r_buf = private_key.get_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
+    buffer.extend_from_slice(&r_buf);
     buffer.extend_from_slice(&cipher_text);
 
     let hmac = Hash::sha_256_hmac(&buffer, &cipher.km).to_bytes();
@@ -44,14 +48,11 @@ impl ECIES {
       None => PublicKey::from_bytes_impl(&bie_cipher_text[4..37])?,
     };
 
-    let shared_key = ECDH::derive_shared_key_impl(Some(recipient_priv_key.clone()), &pub_key)?;
+    let shared_key = ECDH::derive_shared_key_impl(recipient_priv_key, &pub_key)?;
     let cipher_keys = ECIES::derive_cipher_keys(&shared_key)?;
 
     let hmac_start_idx = bie_cipher_text.len() - 32;
-    let cipher_text = match sender_pub_key {
-      Some(_) => &bie_cipher_text[37..hmac_start_idx],
-      None => &bie_cipher_text[4..hmac_start_idx],
-    };
+    let cipher_text = &bie_cipher_text[37..hmac_start_idx];
 
     let hmac = &bie_cipher_text[hmac_start_idx..bie_cipher_text.len()];
     let verify_hmac = Hash::sha_256_hmac(&bie_cipher_text[0..hmac_start_idx], &cipher_keys.km);

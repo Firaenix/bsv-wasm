@@ -6,23 +6,44 @@ mod ecies_tests {
   use wasm_bindgen_test::*;
   wasm_bindgen_test::wasm_bindgen_test_configure!();
 
+  // Send to self tests
   #[test]
   #[wasm_bindgen_test]
-  fn encrypt_decrypt_text_ephemeral_private_key() {
-    // Recipient & Sender
-    let bob_priv_key = PrivateKey::from_random();
-    let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+  fn encrypt_text_specific_private_key_send_to_self() {
+    // Sender
+    let alice_private_key = PrivateKey::from_random();
+    let alice_pub_key = alice_private_key.get_public_key().unwrap();
+
     let message = b"Hello, Bitcoin.";
 
-    let encrypted = ECIES::encrypt(message, None, &bob_pub_key).unwrap();
+    let encrypted = ECIES::encrypt(message, Some(alice_private_key.clone()), &alice_pub_key).unwrap();
 
     assert!(encrypted.len() > 0);
 
-    let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, None).unwrap();
+    let plaintext = ECIES::decrypt(&encrypted, &alice_private_key, Some(alice_pub_key)).unwrap();
 
     assert_eq!(plaintext, message);
   }
 
+  #[test]
+  #[wasm_bindgen_test]
+  fn encrypt_text_specific_private_key_convenience_method_send_to_self() {
+    // Sender
+    let alice_private_key = PrivateKey::from_random();
+    let alice_pub_key = alice_private_key.get_public_key().unwrap();
+
+    let message = b"Hello, Bitcoin.";
+
+    let encrypted = alice_private_key.encrypt_message(message, None).unwrap();
+
+    assert!(encrypted.len() > 0);
+
+    let plaintext = alice_private_key.decrypt_message(&encrypted, None).unwrap();
+
+    assert_eq!(plaintext, message);
+  }
+
+  // Send to other party tests
   #[test]
   #[wasm_bindgen_test]
   fn encrypt_text_specific_private_key() {
@@ -64,20 +85,20 @@ mod ecies_tests {
     assert_eq!(plaintext, message);
   }
 
+  // Send to other party with ephemeral(anonymous) private key
   #[test]
   #[wasm_bindgen_test]
-  fn encrypt_text_specific_private_key_convenience_method_send_to_self() {
-    // Sender
-    let alice_private_key = PrivateKey::from_random();
-    let alice_pub_key = alice_private_key.get_public_key().unwrap();
-
+  fn encrypt_decrypt_text_ephemeral_private_key() {
+    // Recipient with Anonymous sender
+    let bob_priv_key = PrivateKey::from_random();
+    let bob_pub_key = bob_priv_key.get_public_key().unwrap();
     let message = b"Hello, Bitcoin.";
 
-    let encrypted = alice_private_key.encrypt_message(message, None).unwrap();
+    let encrypted = ECIES::encrypt(message, None, &bob_pub_key).unwrap();
 
     assert!(encrypted.len() > 0);
 
-    let plaintext = alice_private_key.decrypt_message(&encrypted, None).unwrap();
+    let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, None).unwrap();
 
     assert_eq!(plaintext, message);
   }
