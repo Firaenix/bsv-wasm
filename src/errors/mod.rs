@@ -100,6 +100,9 @@ pub enum BSVErrors {
 
     #[error("{0}")]
     OutOfBounds(String),
+
+    #[error("{0}")]
+    DecryptionError(String),
     //=========== Serialisation Errors ==============
     #[error("Error deserialising transaction field {0}: {1}")]
     DeserialiseTransaction(String, #[source] std::io::Error),
