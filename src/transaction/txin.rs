@@ -35,10 +35,9 @@ impl TxIn {
     pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
         // PrevTxId - 32 bytes
         let mut prev_tx_id = vec![0; 32];
-        match cursor.read(&mut prev_tx_id) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = cursor.read(&mut prev_tx_id) {
+            return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e));
+        }
         // Error in the original bitcoin client means that all txids in TxIns are reversed
         prev_tx_id.reverse();
 
@@ -56,10 +55,9 @@ impl TxIn {
 
         // Script Sig
         let mut script_sig = vec![0; script_sig_size as usize];
-        match cursor.read(&mut script_sig) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = cursor.read(&mut script_sig) {
+            return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence - 4 bytes
         let sequence = match cursor.read_u32::<LittleEndian>() {

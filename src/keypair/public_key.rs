@@ -85,10 +85,7 @@ impl PublicKey {
 impl PublicKey {
     #[wasm_bindgen(js_name = isValidMessage)]
     pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
-        match self.verify_message_impl(message, signature) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        self.verify_message_impl(message, signature).is_ok()
     }
 
     #[wasm_bindgen(js_name = isCompressed)]

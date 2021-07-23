@@ -140,7 +140,7 @@ impl Transaction {
         // Empty scripts
         tx.inputs.iter_mut().for_each(|txin| txin.set_script(&Script::default()));
 
-        let mut prev_txin = tx.get_input(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
+        let mut prev_txin = tx.get_input(n_tx_in).ok_or_else(|| BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
         prev_txin.set_script(&script);
         tx.set_input(n_tx_in, &prev_txin);
 
@@ -153,7 +153,7 @@ impl Transaction {
                 //   return Ok(hex::decode("0000000000000000000000000000000000000000000000000000000000000001").map_err(|e| anyhow!(e))?)
                 // }
 
-                let txout = tx.get_output(n_tx_in).ok_or(BSVErrors::OutOfBounds(format!("Could not get TxOut at index {}", n_tx_in)))?;
+                let txout = tx.get_output(n_tx_in).ok_or_else(|| BSVErrors::OutOfBounds(format!("Could not get TxOut at index {}", n_tx_in)))?;
                 tx.outputs = vec![txout];
 
                 for i in 0..tx.outputs.len() {
@@ -304,10 +304,7 @@ impl Transaction {
 #[wasm_bindgen]
 impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
-        match ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d) {
-            Ok(v) => v,
-            Err(_) => false,
-        }
+        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
     }
 }
 

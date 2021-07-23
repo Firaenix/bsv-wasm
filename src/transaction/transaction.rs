@@ -378,7 +378,7 @@ impl Transaction {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
-        Transaction::to_json_string_impl(&self)
+        Transaction::to_json_string_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -389,7 +389,7 @@ impl Transaction {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        Transaction::to_bytes_impl(&self)
+        Transaction::to_bytes_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

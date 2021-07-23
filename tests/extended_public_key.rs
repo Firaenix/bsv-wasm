@@ -60,6 +60,6 @@ mod xpub_tests {
         let pub_key = ExtendedPublicKey::from_string("xpub67uA5wAUuv1ypp7rEY7jUZBZmwFSULFUArLBJrHr3amnymkUEYWzQJz13zLacZv33sSuxKVmerpZeFExapBNt8HpAqtTtWqDQRAgyqSKUHu").unwrap();
 
         // Cannot do hardened derivation
-        assert_eq!(pub_key.derive_from_path("m/0'/1'").is_err(), true);
+        assert!(pub_key.derive_from_path("m/0'/1'").is_err());
     }
 }

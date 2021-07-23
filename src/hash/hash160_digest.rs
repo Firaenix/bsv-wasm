@@ -55,7 +55,7 @@ impl FixedOutputDirty for Hash160 {
             finished_hash.reverse()
         }
 
-        out.copy_from_slice(&finished_hash);
+        out.copy_from_slice(finished_hash);
     }
 }
 
