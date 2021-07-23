@@ -8,6 +8,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
       - uses: icepuma/rust-action@master
         with:
           args: cargo fmt -- --check && cargo clippy -- -Dwarnings
