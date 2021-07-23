@@ -47,10 +47,9 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_21e8_asm_string() {
-        let script = Script::from_asm_string(
-            "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG",
-        )
-        .unwrap();
+        let script =
+            Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
+                .unwrap();
 
         assert_eq!(
             script.to_asm_string().unwrap(),
@@ -105,10 +104,9 @@ mod tests {
     #[test]
     #[wasm_bindgen_test]
     fn from_standard_21e8_asm_format() {
-        let script = Script::from_asm_string(
-            "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG",
-        )
-        .unwrap();
+        let script =
+            Script::from_asm_string("0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
+                .unwrap();
 
         assert_eq!(
             script.to_asm_string().unwrap(),
