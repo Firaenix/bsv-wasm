@@ -12,5 +12,6 @@ jobs:
         with:
             toolchain: nightly
             override: true
-            
+      - run: rustup component add clippy
+      - run: rustup component add rustfmt
       - run: cargo fmt -- --check && cargo clippy -- -Dwarnings
