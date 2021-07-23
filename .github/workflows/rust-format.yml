@@ -12,6 +12,5 @@ jobs:
         with:
             toolchain: nightly
             override: true
-      - uses: icepuma/rust-action@master
-        with:
-          args: cargo fmt -- --check && cargo clippy -- -Dwarnings
+            
+      - run: cargo fmt -- --check && cargo clippy -- -Dwarnings
