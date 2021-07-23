@@ -1,10 +1,18 @@
+use crate::{BSVErrors, Hash, PrivateKey, PublicKey, AES, ECDH};
+use elliptic_curve::sec1::ToEncodedPoint;
 use k256::ecdh::{self, *};
+use k256::{ProjectivePoint, PublicKey as K256PublicKey, SecretKey};
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{throw_str, JsValue};
 
-use crate::{BSVErrors, Hash, PrivateKey, PublicKey, AES, ECDH};
+pub mod ecies_ciphertext;
+pub use ecies_ciphertext::*;
 
+/**
+ * Electrum compatible ECIES implementation.
+ * Comparable to Ecies.electrumEncrypt in BSV.JS
+ */
 pub struct ECIES {}
 
 #[wasm_bindgen]
@@ -30,59 +38,67 @@ impl CipherKeys {
 }
 
 impl ECIES {
-  pub(crate) fn encrypt_impl(message: &[u8], sender_priv_key: Option<PrivateKey>, recipient_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
-    let private_key = match sender_priv_key {
-      Some(pk) => pk,
-      None => PrivateKey::from_random(),
-    };
-
-    let shared_key = ECDH::derive_shared_key_impl(&private_key, recipient_pub_key)?;
-    let cipher = ECIES::derive_cipher_keys_impl(&shared_key)?;
-
+  pub(crate) fn encrypt_impl(message: &[u8], private_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+    let cipher = ECIES::derive_cipher_keys_impl(&private_key, recipient_pub_key)?;
     let cipher_text = AES::encrypt_impl(&cipher.ke, &cipher.iv, message, crate::AESAlgorithms::AES128_CBC)?;
 
     let mut buffer: Vec<u8> = Vec::new();
     buffer.extend_from_slice(b"BIE1");
 
-    let r_buf = private_key.get_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
-    buffer.extend_from_slice(&r_buf);
+    let r_buf = match exclude_pub_key {
+      true => None,
+      false => {
+        let pub_key = private_key.get_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
+        buffer.extend_from_slice(&pub_key);
+        Some(pub_key)
+      }
+    };
     buffer.extend_from_slice(&cipher_text);
 
     let hmac = Hash::sha_256_hmac(&buffer, &cipher.km).to_bytes();
-    buffer.extend_from_slice(&hmac);
 
-    Ok(buffer)
+    Ok(ECIESCiphertext {
+      ciphertext_bytes: cipher_text,
+      public_key_bytes: r_buf,
+      hmac_bytes: hmac,
+    })
   }
 
-  pub(crate) fn decrypt_impl(bie_cipher_text: &[u8], recipient_priv_key: &PrivateKey, sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
-    if &bie_cipher_text[0..4] != b"BIE1" {
-      return Err(BSVErrors::DecryptionError("Cipher text did not start with BIE".into()));
+  pub(crate) fn encrypt_with_ephemeral_private_key_impl(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+    let private_key = PrivateKey::from_random();
+    ECIES::encrypt_impl(message, &private_key, recipient_pub_key, exclude_pub_key)
+  }
+
+  pub(crate) fn decrypt_impl(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
+    let cipher_keys = ECIES::derive_cipher_keys_impl(recipient_priv_key, sender_pub_key)?;
+
+    let hmac = &ciphertext.hmac_bytes;
+
+    let mut preimage = b"BIE1".to_vec();
+    if let Some(pk) = &ciphertext.public_key_bytes {
+      preimage.extend_from_slice(&pk);
     }
+    preimage.extend_from_slice(&ciphertext.ciphertext_bytes);
 
-    let pub_key = match sender_pub_key.clone() {
-      Some(p) => p.clone(),
-      None => PublicKey::from_bytes_impl(&bie_cipher_text[4..37])?,
-    };
-
-    let shared_key = ECDH::derive_shared_key_impl(recipient_priv_key, &pub_key)?;
-    let cipher_keys = ECIES::derive_cipher_keys_impl(&shared_key)?;
-
-    let hmac_start_idx = bie_cipher_text.len() - 32;
-    let cipher_text = &bie_cipher_text[37..hmac_start_idx];
-
-    let hmac = &bie_cipher_text[hmac_start_idx..bie_cipher_text.len()];
-    let verify_hmac = Hash::sha_256_hmac(&bie_cipher_text[0..hmac_start_idx], &cipher_keys.km);
+    let verify_hmac = Hash::sha_256_hmac(&preimage, &cipher_keys.km);
 
     if hmac != &verify_hmac.to_bytes() {
-      return Err(BSVErrors::DecryptionError("Invalid Checksum".into()));
+      return Err(BSVErrors::ECIESError("Invalid Checksum".into()));
     }
 
-    let plain_text = AES::decrypt_impl(&cipher_keys.ke, &cipher_keys.iv, cipher_text, crate::AESAlgorithms::AES128_CBC)?;
+    let plain_text = AES::decrypt_impl(&cipher_keys.ke, &cipher_keys.iv, &ciphertext.ciphertext_bytes, crate::AESAlgorithms::AES128_CBC)?;
     Ok(plain_text)
   }
 
-  pub(crate) fn derive_cipher_keys_impl(shared_key_bytes: &[u8]) -> Result<CipherKeys, BSVErrors> {
-    let hash = Hash::sha_512(shared_key_bytes).to_bytes();
+  pub(crate) fn derive_cipher_keys_impl(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, BSVErrors> {
+    let private_scalar = *priv_key.secret_key.to_secret_scalar();
+    let pub_key_point = K256PublicKey::from_sec1_bytes(&pub_key.to_bytes_impl()?)?.to_projective();
+
+    let shared_point = pub_key_point * private_scalar;
+    let shared_pub = K256PublicKey::from_affine(shared_point.to_affine())?;
+
+    let shared_mod_point = shared_pub.to_encoded_point(true);
+    let hash = Hash::sha_512(shared_mod_point.as_bytes()).to_bytes();
 
     Ok(CipherKeys {
       iv: hash[0..16].into(),
@@ -95,23 +111,36 @@ impl ECIES {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl ECIES {
-  pub fn encrypt(message: &[u8], sender_priv_key: Option<PrivateKey>, recipient_pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
-    match ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key) {
+  // Encrypt to PublicKey
+
+  // Encrypt to PrivateKey
+
+  // Encrypt to PublicKey Anonymously (Ephemeral)
+
+  pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
+    match ECIES::encrypt_impl(message, Some(sender_priv_key), recipient_pub_key, exclude_pub_key) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
   }
 
-  pub fn decrypt(bie_cipher_text: &[u8], recipient_priv_key: &PrivateKey, sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, JsValue> {
-    match ECIES::decrypt_impl(bie_cipher_text, recipient_priv_key, sender_pub_key) {
+  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
+    match ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key, exclude_pub_key) {
+      Ok(v) => Ok(v),
+      Err(e) => throw_str(&e.to_string()),
+    }
+  }
+
+  pub fn decrypt(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
+    match ECIES::decrypt_impl(ciphertext, recipient_priv_key, sender_pub_key) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
   }
 
   #[wasm_bindgen(js_name = deriveCipherKeys)]
-  pub fn derive_cipher_keys(shared_key_bytes: &[u8]) -> Result<CipherKeys, JsValue> {
-    match ECIES::derive_cipher_keys_impl(shared_key_bytes) {
+  pub fn derive_cipher_keys(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, JsValue> {
+    match ECIES::derive_cipher_keys_impl(priv_key, pub_key) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -120,15 +149,19 @@ impl ECIES {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl ECIES {
-  pub fn encrypt(message: &[u8], sender_priv_key: Option<PrivateKey>, recipient_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
-    ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key)
+  pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+    ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key)
   }
 
-  pub fn decrypt(bie_cipher_text: &[u8], recipient_priv_key: &PrivateKey, sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, BSVErrors> {
-    ECIES::decrypt_impl(bie_cipher_text, recipient_priv_key, sender_pub_key)
+  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+    ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key, exclude_pub_key)
   }
 
-  pub fn derive_cipher_keys(shared_key_bytes: &[u8]) -> Result<CipherKeys, BSVErrors> {
-    ECIES::derive_cipher_keys_impl(shared_key_bytes)
+  pub fn decrypt(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
+    ECIES::decrypt_impl(ciphertext, recipient_priv_key, sender_pub_key)
+  }
+
+  pub fn derive_cipher_keys(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, BSVErrors> {
+    ECIES::derive_cipher_keys_impl(priv_key, pub_key)
   }
 }

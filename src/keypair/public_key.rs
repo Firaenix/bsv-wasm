@@ -1,4 +1,4 @@
-use crate::{BSVErrors, P2PKHAddress, Signature, SigningHash, ECDSA};
+use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
@@ -71,6 +71,13 @@ impl PublicKey {
 
     pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(self)
+    }
+
+    /**
+     * Encrypt a message to be sent to this public key with the provided private key.
+     */
+    pub(crate) fn encrypt_message_impl(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
+        ECIES::encrypt(message, sender_private_key, &self, false)
     }
 }
 
@@ -164,6 +171,14 @@ impl PublicKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[wasm_bindgen(js_name = encryptMessage)]
+    pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, JsValue> {
+        match self.encrypt_message_impl(message, sender_private_key) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -205,5 +220,9 @@ impl PublicKey {
 
     pub fn to_decompressed(&self) -> Result<PublicKey, BSVErrors> {
         self.to_decompressed_impl()
+    }
+
+    pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
+        self.encrypt_message_impl(message, sender_private_key)
     }
 }

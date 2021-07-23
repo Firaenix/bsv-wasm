@@ -1,6 +1,7 @@
 use std::{fmt::Display, num::ParseIntError};
 
 use thiserror::*;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::{convert::IntoWasmAbi, throw_str, JsValue};
 
 #[derive(Debug, Error)]
@@ -103,7 +104,8 @@ pub enum BSVErrors {
     OutOfBounds(String),
 
     #[error("{0}")]
-    DecryptionError(String),
+    ECIESError(String),
+
     //=========== Serialisation Errors ==============
     #[error("Error deserialising transaction field {0}: {1}")]
     DeserialiseTransaction(String, #[source] std::io::Error),

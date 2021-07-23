@@ -6,6 +6,42 @@ mod ecies_tests {
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
+    // Send to other party without encoding public key
+    #[test]
+    #[wasm_bindgen_test]
+    fn encrypt_text_to_other_party_and_exclude_pub_key() {
+        // Sender
+        let alice_private_key = PrivateKey::from_random();
+
+        // Recipient
+        let bob_priv_key = PrivateKey::from_random();
+        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let message = b"Hello, Bitcoin.";
+
+        let encrypted = ECIES::encrypt(message, &alice_private_key, &bob_pub_key, true).unwrap();
+
+        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.get_public_key().unwrap()).unwrap();
+
+        assert_eq!(plaintext, message);
+    }
+
+    // Send to self without encoding public key
+    #[test]
+    #[wasm_bindgen_test]
+    fn encrypt_text_to_self_and_exclude_pub_key() {
+        // Sender
+        let alice_private_key = PrivateKey::from_random();
+        let alice_pub_key = alice_private_key.get_public_key().unwrap();
+
+        let message = b"Hello, Bitcoin.";
+
+        let encrypted = ECIES::encrypt(message, &alice_private_key, &alice_pub_key, true).unwrap();
+
+        let plaintext = ECIES::decrypt(&encrypted, &alice_private_key, &alice_pub_key).unwrap();
+
+        assert_eq!(plaintext, message);
+    }
+
     // Send to self tests
     #[test]
     #[wasm_bindgen_test]
@@ -16,11 +52,9 @@ mod ecies_tests {
 
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = ECIES::encrypt(message, Some(alice_private_key.clone()), &alice_pub_key).unwrap();
+        let encrypted = ECIES::encrypt(message, &alice_private_key, &alice_pub_key, false).unwrap();
 
-        assert!(!encrypted.is_empty());
-
-        let plaintext = ECIES::decrypt(&encrypted, &alice_private_key, Some(alice_pub_key)).unwrap();
+        let plaintext = ECIES::decrypt(&encrypted, &alice_private_key, &alice_pub_key).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -34,16 +68,14 @@ mod ecies_tests {
 
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = alice_private_key.encrypt_message(message, None).unwrap();
+        let encrypted = alice_private_key.encrypt_message(message).unwrap();
 
-        assert!(!encrypted.is_empty());
-
-        let plaintext = alice_private_key.decrypt_message(&encrypted, None).unwrap();
+        let plaintext = alice_private_key.decrypt_message(&encrypted, &alice_private_key.get_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
 
-    // Send to other party tests
+    // // Send to other party tests
     #[test]
     #[wasm_bindgen_test]
     fn encrypt_text_specific_private_key() {
@@ -55,11 +87,9 @@ mod ecies_tests {
         let bob_pub_key = bob_priv_key.get_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = ECIES::encrypt(message, Some(alice_private_key.clone()), &bob_pub_key).unwrap();
+        let encrypted = ECIES::encrypt(message, &alice_private_key, &bob_pub_key, false).unwrap();
 
-        assert!(!encrypted.is_empty());
-
-        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, Some(alice_private_key.get_public_key().unwrap())).unwrap();
+        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.get_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -76,11 +106,9 @@ mod ecies_tests {
         let bob_pub_key = bob_priv_key.get_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = alice_private_key.encrypt_message(message, Some(bob_pub_key)).unwrap();
+        let encrypted = bob_pub_key.encrypt_message(message, &alice_private_key).unwrap();
 
-        assert!(!encrypted.is_empty());
-
-        let plaintext = bob_priv_key.decrypt_message(&encrypted, Some(alice_pub_key)).unwrap();
+        let plaintext = bob_priv_key.decrypt_message(&encrypted, &alice_pub_key).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -94,11 +122,9 @@ mod ecies_tests {
         let bob_pub_key = bob_priv_key.get_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = ECIES::encrypt(message, None, &bob_pub_key).unwrap();
+        let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key, false).unwrap();
 
-        assert!(!encrypted.is_empty());
-
-        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, None).unwrap();
+        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &encrypted.extract_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }

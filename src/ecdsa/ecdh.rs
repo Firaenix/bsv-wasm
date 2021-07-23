@@ -1,5 +1,8 @@
 use crate::{BSVErrors, PrivateKey, PublicKey};
 use elliptic_curve::ecdh::{self, diffie_hellman};
+use elliptic_curve::sec1::ToEncodedPoint;
+use elliptic_curve::Scalar;
+
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{throw_str, JsValue};
