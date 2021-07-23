@@ -64,9 +64,13 @@ impl ECIES {
     })
   }
 
-  pub(crate) fn encrypt_with_ephemeral_private_key_impl(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+  /**
+   * Encrypt with a randomly generate private key.
+   * This is intended to be used if you want to anonymously send a party an encrypted message.
+   */
+  pub(crate) fn encrypt_with_ephemeral_private_key_impl(message: &[u8], recipient_pub_key: &PublicKey) -> Result<ECIESCiphertext, BSVErrors> {
     let private_key = PrivateKey::from_random();
-    ECIES::encrypt_impl(message, &private_key, recipient_pub_key, exclude_pub_key)
+    ECIES::encrypt_impl(message, &private_key, recipient_pub_key, false)
   }
 
   pub(crate) fn decrypt_impl(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
@@ -111,12 +115,6 @@ impl ECIES {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl ECIES {
-  // Encrypt to PublicKey
-
-  // Encrypt to PrivateKey
-
-  // Encrypt to PublicKey Anonymously (Ephemeral)
-
   pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
     match ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key) {
       Ok(v) => Ok(v),
@@ -124,8 +122,13 @@ impl ECIES {
     }
   }
 
-  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
-    match ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key, exclude_pub_key) {
+  /**
+   * Encrypt with a randomly generate private key.
+   * This is intended to be used if you want to anonymously send a party an encrypted message.
+   */
+  #[wasm_bindgen(js_name = encryptWithEphemeralKey)]
+  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey) -> Result<ECIESCiphertext, JsValue> {
+    match ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }
@@ -153,8 +156,12 @@ impl ECIES {
     ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key)
   }
 
-  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
-    ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key, exclude_pub_key)
+  /**
+   * Encrypt with a randomly generate private key.
+   * This is intended to be used if you want to anonymously send a party an encrypted message.
+   */
+  pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey) -> Result<ECIESCiphertext, BSVErrors> {
+    ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key)
   }
 
   pub fn decrypt(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {

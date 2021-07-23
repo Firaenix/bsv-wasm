@@ -30,13 +30,13 @@ describe("ECIES Tests", function() {
     let bob = PrivateKey.fromRandom();
     let bobJS = KeyPair.fromPrivKey(PrivKey.fromWif(bob.toWIF()));
 
-    let ciphertext = ECIES.encrypt(message, undefined, bob.getPublicKey());
+    let ciphertext = ECIES.encryptWithEphemeralKey(message, bob.getPublicKey(), false);
     let ciphertextJs = Ecies.electrumEncrypt(message, bobJS.pubKey, null);
     
     // Cant compare ciphertexts because different ephemeral keys
     //  assert.equal(Buffer.from(ciphertext).toString('hex'), ciphertextJs.toString('hex'));
 
-    let plaintext = ECIES.decrypt(ciphertext, bob, undefined);
+    let plaintext = ECIES.decrypt(ciphertext, bob, ciphertext.extractPublicKey());
     let plaintextJs = Ecies.electrumDecrypt(ciphertextJs, bobJS.privKey, null);
 
     assert.equal(plaintextJs.toString('hex'), message.toString('hex'));
@@ -52,12 +52,12 @@ describe("ECIES Tests", function() {
     let bob = PrivateKey.fromRandom();
     let bobJS = KeyPair.fromPrivKey(PrivKey.fromWif(bob.toWIF()));
 
-    let ciphertext = ECIES.encrypt(message, bob, bob.getPublicKey());
+    let ciphertext = ECIES.encrypt(message, bob, bob.getPublicKey(), false);
     let ciphertextJs = Ecies.electrumEncrypt(message, bobJS.pubKey, bobJS);
     
-    assert.equal(Buffer.from(ciphertext).toString('hex'), ciphertextJs.toString('hex'), "Ciphertexts dont match");
+    assert.equal(Buffer.from(ciphertext.toBytes()).toString('hex'), ciphertextJs.toString('hex'), "Ciphertexts dont match");
 
-    let plaintext = ECIES.decrypt(ciphertext, bob);
+    let plaintext = ECIES.decrypt(ciphertext, bob, bob.getPublicKey());
     let plaintextJs = Ecies.electrumDecrypt(ciphertextJs, bobJS.privKey, null);
 
     assert.equal(plaintextJs.toString('hex'), message.toString('hex'));
@@ -77,18 +77,82 @@ describe("ECIES Tests", function() {
     let bob = PrivateKey.fromRandom();
     let bobJS = KeyPair.fromPrivKey(PrivKey.fromWif(bob.toWIF()));
 
-    let ciphertext = ECIES.encrypt(message, alice, bob.getPublicKey());
+    let ciphertext = ECIES.encrypt(message, alice, bob.getPublicKey(), false);
     let ciphertextJs = Ecies.electrumEncrypt(message, bobJS.pubKey, aliceJS);
 
-    assert.equal(Buffer.from(ciphertext).toString('hex'), ciphertextJs.toString('hex'), "Ciphertexts dont match");
+    assert.equal(Buffer.from(ciphertext.toBytes()).toString('hex'), ciphertextJs.toString('hex'), "Ciphertexts dont match");
 
     let alicePub = alice.getPublicKey();
     let plaintext = ECIES.decrypt(ciphertext, bob, alicePub);
-    let plaintextJs = Ecies.electrumDecrypt(ciphertextJs, bobJS.privKey, aliceJS.pubKey);
+    let plaintextJs = Ecies.electrumDecrypt(ciphertextJs, bobJS.privKey, null);
 
     assert.equal(plaintextJs.toString('hex'), message.toString('hex'));
     assert.equal(Buffer.from(plaintext).toString('hex'), plaintextJs.toString('hex'));
 
     assert.equal(Buffer.from(plaintext).toString('hex'), message.toString('hex'));
+  });
+
+  it('ECIES (Send to Self) Convenience methods', () => {
+    let message = Buffer.from("Hello, Bitcoin.");
+
+    // Sender + Recipient
+    let alice = PrivateKey.fromRandom();
+
+    let alice_secret_stuff = alice.encryptMessage(message);
+    let decrypted = alice.decryptMessage(alice_secret_stuff, alice.getPublicKey());
+
+    assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
+  });
+
+  it('ECIES (Send to other party) Convenience methods', () => {
+    let message = Buffer.from("Hello, Bitcoin.");
+
+    // Sender
+    let alice = PrivateKey.fromRandom();
+    // Recipient
+    let bob = PrivateKey.fromRandom();
+    let bob_pub = bob.getPublicKey();
+
+    // Alice does:
+    let message_for_bob = bob_pub.encryptMessage(message, alice);
+
+    // Bob does:
+    let decrypted = bob.decryptMessage(message_for_bob, alice.getPublicKey());
+
+    assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
+  });
+
+  it('ECIES (Send to other party - Anonymous) Convenience methods', () => {
+    let message = Buffer.from("Hello, Bitcoin.");
+
+    // Recipient
+    let bob = PrivateKey.fromRandom();
+    let bob_pub = bob.getPublicKey();
+
+    // Alice does:
+    let message_for_bob = ECIES.encryptWithEphemeralKey(message, bob_pub);
+
+    // Bob does:
+    let decrypted = bob.decryptMessage(message_for_bob, message_for_bob.extractPublicKey());
+
+    assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
+  });
+
+  it('ECIES (Send to other party - Private) Convenience methods', () => {
+    let message = Buffer.from("Hello, Bitcoin.");
+
+    // Sender
+    let alice = PrivateKey.fromRandom();
+    // Recipient
+    let bob = PrivateKey.fromRandom();
+    let bob_pub = bob.getPublicKey();
+
+    // Alice does:
+    let message_for_bob = ECIES.encrypt(message, alice, bob_pub, true);
+
+    // Bob does:
+    let decrypted = bob.decryptMessage(message_for_bob, alice.getPublicKey());
+
+    assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
   });
 });

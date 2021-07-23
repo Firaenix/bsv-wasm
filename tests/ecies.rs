@@ -64,7 +64,6 @@ mod ecies_tests {
     fn encrypt_text_specific_private_key_convenience_method_send_to_self() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
-        let _alice_pub_key = alice_private_key.get_public_key().unwrap();
 
         let message = b"Hello, Bitcoin.";
 
@@ -122,7 +121,7 @@ mod ecies_tests {
         let bob_pub_key = bob_priv_key.get_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
-        let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key, false).unwrap();
+        let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key).unwrap();
 
         let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &encrypted.extract_public_key().unwrap()).unwrap();
 
