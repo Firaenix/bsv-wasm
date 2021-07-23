@@ -118,7 +118,7 @@ impl ECIES {
   // Encrypt to PublicKey Anonymously (Ephemeral)
 
   pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
-    match ECIES::encrypt_impl(message, Some(sender_priv_key), recipient_pub_key, exclude_pub_key) {
+    match ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key) {
       Ok(v) => Ok(v),
       Err(e) => throw_str(&e.to_string()),
     }

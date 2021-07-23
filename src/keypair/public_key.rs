@@ -77,7 +77,7 @@ impl PublicKey {
      * Encrypt a message to be sent to this public key with the provided private key.
      */
     pub(crate) fn encrypt_message_impl(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
-        ECIES::encrypt(message, sender_private_key, &self, false)
+        ECIES::encrypt_impl(message, sender_private_key, &self, false)
     }
 }
 

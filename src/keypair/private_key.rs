@@ -233,11 +233,11 @@ impl PrivateKey {
     }
 
     /**
-     * Encrypt a message to be sent to the public key, if no public key is specified, it will be encrypted to the public key of this private key.
+     * Encrypt a message to the public key of this private key.
      */
     #[wasm_bindgen(js_name = encryptMessage)]
-    pub fn encrypt_message(&self, message: &[u8], recipient_pub_key: Option<PublicKey>) -> Result<Vec<u8>, JsValue> {
-        match self.encrypt_message_impl(message, recipient_pub_key) {
+    pub fn encrypt_message(&self, message: &[u8]) -> Result<ECIESCiphertext, JsValue> {
+        match self.encrypt_message_impl(message) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -245,10 +245,9 @@ impl PrivateKey {
 
     /**
      * Decrypt a message that was sent to the public key corresponding to this private key.
-     * If no sender public key is specified, will assume it was sent by this private key.
      */
     #[wasm_bindgen(js_name = decryptMessage)]
-    pub fn decrypt_message(&self, ciphertext: &[u8], sender_pub_key: Option<PublicKey>) -> Result<Vec<u8>, JsValue> {
+    pub fn decrypt_message(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
         match self.decrypt_message_impl(ciphertext, sender_pub_key) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
