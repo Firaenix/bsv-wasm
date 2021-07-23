@@ -23,7 +23,7 @@ impl PublicKey {
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         let bytes = self.to_bytes_impl()?;
-        return Ok(hex::encode(bytes));
+        Ok(hex::encode(bytes))
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
@@ -59,7 +59,7 @@ impl PublicKey {
 
     pub(crate) fn from_hex_impl(hex_str: &str) -> Result<PublicKey, BSVErrors> {
         let point_bytes = hex::decode(hex_str)?;
-        Ok(PublicKey::from_bytes_impl(&point_bytes)?)
+        PublicKey::from_bytes_impl(&point_bytes)
     }
 
     /**
@@ -77,7 +77,7 @@ impl PublicKey {
      * Encrypt a message to be sent to this public key with the provided private key.
      */
     pub(crate) fn encrypt_message_impl(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
-        ECIES::encrypt_impl(message, sender_private_key, &self, false)
+        ECIES::encrypt_impl(message, sender_private_key, self, false)
     }
 }
 
@@ -192,11 +192,11 @@ impl PublicKey {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        PublicKey::to_bytes_impl(&self)
+        PublicKey::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        PublicKey::to_hex_impl(&self)
+        PublicKey::to_hex_impl(self)
     }
 
     pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {

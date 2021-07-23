@@ -10,6 +10,4 @@ jobs:
       - uses: actions/checkout@v1
       - uses: icepuma/rust-action@master
         with:
-          args: cargo fmt -- --check
-          # TODO: check Clippy too after fixing all the warnings
-          # args: cargo fmt -- --check && cargo clippy -- -Dwarnings
+          args: cargo fmt -- --check && cargo clippy -- -Dwarnings

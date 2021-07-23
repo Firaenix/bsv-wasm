@@ -70,7 +70,7 @@ impl PrivateKey {
     pub(crate) fn from_hex_impl(hex_str: &str) -> Result<PrivateKey, BSVErrors> {
         let bytes = hex::decode(hex_str)?;
 
-        Ok(Self::from_bytes_impl(&bytes)?)
+        Self::from_bytes_impl(&bytes)
     }
 
     pub(crate) fn from_wif_impl(wif_string: &str) -> Result<PrivateKey, BSVErrors> {
@@ -84,17 +84,17 @@ impl PrivateKey {
         let check_string = check_hash.to_vec()[0..4].to_hex();
 
         if check_string.ne(&checksum) {
-            return Err(BSVErrors::FromWIF(format!("Checksum does not match!")));
+            return Err(BSVErrors::FromWIF("Checksum does not match!".into()));
         }
 
         // Private Key is 32 bytes + prefix is 33 bytes, if 34 bytes and ends with 01, compressed is true
-        fn is_compressed(unchecksum: &Vec<u8>) -> bool {
+        fn is_compressed(unchecksum: &[u8]) -> bool {
             if unchecksum.len() < 34 {
                 return false;
             }
 
             match unchecksum.last() {
-                Some(last_byte) => last_byte.eq(&01),
+                Some(last_byte) => last_byte.eq(&1),
                 None => false,
             }
         }
@@ -110,27 +110,27 @@ impl PrivateKey {
     }
 
     pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
-        let pub_key = PublicKey::from_private_key_impl(&self);
+        let pub_key = PublicKey::from_private_key_impl(self);
 
         if !self.is_pub_key_compressed {
-            return Ok(pub_key.to_decompressed_impl()?);
+            return pub_key.to_decompressed_impl();
         }
 
-        return Ok(pub_key);
+        Ok(pub_key)
     }
 
     /**
      * Encrypt a message to the public key of this private key.
      */
     pub(crate) fn encrypt_message_impl(&self, message: &[u8]) -> Result<ECIESCiphertext, BSVErrors> {
-        ECIES::encrypt_impl(message, &self, &self.get_public_key_impl()?, false)
+        ECIES::encrypt_impl(message, self, &self.get_public_key_impl()?, false)
     }
 
     /**
      * Decrypt a message that was sent to the public key corresponding to this private key.
      */
     pub(crate) fn decrypt_message_impl(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
-        ECIES::decrypt_impl(ciphertext, &self, sender_pub_key)
+        ECIES::decrypt_impl(ciphertext, self, sender_pub_key)
     }
 }
 
@@ -261,7 +261,7 @@ impl PrivateKey {
 #[cfg(not(target_arch = "wasm32"))]
 impl PrivateKey {
     pub fn to_wif(&self) -> Result<String, BSVErrors> {
-        PrivateKey::to_wif_impl(&self)
+        PrivateKey::to_wif_impl(self)
     }
 
     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, BSVErrors> {
@@ -276,7 +276,7 @@ impl PrivateKey {
      * Standard ECDSA Message Signing using SHA256 as the digestg
      */
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
-        PrivateKey::sign_message_impl(&self, msg)
+        PrivateKey::sign_message_impl(self, msg)
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, BSVErrors> {

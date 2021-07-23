@@ -39,7 +39,7 @@ impl CipherKeys {
 
 impl ECIES {
     pub(crate) fn encrypt_impl(message: &[u8], private_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
-        let cipher = ECIES::derive_cipher_keys_impl(&private_key, recipient_pub_key)?;
+        let cipher = ECIES::derive_cipher_keys_impl(private_key, recipient_pub_key)?;
         let cipher_text = AES::encrypt_impl(&cipher.ke, &cipher.iv, message, crate::AESAlgorithms::AES128_CBC)?;
 
         let mut buffer: Vec<u8> = Vec::new();
@@ -80,7 +80,7 @@ impl ECIES {
 
         let mut preimage = b"BIE1".to_vec();
         if let Some(pk) = &ciphertext.public_key_bytes {
-            preimage.extend_from_slice(&pk);
+            preimage.extend_from_slice(pk);
         }
         preimage.extend_from_slice(&ciphertext.ciphertext_bytes);
 

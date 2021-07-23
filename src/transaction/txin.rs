@@ -80,16 +80,14 @@ impl TxIn {
         let mut prev_tx_id = self.prev_tx_id.clone();
         prev_tx_id.reverse();
         // Write Prev TxID first
-        match buffer.write(&prev_tx_id) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = buffer.write(&prev_tx_id) {
+            return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e));
+        }
 
         // Vout
-        match buffer.write_u32::<LittleEndian>(self.vout) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.vout) {
+            return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
+        }
 
         // Script Sig Size
         match buffer.write_varint(self.get_script_sig_size()) {
@@ -98,10 +96,9 @@ impl TxIn {
         };
 
         // Script Sig
-        match buffer.write(&self.script_sig.0) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = buffer.write(&self.script_sig.0) {
+            return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence
         match buffer.write_u32::<LittleEndian>(self.sequence) {
@@ -279,16 +276,16 @@ impl TxIn {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        TxIn::to_bytes_impl(&self)
+        TxIn::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        TxIn::to_hex_impl(&self)
+        TxIn::to_hex_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
-        TxIn::to_json_string_impl(&self)
+        TxIn::to_json_string_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

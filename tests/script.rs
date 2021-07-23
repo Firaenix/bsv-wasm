@@ -98,7 +98,7 @@ mod tests {
     fn throw_error_with_invalid_hex() {
         let script = Script::from_asm_string("OP_RETURN 026d02 0568656c6c6fzz");
 
-        assert_eq!(script.is_err(), true);
+        assert!(script.is_err());
     }
 
     #[test]

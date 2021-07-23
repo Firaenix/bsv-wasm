@@ -24,7 +24,7 @@ mod sighash_tests {
             "30440220798bd19a0bb1fd5e1b3832e46ae69af687d87cbd179a81e60af719382860aee502206d849665f4010a54f40d9ac463629cbd758042745cebf7122818d9bfea2bce7043"
         );
 
-        assert_eq!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig), true);
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -47,7 +47,7 @@ mod sighash_tests {
             "3045022100ff2ff02e9b30a6c8079ee90d24ce1e231a5e861fa7517ae8389aeddb9b7c499102202c7deb7a0a5f08dcd1179cc03098b45454d8f704589dd600632a17851a8daddf82"
         );
 
-        assert_eq!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig), true);
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -66,7 +66,7 @@ mod sighash_tests {
             sig.to_hex().unwrap(),
             "304402200a154c40134341fba55cc0d30753de8a72559f196492976dd702d40babc53f8502200bd904c0b73ea8bffd2b12d381450879f25105be85710dd056aa872afb897cd102"
         );
-        assert_eq!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig), true);
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -89,7 +89,7 @@ mod sighash_tests {
             sig.to_hex().unwrap(),
             "30450221008caaf83578ffa42caa22bf15b54e7bbf51645566f41e60de57e771c57752e1cb02204e22fe4a88d98c601e9b52ff05a8d955a24baaaae197c532ed2391149885822483"
         );
-        assert_eq!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig), true);
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]

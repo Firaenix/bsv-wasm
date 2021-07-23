@@ -15,7 +15,7 @@ const PUB_KEY_END: u8 = PUB_KEY_OFFSET + 33;
 
 impl ECIESCiphertext {
     pub fn extract_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
-        let bytes = self.public_key_bytes.clone().ok_or(BSVErrors::ECIESError("No public key exists in this ciphertext".into()))?;
+        let bytes = self.public_key_bytes.clone().ok_or_else(|| BSVErrors::ECIESError("No public key exists in this ciphertext".into()))?;
         PublicKey::from_bytes_impl(&bytes)
     }
 }
@@ -47,7 +47,7 @@ impl ECIESCiphertext {
 
     #[wasm_bindgen(js_name = fromBytes)]
     pub fn from_bytes(&self, buffer: Vec<u8>, has_pub_key: bool) -> ECIESCiphertext {
-        let pub_key = match has_pub_key.clone() {
+        let pub_key = match has_pub_key {
             true => Some(buffer[PUB_KEY_OFFSET as usize..PUB_KEY_END as usize].to_vec()),
             false => None,
         };
