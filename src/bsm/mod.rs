@@ -34,7 +34,7 @@ impl BSM {
     pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
-        Ok(ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)?)
+        ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)
     }
 
     pub(crate) fn verify_message_impl(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {
@@ -67,10 +67,7 @@ impl BSM {
      */
     #[wasm_bindgen(js_name = isValidMessage)]
     pub fn is_valid_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> bool {
-        match BSM::verify_message_impl(message, signature, address) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        BSM::verify_message_impl(message, signature, address).is_ok()
     }
 }
 

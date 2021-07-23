@@ -1,4 +1,4 @@
-use crate::{BSVErrors, P2PKHAddress, Signature, SigningHash, ECDSA};
+use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
@@ -23,7 +23,7 @@ impl PublicKey {
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
         let bytes = self.to_bytes_impl()?;
-        return Ok(hex::encode(bytes));
+        Ok(hex::encode(bytes))
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
@@ -59,7 +59,7 @@ impl PublicKey {
 
     pub(crate) fn from_hex_impl(hex_str: &str) -> Result<PublicKey, BSVErrors> {
         let point_bytes = hex::decode(hex_str)?;
-        Ok(PublicKey::from_bytes_impl(&point_bytes)?)
+        PublicKey::from_bytes_impl(&point_bytes)
     }
 
     /**
@@ -72,16 +72,20 @@ impl PublicKey {
     pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(self)
     }
+
+    /**
+     * Encrypt a message to be sent to this public key with the provided private key.
+     */
+    pub(crate) fn encrypt_message_impl(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
+        ECIES::encrypt_impl(message, sender_private_key, self, false)
+    }
 }
 
 #[wasm_bindgen]
 impl PublicKey {
     #[wasm_bindgen(js_name = isValidMessage)]
     pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
-        match self.verify_message_impl(message, signature) {
-            Ok(_) => true,
-            Err(_) => false,
-        }
+        self.verify_message_impl(message, signature).is_ok()
     }
 
     #[wasm_bindgen(js_name = isCompressed)]
@@ -164,6 +168,14 @@ impl PublicKey {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[wasm_bindgen(js_name = encryptMessage)]
+    pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, JsValue> {
+        match self.encrypt_message_impl(message, sender_private_key) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -180,11 +192,11 @@ impl PublicKey {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        PublicKey::to_bytes_impl(&self)
+        PublicKey::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        PublicKey::to_hex_impl(&self)
+        PublicKey::to_hex_impl(self)
     }
 
     pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
@@ -205,5 +217,9 @@ impl PublicKey {
 
     pub fn to_decompressed(&self) -> Result<PublicKey, BSVErrors> {
         self.to_decompressed_impl()
+    }
+
+    pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, BSVErrors> {
+        self.encrypt_message_impl(message, sender_private_key)
     }
 }

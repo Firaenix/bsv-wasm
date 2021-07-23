@@ -35,10 +35,9 @@ impl TxIn {
     pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
         // PrevTxId - 32 bytes
         let mut prev_tx_id = vec![0; 32];
-        match cursor.read(&mut prev_tx_id) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = cursor.read(&mut prev_tx_id) {
+            return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e));
+        }
         // Error in the original bitcoin client means that all txids in TxIns are reversed
         prev_tx_id.reverse();
 
@@ -56,10 +55,9 @@ impl TxIn {
 
         // Script Sig
         let mut script_sig = vec![0; script_sig_size as usize];
-        match cursor.read(&mut script_sig) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = cursor.read(&mut script_sig) {
+            return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence - 4 bytes
         let sequence = match cursor.read_u32::<LittleEndian>() {
@@ -82,16 +80,14 @@ impl TxIn {
         let mut prev_tx_id = self.prev_tx_id.clone();
         prev_tx_id.reverse();
         // Write Prev TxID first
-        match buffer.write(&prev_tx_id) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = buffer.write(&prev_tx_id) {
+            return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e));
+        }
 
         // Vout
-        match buffer.write_u32::<LittleEndian>(self.vout) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.vout) {
+            return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
+        }
 
         // Script Sig Size
         match buffer.write_varint(self.get_script_sig_size()) {
@@ -100,10 +96,9 @@ impl TxIn {
         };
 
         // Script Sig
-        match buffer.write(&self.script_sig.0) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = buffer.write(&self.script_sig.0) {
+            return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence
         match buffer.write_u32::<LittleEndian>(self.sequence) {
@@ -281,16 +276,16 @@ impl TxIn {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        TxIn::to_bytes_impl(&self)
+        TxIn::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        TxIn::to_hex_impl(&self)
+        TxIn::to_hex_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
-        TxIn::to_json_string_impl(&self)
+        TxIn::to_json_string_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

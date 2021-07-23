@@ -112,8 +112,8 @@ mod xpriv_tests {
             "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi"
         );
 
-        assert_eq!(key.derive_from_path("0'/12'").is_err(), true);
-        assert_eq!(key.derive_from_path("m/0'/2222222222'").is_err(), true);
+        assert!(key.derive_from_path("0'/12'").is_err());
+        assert!(key.derive_from_path("m/0'/2222222222'").is_err());
     }
 
     #[test]
@@ -125,8 +125,8 @@ mod xpriv_tests {
             "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi"
         );
 
-        assert_eq!(key.derive_from_path("m").is_err(), true);
-        assert_eq!(key.derive_from_path("m/").is_err(), true);
+        assert!(key.derive_from_path("m").is_err());
+        assert!(key.derive_from_path("m/").is_err());
     }
 
     #[test]
