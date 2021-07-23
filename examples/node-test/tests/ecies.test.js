@@ -1,8 +1,33 @@
 import { Ecies, PrivKey, PubKey, KeyPair } from 'bsv'
-import { PrivateKey, PublicKey, ECIES  } from '../../../pkg/node/bsv_wasm';
+import { PrivateKey, PublicKey, ECIES, ECDH  } from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 
-describe("ECIES Tests", function() {
+describe("ECIES/ECDH Tests", function() {
+  it('ECDH (Send to Self) Derived keys matches BSV.JS', () => {
+    let message = Buffer.from("Hello, Bitcoin.");
+
+    // Sender + Recipient
+    let bob = PrivateKey.fromRandom();
+    let bobJS = KeyPair.fromPrivKey(PrivKey.fromWif(bob.toWIF()));
+
+    let shared_key = ECDH.deriveSharedKey(bob, bob.getPublicKey());
+    let cipher_keys = ECIES.deriveCipherKeys(shared_key);
+
+    
+    let ciphertext = ECIES.encrypt(message, bob, bob.getPublicKey());
+    let ciphertextJs = Ecies.electrumEncrypt(message, bobJS.pubKey, bobJS);
+    
+    assert.equal(Buffer.from(ciphertext).toString('hex'), ciphertextJs.toString('hex'), "Ciphertexts dont match");
+
+    let plaintext = ECIES.decrypt(ciphertext, bob, undefined);
+    let plaintextJs = Ecies.electrumDecrypt(ciphertextJs, bobJS.privKey, null);
+
+    assert.equal(plaintextJs.toString('hex'), message.toString('hex'));
+    assert.equal(Buffer.from(plaintext).toString('hex'), plaintextJs.toString('hex'));
+
+    assert.equal(Buffer.from(plaintext).toString('hex'), message.toString('hex'));
+  });
+
   it('ECIES BIE (Ephemeral/Anonymous) Message matches BSV.JS', () => {
     let message = Buffer.from("Hello, Bitcoin.");
 
