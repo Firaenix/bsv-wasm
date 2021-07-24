@@ -25,7 +25,7 @@ pub struct Script(#[serde(serialize_with = "to_hex", deserialize_with = "from_he
  * Serialise Methods
  */
 impl Script {
-    fn to_asm_string_impl(&self, extended: bool) -> Result<String, BSVErrors> {
+    pub(crate) fn to_asm_string_impl(&self, extended: bool) -> Result<String, BSVErrors> {
         let mut cursor = Cursor::new(self.0.clone());
 
         // Read bytes until end of string

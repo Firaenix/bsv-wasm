@@ -3,16 +3,19 @@ use std::io::Read;
 use std::io::Write;
 
 use crate::BSVErrors;
+use crate::Script;
 use crate::{Hash, VarInt};
 use byteorder::*;
 use serde::{Deserialize, Serialize};
 use thiserror::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
+mod match_criteria;
 mod sighash;
 mod txin;
 mod txout;
 
+pub use match_criteria::*;
 pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
@@ -99,50 +102,44 @@ impl Transaction {
         let mut buffer = Vec::new();
 
         // Version - 4 bytes
-        match buffer.write_u32::<LittleEndian>(self.version) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("version".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.version) {
+            return Err(BSVErrors::SerialiseTransaction("version".to_string(), e));
+        }
 
         // In Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_ninputs() as u64) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_varint(self.get_ninputs() as u64) {
+            return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e));
+        }
 
         // Inputs
         for i in 0..self.get_ninputs() {
             let input = &self.inputs[i];
             let input_bytes = input.to_bytes_impl()?;
 
-            match buffer.write(&input_bytes) {
-                Ok(_) => (),
-                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("input {}", i), e)),
-            };
+            if let Err(e) = buffer.write_all(&input_bytes) {
+                return Err(BSVErrors::SerialiseTransaction(format!("input {}", i), e));
+            }
         }
 
         // Out Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_noutputs() as u64) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_varint(self.get_noutputs() as u64) {
+            return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e));
+        }
 
         // Outputs
         for i in 0..self.get_noutputs() {
             let output = &self.outputs[i as usize];
             let output_bytes = output.to_bytes_impl()?;
 
-            match buffer.write(&output_bytes) {
-                Ok(_) => (),
-                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("output {}", i), e)),
-            };
+            if let Err(e) = buffer.write_all(&output_bytes) {
+                return Err(BSVErrors::SerialiseTransaction(format!("output {}", i), e));
+            }
         }
 
         // nLocktime - 4 bytes
-        match buffer.write_u32::<LittleEndian>(self.n_locktime) {
-            Ok(v) => v,
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_locktime".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.n_locktime) {
+            return Err(BSVErrors::SerialiseTransaction("n_locktime".to_string(), e));
+        }
 
         // Write out bytes
         Ok(buffer)
@@ -169,6 +166,16 @@ impl Transaction {
         hash.0.reverse();
 
         Ok(hash)
+    }
+
+    pub fn to_compact_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
+        let buf = flexbuffers::to_vec(self)?;
+        Ok(buf)
+    }
+
+    pub fn from_compact_bytes_impl(buffer: &[u8]) -> Result<Transaction, BSVErrors> {
+        let transaction = flexbuffers::from_slice(buffer)?;
+        Ok(transaction)
     }
 }
 
@@ -245,6 +252,82 @@ impl Transaction {
     #[wasm_bindgen(js_name = setOutput)]
     pub fn set_output(&mut self, index: usize, output: &TxOut) {
         self.outputs[index] = output.clone();
+    }
+
+    /**
+     * Returns a list of outputs indexes that match the given parameters
+     */
+    #[wasm_bindgen(js_name = matchOutputs)]
+    pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .outputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txout)| {
+                // If script is specified and doesnt match
+                if criteria.script.as_ref().map(|x| x == &txout.script_pub_key) != Some(true) {
+                    return None;
+                }
+
+                // If exact_value is specified and doesnt match
+                if criteria.exact_value.map(|x| x == txout.value) != Some(true) {
+                    return None;
+                }
+
+                // If min_value is specified and value isnt greater or equal to
+                if criteria.min_value.map(|min| txout.value >= min) != Some(true) {
+                    return None;
+                }
+
+                // If min_value is specified and value isnt greater or equal to
+                if criteria.max_value.map(|max| txout.value <= max) != Some(true) {
+                    return None;
+                }
+
+                // Get index
+                Some(i)
+            })
+            .collect();
+
+        matches
+    }
+
+    /**
+     * Returns a list of input indexes that match the given parameters
+     */
+    #[wasm_bindgen(js_name = matchInputs)]
+    pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .inputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txin)| {
+                // If script is specified and doesnt match
+                if criteria.script.as_ref().map(|x| x == &txin.script_sig) != Some(true) {
+                    return None;
+                }
+
+                // If exact_value is specified and doesnt match
+                if criteria.exact_value.is_some() && criteria.exact_value == txin.satoshis {
+                    return None;
+                }
+
+                // If min_value is specified and value isnt greater or equal to
+                if criteria.exact_value.is_some() && txin.satoshis >= criteria.min_value {
+                    return None;
+                }
+
+                // If min_value is specified and value isnt greater or equal to
+                if criteria.exact_value.is_some() && txin.satoshis <= criteria.max_value {
+                    return None;
+                }
+
+                // Get index
+                Some(i)
+            })
+            .collect();
+
+        matches
     }
 }
 
