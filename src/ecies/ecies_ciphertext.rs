@@ -14,12 +14,12 @@ const PUB_KEY_OFFSET: u8 = 4;
 const PUB_KEY_END: u8 = PUB_KEY_OFFSET + 33;
 
 impl ECIESCiphertext {
-    pub fn extract_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
+    pub(crate) fn extract_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
         let bytes = self.public_key_bytes.clone().ok_or_else(|| BSVErrors::ECIESError("No public key exists in this ciphertext".into()))?;
         PublicKey::from_bytes_impl(&bytes)
     }
 
-    pub fn from_bytes_impl(buffer: &[u8], has_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
+    pub(crate) fn from_bytes_impl(buffer: &[u8], has_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
         let pub_key = match has_pub_key {
             true => {
                 let pub_key_buf = &buffer[PUB_KEY_OFFSET as usize..PUB_KEY_END as usize];

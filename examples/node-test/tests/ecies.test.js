@@ -1,5 +1,5 @@
 import { Ecies, PrivKey, PubKey, KeyPair } from 'bsv'
-import { PrivateKey, PublicKey, ECIES, ECDH  } from '../../../pkg/node/bsv_wasm';
+import { PrivateKey, PublicKey, ECIES, ECDH, ECIESCiphertext  } from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 
 describe("ECIES Tests", function() {
@@ -152,6 +152,24 @@ describe("ECIES Tests", function() {
 
     // Bob does:
     let decrypted = bob.decryptMessage(message_for_bob, alice.getPublicKey());
+
+    assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
+  });
+
+  it('ECIES (Send to other party - Anonymous) Encode/Decode methods', () => {
+let message = Buffer.from("Hello, Bitcoin.");
+
+// Recipient
+let bob = PrivateKey.fromRandom();
+let bob_pub = bob.getPublicKey();
+
+// Alice does:
+let message_for_bob = ECIES.encryptWithEphemeralKey(message, bob_pub);
+let message_bytes = message_for_bob.toBytes();
+
+// Bob does:
+let received_message = ECIESCiphertext.fromBytes(message_bytes, true);
+let decrypted = bob.decryptMessage(received_message, message_for_bob.extractPublicKey());
 
     assert.equal(Buffer.from(decrypted).toString('hex'), message.toString('hex'))
   });

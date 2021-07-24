@@ -1,7 +1,7 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod ecies_tests {
-    use bsv_wasm::{PrivateKey, ECIES};
+    use bsv_wasm::{ECIESCiphertext, PrivateKey, ECIES};
     use std::io::Read;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
@@ -124,6 +124,28 @@ mod ecies_tests {
         let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key).unwrap();
 
         let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &encrypted.extract_public_key().unwrap()).unwrap();
+
+        assert_eq!(plaintext, message);
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn encode_decode_ciphertext() {
+        // Recipient with Anonymous sender
+        let bob_priv_key = PrivateKey::from_random();
+        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let message = b"Hello, Bitcoin.";
+
+        let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key).unwrap();
+
+        let encrypted_bytes = encrypted.to_bytes();
+
+        // === Send encrypted bytes to the Recipient ===
+
+        // Bob does: (set has_pub_key to true if you know that the buffer has the pubkey in it.)
+        let received_msg = ECIESCiphertext::from_bytes(&encrypted_bytes, true).unwrap();
+
+        let plaintext = ECIES::decrypt(&received_msg, &bob_priv_key, &encrypted.extract_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
