@@ -1,6 +1,7 @@
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
+use std::usize;
 
 use crate::BSVErrors;
 use crate::{Hash, HashCache, TxIn, TxOut, VarInt};
@@ -138,6 +139,11 @@ impl Transaction {
 
         // Write out bytes
         Ok(buffer)
+    }
+
+    pub(crate) fn get_size_impl(&self) -> Result<usize, BSVErrors> {
+        let tx_bytes = self.to_bytes_impl()?;
+        Ok(tx_bytes.len())
     }
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
@@ -295,6 +301,17 @@ impl Transaction {
     }
 
     /**
+     * Get size of current serialised Transaction object
+     */
+    #[wasm_bindgen(js_name = getSize)]
+    pub fn get_size(&self) -> Result<usize, JsValue> {
+        match Transaction::get_size_impl(&self) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
      * Adds an array of TxIn's to the transaction
      * @param {TxIn[]} tx_ins
      */
@@ -366,6 +383,13 @@ impl Transaction {
         Ok(self.get_id_impl()?.to_bytes())
     }
 
+    /**
+     * Get size of current serialised Transaction object
+     */
+    pub fn get_size(&self) -> Result<usize, BSVErrors> {
+        self.get_size_impl()
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex(hex_str: &str) -> Result<Transaction, BSVErrors> {
         return Transaction::from_hex_impl(hex_str);
@@ -391,7 +415,6 @@ impl Transaction {
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         Transaction::to_bytes_impl(&self)
     }
-
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         Transaction::to_hex_impl(&self)
