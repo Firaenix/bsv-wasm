@@ -1,3 +1,6 @@
+check-format:
+	cargo fmt -- --check && cargo clippy -- -Dwarnings
+
 build-web:
 	wasm-pack build --release --out-dir ./pkg/web --target web
 

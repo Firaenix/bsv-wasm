@@ -293,7 +293,7 @@ mod transaction_tests {
         );
         txin_1.set_satoshis(500);
         tx.add_input(&txin_1);
-        let mut txin_2 = TxIn::new(
+        let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
             &Script::from_asm_string("").unwrap(),
@@ -317,21 +317,21 @@ mod transaction_tests {
     fn get_total_txin_satoshis_all_none_satoshis_returns_none() {
         // Arrange
         let mut tx = Transaction::new(1, 0);
-        let mut txin_1 = TxIn::new(
+        let txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
             &Script::from_asm_string("").unwrap(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_1);
-        let mut txin_2 = TxIn::new(
+        let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
             &Script::from_asm_string("").unwrap(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_2);
-        let mut txin_3 = TxIn::new(
+        let txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
             &Script::from_asm_string("").unwrap(),
@@ -361,7 +361,7 @@ mod transaction_tests {
             &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap(),
         ));
 
-        assert_eq!(tx.satoshis_out(), 5000 + 0 + 400 + 9999999)
+        assert_eq!(tx.satoshis_out(), 5000 + 400 + 9999999)
     }
 
     #[test]
