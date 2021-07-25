@@ -254,6 +254,42 @@ impl Transaction {
         self.outputs[index] = output.clone();
     }
 
+    fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if criteria.script.as_ref().map(|x| x == &txout.script_pub_key) != Some(true) {
+            return false;
+        }
+
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.map(|x| x == txout.value) != Some(true) {
+            return false;
+        }
+
+        // If min_value is specified and value isnt greater or equal to
+        if criteria.min_value.map(|min| txout.value >= min) != Some(true) {
+            return false;
+        }
+
+        // If min_value is specified and value isnt greater or equal to
+        if criteria.max_value.map(|max| txout.value <= max) != Some(true) {
+            return false;
+        }
+
+        true
+    }
+
+
+    /**
+     * Returns the first output index that matches the given parameters, returns None or null if not found.
+     */
+    #[wasm_bindgen(js_name = matchOutput)]
+    pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+            true => Some(i),
+            false => None
+        })
+    }
+
     /**
      * Returns a list of outputs indexes that match the given parameters
      */
@@ -263,33 +299,48 @@ impl Transaction {
             .outputs
             .iter()
             .enumerate()
-            .filter_map(|(i, txout)| {
-                // If script is specified and doesnt match
-                if criteria.script.as_ref().map(|x| x == &txout.script_pub_key) != Some(true) {
-                    return None;
-                }
-
-                // If exact_value is specified and doesnt match
-                if criteria.exact_value.map(|x| x == txout.value) != Some(true) {
-                    return None;
-                }
-
-                // If min_value is specified and value isnt greater or equal to
-                if criteria.min_value.map(|min| txout.value >= min) != Some(true) {
-                    return None;
-                }
-
-                // If min_value is specified and value isnt greater or equal to
-                if criteria.max_value.map(|max| txout.value <= max) != Some(true) {
-                    return None;
-                }
-
-                // Get index
-                Some(i)
+            .filter_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+                true => Some(i),
+                false => None
             })
             .collect();
 
         matches
+    }
+
+    fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if criteria.script.as_ref().map(|x| x == &txin.script_sig) != Some(true) {
+            return false;
+        }
+
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.is_some() && criteria.exact_value == txin.satoshis {
+            return false;
+        }
+
+        // If min_value is specified and value isnt greater or equal to
+        if criteria.exact_value.is_some() && txin.satoshis >= criteria.min_value {
+            return false;
+        }
+
+        // If min_value is specified and value isnt greater or equal to
+        if criteria.exact_value.is_some() && txin.satoshis <= criteria.max_value {
+            return false;
+        }
+
+        true
+    }
+
+    /**
+     * Returns the first input index that matches the given parameters, returns None or null if not found.
+     */
+    #[wasm_bindgen(js_name = matchInput)]
+    pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+            true => Some(i),
+            false => None
+        })
     }
 
     /**
@@ -301,33 +352,36 @@ impl Transaction {
             .inputs
             .iter()
             .enumerate()
-            .filter_map(|(i, txin)| {
-                // If script is specified and doesnt match
-                if criteria.script.as_ref().map(|x| x == &txin.script_sig) != Some(true) {
-                    return None;
-                }
-
-                // If exact_value is specified and doesnt match
-                if criteria.exact_value.is_some() && criteria.exact_value == txin.satoshis {
-                    return None;
-                }
-
-                // If min_value is specified and value isnt greater or equal to
-                if criteria.exact_value.is_some() && txin.satoshis >= criteria.min_value {
-                    return None;
-                }
-
-                // If min_value is specified and value isnt greater or equal to
-                if criteria.exact_value.is_some() && txin.satoshis <= criteria.max_value {
-                    return None;
-                }
-
-                // Get index
-                Some(i)
+            .filter_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+                true => Some(i),
+                false => None
             })
             .collect();
 
         matches
+    }
+
+
+    /**
+     * XT Method:
+     * Returns the combined sum of all input satoshis.
+     * If any of the inputs dont have satoshis defined, this returns None or null
+     */
+    pub fn total_input_satoshis(&self) -> Option<u64> {
+        self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
+            if a == None || b == None {
+                return None;
+            }
+
+            Some(a.unwrap() + b.unwrap())
+        })?
+    }
+
+    /**
+     * Returns the combined sum of all output satoshis.
+     */
+    pub fn total_output_satoshis(&self) -> u64 {
+        self.outputs.iter().map(|x| x.value).sum()
     }
 }
 

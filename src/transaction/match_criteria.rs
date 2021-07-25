@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use crate::Script;
 
 #[wasm_bindgen]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MatchCriteria {
   pub(crate) script: Option<Script>,
   pub(crate) exact_value: Option<u64>,
@@ -15,12 +15,7 @@ pub struct MatchCriteria {
 impl MatchCriteria {
   #[wasm_bindgen(constructor)]
   pub fn new() -> MatchCriteria {
-    MatchCriteria {
-      script: None,
-      exact_value: None,
-      min_value: None,
-      max_value: None,
-    }
+    MatchCriteria::default()
   }
 
   #[wasm_bindgen(js_name = setScript)]
