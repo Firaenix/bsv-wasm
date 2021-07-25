@@ -247,6 +247,137 @@ mod transaction_tests {
         assert_eq!(tx.get_noutputs(), 5);
     }
 
+    #[test]
+    #[wasm_bindgen_test]
+    fn get_total_txin_satoshis() {
+        // Arrange
+        let mut tx = Transaction::new(1, 0);
+        let mut txin_1 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        txin_1.set_satoshis(500);
+        tx.add_input(&txin_1);
+        let mut txin_2 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        txin_2.set_satoshis(500);
+        tx.add_input(&txin_2);
+        let mut txin_3 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        txin_3.set_satoshis(2);
+        tx.add_input(&txin_3);
+
+        assert_eq!(tx.satoshis_in(), Some(1002));
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn get_total_txin_satoshis_single_none_satoshis_returns_none() {
+        // Arrange
+        let mut tx = Transaction::new(1, 0);
+        let mut txin_1 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        txin_1.set_satoshis(500);
+        tx.add_input(&txin_1);
+        let mut txin_2 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_2);
+        let mut txin_3 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        txin_3.set_satoshis(2);
+        tx.add_input(&txin_3);
+
+        assert_eq!(tx.satoshis_in(), None);
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn get_total_txin_satoshis_all_none_satoshis_returns_none() {
+        // Arrange
+        let mut tx = Transaction::new(1, 0);
+        let mut txin_1 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_1);
+        let mut txin_2 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_2);
+        let mut txin_3 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_3);
+
+        assert_eq!(tx.satoshis_in(), None);
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn get_total_output_satoshis() {
+        // Arrange
+        let mut tx = Transaction::new(1, 0);
+        tx.add_output(&TxOut::new(
+            5000,
+            &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap(),
+        ));
+        tx.add_output(&TxOut::new(0, &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap()));
+        tx.add_output(&TxOut::new(
+            400,
+            &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap(),
+        ));
+        tx.add_output(&TxOut::new(
+            9999999,
+            &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap(),
+        ));
+
+        assert_eq!(tx.satoshis_out(), 5000 + 0 + 400 + 9999999)
+    }
+
+    #[test]
+    #[wasm_bindgen_test]
+    fn get_total_output_satoshis_all_zero_returns_zero() {
+        // Arrange
+        let mut tx = Transaction::new(1, 0);
+        tx.add_output(&TxOut::new(0, &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap()));
+        tx.add_output(&TxOut::new(0, &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap()));
+        tx.add_output(&TxOut::new(0, &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap()));
+        tx.add_output(&TxOut::new(0, &P2PKHAddress::from_string("16Rcy7RYM3xkPEJr4tvUtL485Fuobi8S7o").unwrap().get_locking_script().unwrap()));
+
+        assert_eq!(tx.satoshis_out(), 0)
+    }
+
+    // For future validation
     // #[test]
     // #[wasm_bindgen_test]
     // fn txin_error_when_given_invalid_txid() {

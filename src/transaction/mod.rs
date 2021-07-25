@@ -369,7 +369,8 @@ impl Transaction {
      * Returns the combined sum of all input satoshis.
      * If any of the inputs dont have satoshis defined, this returns None or null
      */
-    pub fn total_input_satoshis(&self) -> Option<u64> {
+    #[wasm_bindgen(js_name = satoshisIn)]
+    pub fn satoshis_in(&self) -> Option<u64> {
         self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
             if a == None || b == None {
                 return None;
@@ -382,7 +383,8 @@ impl Transaction {
     /**
      * Returns the combined sum of all output satoshis.
      */
-    pub fn total_output_satoshis(&self) -> u64 {
+    #[wasm_bindgen(js_name = satoshisOut)]
+    pub fn satoshis_out(&self) -> u64 {
         self.outputs.iter().map(|x| x.value).sum()
     }
 }
