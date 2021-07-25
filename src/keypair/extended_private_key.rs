@@ -25,10 +25,7 @@ pub struct ExtendedPrivateKey {
 
 impl ExtendedPrivateKey {
     pub fn new(private_key: &PrivateKey, chain_code: &[u8], depth: &u8, index: &u32, parent_fingerprint: Option<&[u8]>) -> Self {
-        let fingerprint = match parent_fingerprint {
-            Some(v) => v,
-            None => &[0, 0, 0, 0],
-        };
+        let fingerprint = parent_fingerprint.unwrap_or(&[0, 0, 0, 0]);
 
         ExtendedPrivateKey {
             private_key: private_key.clone(),
@@ -53,7 +50,7 @@ impl ExtendedPrivateKey {
             .and_then(|_| buffer.write(&self.private_key.to_bytes()))?;
 
         let checksum = &Hash::sha_256d(&buffer).to_bytes()[0..4];
-        buffer.write(checksum)?;
+        buffer.write_all(checksum)?;
 
         Ok(bs58::encode(buffer).into_string())
     }
@@ -112,17 +109,17 @@ impl ExtendedPrivateKey {
     }
 
     pub fn from_seed_impl(seed: &[u8]) -> Result<Self, BSVErrors> {
-        let seed_hmac = Hash::sha_512_hmac(&seed, b"Bitcoin seed");
+        let seed_hmac = Hash::sha_512_hmac(seed, b"Bitcoin seed");
 
         let seed_bytes = seed_hmac.to_bytes();
-        let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
+        let mut seed_chunks = seed_bytes.chunks_exact(32_usize);
         let private_key_bytes = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for private key"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError("Could not get 32 bytes for private key".into())),
         };
         let chain_code = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for chain code"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError("Could not get 32 bytes for chain code".into())),
         };
 
         let priv_key = PrivateKey::from_bytes_impl(private_key_bytes)?;
@@ -130,8 +127,8 @@ impl ExtendedPrivateKey {
         let pub_key = PublicKey::from_private_key_impl(&priv_key);
 
         Ok(Self {
-            private_key: priv_key.clone(),
-            public_key: pub_key.clone(),
+            private_key: priv_key,
+            public_key: pub_key,
             chain_code: chain_code.to_vec(),
             depth: 0,
             index: 0,
@@ -140,19 +137,13 @@ impl ExtendedPrivateKey {
     }
 
     pub fn derive_impl(&self, index: u32) -> Result<ExtendedPrivateKey, BSVErrors> {
-        if self.depth >= 255 {
-            return Err(BSVErrors::DerivationError(format!("Cannot derive from depth of more than 255")));
-        }
-
         let is_hardened = index >= HARDENED_KEY_OFFSET;
 
         let key_data = match is_hardened {
             true => {
-                let mut bytes: Vec<u8> = vec![];
-
-                bytes.push(0x0);
+                let mut bytes: Vec<u8> = vec![0x0];
                 bytes.extend_from_slice(&self.private_key.clone().to_bytes());
-                bytes.extend_from_slice(&index.clone().to_be_bytes());
+                bytes.extend_from_slice(&index.to_be_bytes());
                 bytes
             }
             false => {
@@ -160,28 +151,28 @@ impl ExtendedPrivateKey {
 
                 let pub_key_bytes = &self.public_key.clone().to_bytes_impl()?;
 
-                bytes.extend_from_slice(&pub_key_bytes);
-                bytes.extend_from_slice(&index.clone().to_be_bytes());
+                bytes.extend_from_slice(pub_key_bytes);
+                bytes.extend_from_slice(&index.to_be_bytes());
                 bytes
             }
         };
 
         let pub_key_bytes = &self.public_key.clone().to_bytes_impl()?;
-        let hash = Hash::hash_160(&pub_key_bytes);
+        let hash = Hash::hash_160(pub_key_bytes);
         let fingerprint = &hash.to_bytes()[0..4];
 
         let hmac = Hash::sha_512_hmac(&key_data, &self.chain_code.clone());
         let seed_bytes = hmac.to_bytes();
 
-        let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
+        let mut seed_chunks = seed_bytes.chunks_exact(32_usize);
         // let mut seed_chunks = seed_bytes.chunks_exact(32 as usize);
         let private_key_bytes = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for private key"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError("Could not get 32 bytes for private key".into())),
         };
         let child_chain_code = match seed_chunks.next() {
             Some(b) => b,
-            None => return Err(BSVErrors::InvalidSeedHmacError(format!("Could not get 32 bytes for chain code"))),
+            None => return Err(BSVErrors::InvalidSeedHmacError("Could not get 32 bytes for chain code".into())),
         };
 
         let parent_scalar = SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice())?.to_secret_scalar();
@@ -207,14 +198,15 @@ impl ExtendedPrivateKey {
     }
 
     pub fn derive_from_path_impl(&self, path: &str) -> Result<ExtendedPrivateKey, BSVErrors> {
+        #[allow(clippy::bool_comparison)]
         if path.to_ascii_lowercase().starts_with('m') == false {
-            return Err(BSVErrors::DerivationError(format!("Path did not begin with 'm'")));
+            return Err(BSVErrors::DerivationError("Path did not begin with 'm'".into()));
         }
 
-        let children = path[1..].split('/').filter(|x| -> bool { *x != "" });
+        let children = path[1..].split('/').filter(|x| -> bool { !x.is_empty() });
         let child_indices = children.map(Self::parse_str_to_idx).collect::<Result<Vec<u32>, BSVErrors>>()?;
 
-        if child_indices.len() <= 0 {
+        if child_indices.is_empty() {
             return Err(BSVErrors::DerivationError(format!(
                 "No path was provided. Please provide a string of the form m/0. Given path: {}",
                 path
@@ -226,14 +218,14 @@ impl ExtendedPrivateKey {
             xpriv = xpriv.derive_impl(*index)?;
         }
 
-        return Ok(xpriv);
+        Ok(xpriv)
     }
 
     fn parse_str_to_idx(x: &str) -> Result<u32, BSVErrors> {
-        let is_hardened = x.ends_with("'") || x.to_lowercase().ends_with("h");
-        let index_str = x.trim_end_matches("'").trim_end_matches("h").trim_end_matches("H");
+        let is_hardened = x.ends_with('\'') || x.to_lowercase().ends_with('h');
+        let index_str = x.trim_end_matches('\'').trim_end_matches('h').trim_end_matches('H');
 
-        let index = u32::from_str_radix(index_str, 10)?;
+        let index = index_str.parse::<u32>()?;
 
         if index >= HARDENED_KEY_OFFSET {
             return Err(BSVErrors::DerivationError(format!("Indicies may not be greater than {}", HARDENED_KEY_OFFSET - 1)));
@@ -265,7 +257,7 @@ impl ExtendedPrivateKey {
 
     #[wasm_bindgen(js_name = getDepth)]
     pub fn get_depth(&self) -> u8 {
-        self.depth.clone()
+        self.depth
     }
 
     #[wasm_bindgen(js_name = getParentFingerprint)]
@@ -275,7 +267,7 @@ impl ExtendedPrivateKey {
 
     #[wasm_bindgen(js_name = getIndex)]
     pub fn get_index(&self) -> u32 {
-        self.index.clone()
+        self.index
     }
 }
 
@@ -342,11 +334,11 @@ impl ExtendedPrivateKey {
 #[cfg(not(target_arch = "wasm32"))]
 impl ExtendedPrivateKey {
     pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, BSVErrors> {
-        Self::derive_impl(&self, index)
+        Self::derive_impl(self, index)
     }
 
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, BSVErrors> {
-        Self::derive_from_path_impl(&self, path)
+        Self::derive_from_path_impl(self, path)
     }
 
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPrivateKey, BSVErrors> {
@@ -362,7 +354,7 @@ impl ExtendedPrivateKey {
     }
 
     pub fn to_string(&self) -> Result<String, BSVErrors> {
-        Self::to_string_impl(&self)
+        Self::to_string_impl(self)
     }
 
     pub fn from_mnemonic(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, BSVErrors> {

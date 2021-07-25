@@ -50,3 +50,6 @@ pub use crate::ecdsa::*;
 
 pub mod bsm;
 pub use bsm::*;
+
+pub mod ecies;
+pub use ecies::*;

@@ -9,7 +9,7 @@ mod bitcoin_signed_message_tests {
     #[test]
     #[wasm_bindgen_test]
     fn sign_and_verify_message() {
-        let priv_key = PrivateKey::from_wif("L17y3TE8AgM6fiWFP4HsbaLnvuBJsQcFKYRoJoZULpTzeTCr2nEC".into()).unwrap();
+        let priv_key = PrivateKey::from_wif("L17y3TE8AgM6fiWFP4HsbaLnvuBJsQcFKYRoJoZULpTzeTCr2nEC").unwrap();
 
         let message = b"Hello Bitcoin!";
 

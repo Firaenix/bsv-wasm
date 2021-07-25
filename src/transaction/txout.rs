@@ -16,8 +16,8 @@ use thiserror::*;
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
-    value: u64,
-    script_pub_key: Script,
+    pub(crate) value: u64,
+    pub(crate) script_pub_key: Script,
 }
 
 impl TxOut {
@@ -44,10 +44,9 @@ impl TxOut {
 
         // Script Pub Key
         let mut script_pub_key = vec![0; script_pub_key_size as usize];
-        match cursor.read(&mut script_pub_key) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxOut("script_pub_key".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = cursor.read(&mut script_pub_key) {
+            return Err(BSVErrors::DeserialiseTxOut("script_pub_key".to_string(), e));
+        }
 
         Ok(TxOut {
             value: satoshis,
@@ -65,7 +64,7 @@ impl TxOut {
         buffer.write_varint(self.get_script_pub_key_size() as u64)?;
 
         // Script Pub Key
-        buffer.write(&self.script_pub_key.to_bytes())?;
+        buffer.write_all(&self.script_pub_key.to_bytes())?;
 
         // Write out bytes
         Ok(buffer)
@@ -168,11 +167,11 @@ impl TxOut {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        TxOut::to_bytes_impl(&self)
+        TxOut::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        TxOut::to_hex_impl(&self)
+        TxOut::to_hex_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -183,6 +182,6 @@ impl TxOut {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
-        TxOut::to_json_string_impl(&self)
+        TxOut::to_json_string_impl(self)
     }
 }

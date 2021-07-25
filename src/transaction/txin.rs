@@ -17,10 +17,21 @@ use thiserror::*;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxIn {
     #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
-    prev_tx_id: Vec<u8>,
-    vout: u32,
-    script_sig: Script,
-    sequence: u32,
+    pub(crate) prev_tx_id: Vec<u8>,
+    pub(crate) vout: u32,
+    pub(crate) script_sig: Script,
+    pub(crate) sequence: u32,
+
+    /**
+     * Part of the extended transaction serialisation format.
+     */
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) unlocking_script: Option<Script>,
+    /**
+     * Part of the extended transaction serialisation format.
+     */
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) satoshis: Option<u64>,
 }
 
 impl TxIn {
@@ -35,10 +46,9 @@ impl TxIn {
     pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
         // PrevTxId - 32 bytes
         let mut prev_tx_id = vec![0; 32];
-        match cursor.read(&mut prev_tx_id) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = cursor.read(&mut prev_tx_id) {
+            return Err(BSVErrors::DeserialiseTxIn("prev_tx_id".to_string(), e));
+        }
         // Error in the original bitcoin client means that all txids in TxIns are reversed
         prev_tx_id.reverse();
 
@@ -56,10 +66,9 @@ impl TxIn {
 
         // Script Sig
         let mut script_sig = vec![0; script_sig_size as usize];
-        match cursor.read(&mut script_sig) {
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = cursor.read(&mut script_sig) {
+            return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence - 4 bytes
         let sequence = match cursor.read_u32::<LittleEndian>() {
@@ -72,6 +81,8 @@ impl TxIn {
             vout,
             script_sig: Script(script_sig),
             sequence,
+            satoshis: None,
+            unlocking_script: None,
         })
     }
 
@@ -82,34 +93,35 @@ impl TxIn {
         let mut prev_tx_id = self.prev_tx_id.clone();
         prev_tx_id.reverse();
         // Write Prev TxID first
-        match buffer.write(&prev_tx_id) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e)),
-            Ok(_) => (),
-        };
+        if let Err(e) = buffer.write(&prev_tx_id) {
+            return Err(BSVErrors::SerialiseTxIn("prev_tx_id".to_string(), e));
+        }
 
         // Vout
-        match buffer.write_u32::<LittleEndian>(self.vout) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e)),
-            _ => (),
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.vout) {
+            return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
+        }
+
+        let finalised_script = match self.unlocking_script.as_ref() {
+            // If there is a specified unlocking script, prepend it to the locking script
+            Some(us) => Script::from_asm_string_impl(&format!("{} {}", us.to_asm_string_impl(false)?, self.script_sig.to_asm_string_impl(false)?))?,
+            None => self.script_sig.clone(),
         };
 
         // Script Sig Size
-        match buffer.write_varint(self.get_script_sig_size()) {
-            Ok(v) => v,
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig_size".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_varint(finalised_script.get_script_length() as u64) {
+            return Err(BSVErrors::SerialiseTxIn("script_sig_size".to_string(), e));
+        }
 
         // Script Sig
-        match buffer.write(&self.script_sig.0) {
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e)),
-            _ => (),
-        };
+        if let Err(e) = buffer.write(&finalised_script.0) {
+            return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e));
+        }
 
         // Sequence
-        match buffer.write_u32::<LittleEndian>(self.sequence) {
-            Ok(v) => v,
-            Err(e) => return Err(BSVErrors::SerialiseTxIn("sequence".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.sequence) {
+            return Err(BSVErrors::SerialiseTxIn("sequence".to_string(), e));
+        }
 
         // Write out bytes
         Ok(buffer)
@@ -141,6 +153,8 @@ impl TxIn {
                 Some(v) => v,
                 None => u32::MAX,
             },
+            satoshis: None,
+            unlocking_script: None,
         }
     }
 
@@ -222,6 +236,16 @@ impl TxIn {
     pub fn set_sequence(&mut self, sequence: u32) {
         self.sequence = sequence;
     }
+
+    #[wasm_bindgen(js_name = setSatoshis)]
+    pub fn set_satoshis(&mut self, satoshis: u64) {
+        self.satoshis = Some(satoshis);
+    }
+
+    #[wasm_bindgen(js_name = setUnlockingScript)]
+    pub fn set_unlocking_script(&mut self, unlocking_script: &Script) {
+        self.unlocking_script = Some(unlocking_script.clone());
+    }
 }
 
 /**
@@ -281,16 +305,16 @@ impl TxIn {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
-        TxIn::to_bytes_impl(&self)
+        TxIn::to_bytes_impl(self)
     }
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
-        TxIn::to_hex_impl(&self)
+        TxIn::to_hex_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
-        TxIn::to_json_string_impl(&self)
+        TxIn::to_json_string_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

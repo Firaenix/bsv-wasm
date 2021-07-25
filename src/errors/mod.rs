@@ -73,6 +73,21 @@ pub enum BSVErrors {
         #[from]
         block_modes::BlockModeError,
     ),
+
+    #[error("{0}")]
+    FlexbufferSerializationError(
+        #[source]
+        #[from]
+        flexbuffers::SerializationError,
+    ),
+
+    #[error("{0}")]
+    FlexbufferDeserializationError(
+        #[source]
+        #[from]
+        flexbuffers::DeserializationError,
+    ),
+
     // Custom Errors
     #[error("Unable to recover public key: {0} {1:?}")]
     PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),
@@ -100,6 +115,10 @@ pub enum BSVErrors {
 
     #[error("{0}")]
     OutOfBounds(String),
+
+    #[error("{0}")]
+    ECIESError(String),
+
     //=========== Serialisation Errors ==============
     #[error("Error deserialising transaction field {0}: {1}")]
     DeserialiseTransaction(String, #[source] std::io::Error),
