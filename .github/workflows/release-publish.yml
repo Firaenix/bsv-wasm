@@ -3,6 +3,7 @@ name: Test & Publish
 on: 
   release:
     types: # This configuration does not affect the page_build event above
+      - prereleased
       - released
 
 env:
