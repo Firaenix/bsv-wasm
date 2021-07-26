@@ -18,17 +18,17 @@ test-node:
 
 publish-node:
 	make build-nodejs
-	wasm-pack publish ./pkg
+	wasm-pack publish ./pkg/node
 
 publish-web:
 	make build-web
 	sed -i "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
-	wasm-pack publish ./pkg
+	wasm-pack publish ./pkg/web
 
 publish-bundler:
 	make build-bundler
 	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/package.json
-	wasm-pack publish ./pkg
+	wasm-pack publish ./pkg/bundler
 
 create-isomorphic:
 	rollup pkg/node/bsv_wasm.js --format umd --name bsv_wasm_iso --file pkg/node/bsv_wasm_iso.js
