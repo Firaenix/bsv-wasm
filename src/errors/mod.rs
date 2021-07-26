@@ -1,8 +1,6 @@
 use std::{fmt::Display, num::ParseIntError};
 
 use thiserror::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::{convert::IntoWasmAbi, throw_str, JsValue};
 
 #[derive(Debug, Error)]
 pub enum BSVErrors {
@@ -75,6 +73,21 @@ pub enum BSVErrors {
         #[from]
         block_modes::BlockModeError,
     ),
+
+    #[error("{0}")]
+    FlexbufferSerializationError(
+        #[source]
+        #[from]
+        flexbuffers::SerializationError,
+    ),
+
+    #[error("{0}")]
+    FlexbufferDeserializationError(
+        #[source]
+        #[from]
+        flexbuffers::DeserializationError,
+    ),
+
     // Custom Errors
     #[error("Unable to recover public key: {0} {1:?}")]
     PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),

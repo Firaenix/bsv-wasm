@@ -7,7 +7,6 @@ describe("Bitcoin Signed Messages", function() {
     it('signed message matches BSV.JS', () => {
         let wif = "L17y3TE8AgM6fiWFP4HsbaLnvuBJsQcFKYRoJoZULpTzeTCr2nEC"
 
-
         const priv_wasm = PrivateKey.fromWIF(wif);
         const pub_wasm = PublicKey.fromPrivateKey(priv_wasm)
         const address_wasm = P2PKHAddress.fromPubKey(pub_wasm)

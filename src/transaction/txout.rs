@@ -16,8 +16,8 @@ use thiserror::*;
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
-    value: u64,
-    script_pub_key: Script,
+    pub(crate) value: u64,
+    pub(crate) script_pub_key: Script,
 }
 
 impl TxOut {

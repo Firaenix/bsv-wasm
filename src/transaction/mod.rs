@@ -3,16 +3,19 @@ use std::io::Read;
 use std::io::Write;
 
 use crate::BSVErrors;
+use crate::Script;
 use crate::{Hash, VarInt};
 use byteorder::*;
 use serde::{Deserialize, Serialize};
 use thiserror::*;
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
+mod match_criteria;
 mod sighash;
 mod txin;
 mod txout;
 
+pub use match_criteria::*;
 pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
@@ -99,53 +102,52 @@ impl Transaction {
         let mut buffer = Vec::new();
 
         // Version - 4 bytes
-        match buffer.write_u32::<LittleEndian>(self.version) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("version".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.version) {
+            return Err(BSVErrors::SerialiseTransaction("version".to_string(), e));
+        }
 
         // In Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_ninputs() as u64) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_varint(self.get_ninputs() as u64) {
+            return Err(BSVErrors::SerialiseTransaction("n_inputs".to_string(), e));
+        }
 
         // Inputs
         for i in 0..self.get_ninputs() {
             let input = &self.inputs[i];
             let input_bytes = input.to_bytes_impl()?;
 
-            match buffer.write(&input_bytes) {
-                Ok(_) => (),
-                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("input {}", i), e)),
-            };
+            if let Err(e) = buffer.write_all(&input_bytes) {
+                return Err(BSVErrors::SerialiseTransaction(format!("input {}", i), e));
+            }
         }
 
         // Out Counter - 1-9 tx_bytes
-        match buffer.write_varint(self.get_noutputs() as u64) {
-            Ok(_) => (),
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_varint(self.get_noutputs() as u64) {
+            return Err(BSVErrors::SerialiseTransaction("n_outputs".to_string(), e));
+        }
 
         // Outputs
         for i in 0..self.get_noutputs() {
             let output = &self.outputs[i as usize];
             let output_bytes = output.to_bytes_impl()?;
 
-            match buffer.write(&output_bytes) {
-                Ok(_) => (),
-                Err(e) => return Err(BSVErrors::SerialiseTransaction(format!("output {}", i), e)),
-            };
+            if let Err(e) = buffer.write_all(&output_bytes) {
+                return Err(BSVErrors::SerialiseTransaction(format!("output {}", i), e));
+            }
         }
 
         // nLocktime - 4 bytes
-        match buffer.write_u32::<LittleEndian>(self.n_locktime) {
-            Ok(v) => v,
-            Err(e) => return Err(BSVErrors::SerialiseTransaction("n_locktime".to_string(), e)),
-        };
+        if let Err(e) = buffer.write_u32::<LittleEndian>(self.n_locktime) {
+            return Err(BSVErrors::SerialiseTransaction("n_locktime".to_string(), e));
+        }
 
         // Write out bytes
         Ok(buffer)
+    }
+
+    pub(crate) fn get_size_impl(&self) -> Result<usize, BSVErrors> {
+        let tx_bytes = self.to_bytes_impl()?;
+        Ok(tx_bytes.len())
     }
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
@@ -169,6 +171,16 @@ impl Transaction {
         hash.0.reverse();
 
         Ok(hash)
+    }
+
+    pub fn to_compact_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
+        let buf = flexbuffers::to_vec(self)?;
+        Ok(buf)
+    }
+
+    pub fn from_compact_bytes_impl(buffer: &[u8]) -> Result<Transaction, BSVErrors> {
+        let transaction = flexbuffers::from_slice(buffer)?;
+        Ok(transaction)
     }
 }
 
@@ -246,6 +258,135 @@ impl Transaction {
     pub fn set_output(&mut self, index: usize, output: &TxOut) {
         self.outputs[index] = output.clone();
     }
+
+    fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if matches!(&criteria.script, Some(crit_script) if crit_script != &txout.script_pub_key) {
+            return false;
+        }
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.is_some() && criteria.exact_value != Some(txout.value) {
+            return false;
+        }
+
+        // If min_value is specified and value is less than min value
+        if criteria.min_value.is_some() && criteria.min_value > Some(txout.value) {
+            return false;
+        }
+
+        // If min_value is specified and value is greater than max value
+        if criteria.max_value.is_some() && criteria.max_value < Some(txout.value) {
+            return false;
+        }
+
+        true
+    }
+
+    /**
+     * Returns the first output index that matches the given parameters, returns None or null if not found.
+     */
+    #[wasm_bindgen(js_name = matchOutput)]
+    pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+            true => Some(i),
+            false => None,
+        })
+    }
+
+    /**
+     * Returns a list of outputs indexes that match the given parameters
+     */
+    #[wasm_bindgen(js_name = matchOutputs)]
+    pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .outputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+                true => Some(i),
+                false => None,
+            })
+            .collect();
+
+        matches
+    }
+
+    fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if matches!(&criteria.script, Some(crit_script) if crit_script != &txin.script_sig) {
+            return false;
+        }
+
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.is_some() && criteria.exact_value != txin.satoshis {
+            return false;
+        }
+
+        // If min_value is specified and value is less than min value
+        if criteria.min_value.is_some() && criteria.min_value > txin.satoshis {
+            return false;
+        }
+
+        // If min_value is specified and value is greater than max value
+        if criteria.max_value.is_some() && criteria.max_value < txin.satoshis {
+            return false;
+        }
+
+        true
+    }
+
+    /**
+     * Returns the first input index that matches the given parameters, returns None or null if not found.
+     */
+    #[wasm_bindgen(js_name = matchInput)]
+    pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+            true => Some(i),
+            false => None,
+        })
+    }
+
+    /**
+     * Returns a list of input indexes that match the given parameters
+     */
+    #[wasm_bindgen(js_name = matchInputs)]
+    pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .inputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+                true => Some(i),
+                false => None,
+            })
+            .collect();
+
+        matches
+    }
+
+    /**
+     * XT Method:
+     * Returns the combined sum of all input satoshis.
+     * If any of the inputs dont have satoshis defined, this returns None or null
+     */
+    #[wasm_bindgen(js_name = satoshisIn)]
+    pub fn satoshis_in(&self) -> Option<u64> {
+        self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
+            if a == None || b == None {
+                return None;
+            }
+
+            Some(a.unwrap() + b.unwrap())
+        })?
+    }
+
+    /**
+     * Returns the combined sum of all output satoshis.
+     */
+    #[wasm_bindgen(js_name = satoshisOut)]
+    pub fn satoshis_out(&self) -> u64 {
+        self.outputs.iter().map(|x| x.value).sum()
+    }
 }
 
 /**
@@ -297,6 +438,17 @@ impl Transaction {
     #[wasm_bindgen(js_name = toHex)]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match Transaction::to_hex_impl(&self) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Get size of current serialised Transaction object
+     */
+    #[wasm_bindgen(js_name = getSize)]
+    pub fn get_size(&self) -> Result<usize, JsValue> {
+        match Transaction::get_size_impl(&self) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -372,6 +524,13 @@ impl Transaction {
      */
     pub fn get_id_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         Ok(self.get_id_impl()?.to_bytes())
+    }
+
+    /**
+     * Get size of current serialised Transaction object
+     */
+    pub fn get_size(&self) -> Result<usize, BSVErrors> {
+        self.get_size_impl()
     }
 
     #[cfg(not(target_arch = "wasm32"))]
