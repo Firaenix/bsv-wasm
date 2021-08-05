@@ -1,6 +1,5 @@
 use crate::get_hash_digest;
 use crate::BSVErrors;
-use crate::Digest32;
 use crate::PrivateKey;
 use crate::Signature;
 use crate::ECDSA;
@@ -21,7 +20,7 @@ use wasm_bindgen::JsValue;
 impl ECDSA {
     fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, bool), ecdsa::Error>
     where
-        D: Digest32,
+        D: digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
     {
         let priv_scalar = priv_key.to_secret_scalar();
         let k_digest = match reverse_endian_k {
@@ -35,7 +34,7 @@ impl ECDSA {
 
     fn sign_preimage_random_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, bool), ecdsa::Error>
     where
-        D: Digest32,
+        D: digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
     {
         let mut added_entropy = FieldBytes::default();
         let rng = &mut OsRng;
