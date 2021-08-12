@@ -11,7 +11,7 @@ use crate::{
     utils::{from_hex, to_hex},
     BSVErrors,
 };
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::*;
 use thiserror::*;
@@ -162,23 +162,23 @@ impl Script {
                     buffer.append(&mut hex::decode(code)?);
                 }
                 op_pushdata2_size @ 0x100..=0xFFFF => {
-                    match OpCodes::OP_PUSHDATA2.to_u8() {
-                        Some(pushdata2_byte) => buffer.push(pushdata2_byte),
+                    match OpCodes::OP_PUSHDATA2.to_u16() {
+                        Some(pushdata2_byte) => buffer.write_u16::<LittleEndian>(pushdata2_byte)?,
                         None => return Err(BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA2 Code to u8".into())),
                     };
 
-                    buffer.push(op_pushdata2_size as u8);
+                    buffer.write_u16::<LittleEndian>(op_pushdata2_size as u16)?;
                     buffer.append(&mut hex::decode(code)?);
                 }
                 size => {
                     // Cant do a standard match because 0xFFFFFFFF is too large
                     if size > 0x10000 && size <= 0xFFFFFFFF {
-                        match OpCodes::OP_PUSHDATA4.to_u8() {
-                            Some(pushdata4_byte) => buffer.push(pushdata4_byte),
+                        match OpCodes::OP_PUSHDATA4.to_u32() {
+                            Some(pushdata4_byte) => buffer.write_u32::<LittleEndian>(pushdata4_byte)?,
                             None => return Err(BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA4 Code to u8".into())),
                         };
 
-                        buffer.push(size as u8);
+                        buffer.write_u32::<LittleEndian>(size as u32)?;
                         buffer.append(&mut hex::decode(code)?);
                     }
                 }
