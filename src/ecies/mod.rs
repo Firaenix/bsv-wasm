@@ -16,6 +16,7 @@ pub use ecies_ciphertext::*;
 pub struct ECIES {}
 
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct CipherKeys {
     pub(crate) iv: Vec<u8>,
     pub(crate) ke: Vec<u8>,
@@ -48,7 +49,7 @@ impl ECIES {
         let r_buf = match exclude_pub_key {
             true => None,
             false => {
-                let pub_key = private_key.get_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
+                let pub_key = private_key.to_public_key_impl()?.to_compressed_impl()?.to_bytes_impl()?;
                 buffer.extend_from_slice(&pub_key);
                 Some(pub_key)
             }
@@ -61,6 +62,7 @@ impl ECIES {
             ciphertext_bytes: cipher_text,
             public_key_bytes: r_buf,
             hmac_bytes: hmac,
+            keys: Some(cipher),
         })
     }
 

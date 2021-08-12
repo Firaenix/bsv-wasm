@@ -1,4 +1,4 @@
-use crate::PublicKey;
+use crate::{CipherKeys, PublicKey};
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::BSVErrors;
@@ -8,6 +8,7 @@ pub struct ECIESCiphertext {
     pub(crate) public_key_bytes: Option<Vec<u8>>,
     pub(crate) ciphertext_bytes: Vec<u8>,
     pub(crate) hmac_bytes: Vec<u8>,
+    pub(crate) keys: Option<CipherKeys>,
 }
 
 const PUB_KEY_OFFSET: u8 = 4;
@@ -39,20 +40,26 @@ impl ECIESCiphertext {
             public_key_bytes: pub_key,
             hmac_bytes: hmac.into(),
             ciphertext_bytes: ciphertext.into(),
+            keys: None,
         })
     }
 }
 
 #[wasm_bindgen]
 impl ECIESCiphertext {
-    #[wasm_bindgen(js_name = extractCiphertext)]
-    pub fn extract_ciphertext(&self) -> Vec<u8> {
+    #[wasm_bindgen(js_name = getCiphertext)]
+    pub fn get_ciphertext(&self) -> Vec<u8> {
         self.ciphertext_bytes.clone()
     }
 
-    #[wasm_bindgen(js_name = extractHMAC)]
-    pub fn extract_hmac(&self) -> Vec<u8> {
+    #[wasm_bindgen(js_name = getHMAC)]
+    pub fn get_hmac(&self) -> Vec<u8> {
         self.hmac_bytes.clone()
+    }
+
+    #[wasm_bindgen(js_name = getCipherKeys)]
+    pub fn get_cipher_keys(&self) -> Option<CipherKeys> {
+        self.keys.clone()
     }
 
     #[wasm_bindgen(js_name = toBytes)]
