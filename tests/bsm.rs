@@ -14,11 +14,11 @@ mod bitcoin_signed_message_tests {
         let message = b"Hello Bitcoin!";
 
         let msg_sig = priv_key.sign_message(message).unwrap();
-        assert!(msg_sig.verify_message(message, &priv_key.get_public_key().unwrap()), "Normal messages match");
+        assert!(msg_sig.verify_message(message, &priv_key.to_public_key().unwrap()), "Normal messages match");
 
         let signature = BSM::sign_message(&priv_key, message).unwrap();
 
-        let verified = BSM::verify_message(message, &signature, &priv_key.get_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
+        let verified = BSM::verify_message(message, &signature, &priv_key.to_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
 
         assert!(verified, "Message is not verified")
     }

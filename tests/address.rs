@@ -90,7 +90,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn compressed_wif_to_compressed_p2pkh() {
         let priv_key = PrivateKey::from_wif("KziiqE8Ud9hVUfootTmvYissdY3grsA94avMnkaGDYEFDcFoen74").unwrap();
-        let pub_key = priv_key.get_public_key().unwrap();
+        let pub_key = priv_key.to_public_key().unwrap();
 
         let pub_key_hex = pub_key.to_hex().unwrap();
         assert_eq!(pub_key_hex, "02214735afc6f7e38c07275d575b51e208a7a9a9521d0af8425de6722a4e738a5f");
@@ -102,7 +102,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn uncompressed_wif_to_uncompressed_p2pkh() {
         let priv_key = PrivateKey::from_wif("5Jn2vgPSP7QacDi9U5XsH4BEwBHLQjUD4StsJDWC7DAdFXdLrdh").unwrap();
-        let pub_key = priv_key.get_public_key().unwrap();
+        let pub_key = priv_key.to_public_key().unwrap();
 
         let pub_key_hex = pub_key.to_hex().unwrap();
         assert_eq!(

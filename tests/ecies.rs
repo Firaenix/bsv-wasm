@@ -15,12 +15,12 @@ mod ecies_tests {
 
         // Recipient
         let bob_priv_key = PrivateKey::from_random();
-        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let bob_pub_key = bob_priv_key.to_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
         let encrypted = ECIES::encrypt(message, &alice_private_key, &bob_pub_key, true).unwrap();
 
-        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.get_public_key().unwrap()).unwrap();
+        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.to_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -31,7 +31,7 @@ mod ecies_tests {
     fn encrypt_text_to_self_and_exclude_pub_key() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
-        let alice_pub_key = alice_private_key.get_public_key().unwrap();
+        let alice_pub_key = alice_private_key.to_public_key().unwrap();
 
         let message = b"Hello, Bitcoin.";
 
@@ -48,7 +48,7 @@ mod ecies_tests {
     fn encrypt_text_specific_private_key_send_to_self() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
-        let alice_pub_key = alice_private_key.get_public_key().unwrap();
+        let alice_pub_key = alice_private_key.to_public_key().unwrap();
 
         let message = b"Hello, Bitcoin.";
 
@@ -69,7 +69,7 @@ mod ecies_tests {
 
         let encrypted = alice_private_key.encrypt_message(message).unwrap();
 
-        let plaintext = alice_private_key.decrypt_message(&encrypted, &alice_private_key.get_public_key().unwrap()).unwrap();
+        let plaintext = alice_private_key.decrypt_message(&encrypted, &alice_private_key.to_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -83,12 +83,12 @@ mod ecies_tests {
 
         // Recipient
         let bob_priv_key = PrivateKey::from_random();
-        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let bob_pub_key = bob_priv_key.to_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
         let encrypted = ECIES::encrypt(message, &alice_private_key, &bob_pub_key, false).unwrap();
 
-        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.get_public_key().unwrap()).unwrap();
+        let plaintext = ECIES::decrypt(&encrypted, &bob_priv_key, &alice_private_key.to_public_key().unwrap()).unwrap();
 
         assert_eq!(plaintext, message);
     }
@@ -98,11 +98,11 @@ mod ecies_tests {
     fn encrypt_text_specific_private_key_convenience_method() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
-        let alice_pub_key = alice_private_key.get_public_key().unwrap();
+        let alice_pub_key = alice_private_key.to_public_key().unwrap();
 
         // Recipient
         let bob_priv_key = PrivateKey::from_random();
-        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let bob_pub_key = bob_priv_key.to_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
         let encrypted = bob_pub_key.encrypt_message(message, &alice_private_key).unwrap();
@@ -118,7 +118,7 @@ mod ecies_tests {
     fn encrypt_decrypt_text_ephemeral_private_key() {
         // Recipient with Anonymous sender
         let bob_priv_key = PrivateKey::from_random();
-        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let bob_pub_key = bob_priv_key.to_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
         let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key).unwrap();
@@ -133,7 +133,7 @@ mod ecies_tests {
     fn encode_decode_ciphertext() {
         // Recipient with Anonymous sender
         let bob_priv_key = PrivateKey::from_random();
-        let bob_pub_key = bob_priv_key.get_public_key().unwrap();
+        let bob_pub_key = bob_priv_key.to_public_key().unwrap();
         let message = b"Hello, Bitcoin.";
 
         let encrypted = ECIES::encrypt_with_ephemeral_private_key(message, &bob_pub_key).unwrap();

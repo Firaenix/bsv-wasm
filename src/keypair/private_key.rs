@@ -109,7 +109,7 @@ impl PrivateKey {
         Ok(PrivateKey::from_hex_impl(&private_key_hex)?.compress_public_key(is_compressed_pub_key))
     }
 
-    pub(crate) fn get_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
+    pub(crate) fn to_public_key_impl(&self) -> Result<PublicKey, BSVErrors> {
         let pub_key = PublicKey::from_private_key_impl(self);
 
         if !self.is_pub_key_compressed {
@@ -123,7 +123,7 @@ impl PrivateKey {
      * Encrypt a message to the public key of this private key.
      */
     pub(crate) fn encrypt_message_impl(&self, message: &[u8]) -> Result<ECIESCiphertext, BSVErrors> {
-        ECIES::encrypt_impl(message, self, &self.get_public_key_impl()?, false)
+        ECIES::encrypt_impl(message, self, &self.to_public_key_impl()?, false)
     }
 
     /**
@@ -224,9 +224,9 @@ impl PrivateKey {
         }
     }
 
-    #[wasm_bindgen(js_name = getPublicKey)]
-    pub fn get_public_key(&self) -> Result<PublicKey, JsValue> {
-        match self.get_public_key_impl() {
+    #[wasm_bindgen(js_name = toPublicKey)]
+    pub fn to_public_key(&self) -> Result<PublicKey, JsValue> {
+        match self.to_public_key_impl() {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -283,8 +283,8 @@ impl PrivateKey {
         Self::from_bytes_impl(bytes)
     }
 
-    pub fn get_public_key(&self) -> Result<PublicKey, BSVErrors> {
-        self.get_public_key_impl()
+    pub fn to_public_key(&self) -> Result<PublicKey, BSVErrors> {
+        self.to_public_key_impl()
     }
 
     /**
