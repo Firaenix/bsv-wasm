@@ -50,10 +50,8 @@ jobs:
         with:
           cache-on-failure: true
 
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-          version: 'latest'
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - run: make build-nodejs
       - name: Use Node.js ${{ matrix.node-version }}
@@ -72,10 +70,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: jetli/wasm-pack-action@v0.3.0
-      with:
-        # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-        version: 'latest'
+    - name: Install wasm-pack
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
     - uses: actions-rs/toolchain@v1
       with:
