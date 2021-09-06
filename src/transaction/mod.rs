@@ -172,16 +172,6 @@ impl Transaction {
 
         Ok(hash)
     }
-
-    pub fn to_compact_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
-        let buf = flexbuffers::to_vec(self)?;
-        Ok(buf)
-    }
-
-    pub fn from_compact_bytes_impl(buffer: &[u8]) -> Result<Transaction, BSVErrors> {
-        let transaction = flexbuffers::from_slice(buffer)?;
-        Ok(transaction)
-    }
 }
 
 /**

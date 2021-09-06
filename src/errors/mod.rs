@@ -74,20 +74,6 @@ pub enum BSVErrors {
         block_modes::BlockModeError,
     ),
 
-    #[error("{0}")]
-    FlexbufferSerializationError(
-        #[source]
-        #[from]
-        flexbuffers::SerializationError,
-    ),
-
-    #[error("{0}")]
-    FlexbufferDeserializationError(
-        #[source]
-        #[from]
-        flexbuffers::DeserializationError,
-    ),
-
     // Custom Errors
     #[error("Unable to recover public key: {0} {1:?}")]
     PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),
