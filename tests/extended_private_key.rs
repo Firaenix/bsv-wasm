@@ -48,13 +48,13 @@ mod xpriv_tests {
         // m/0/0
         let derived_key = key.derive(0).unwrap().derive(0).unwrap();
 
-        assert_eq!(derived_key.get_private_key().to_wif().unwrap(), "L5LxK8WV9wNDemaYBtpEURWi3sHmGsEHpSGmSfahQrreTYKukp9W");
-        assert_eq!(derived_key.get_public_key().to_hex().unwrap(), "02756de182c5dd4b717ea87e693006da62dbb3cddaa4a5cad2ed1f5bbab755f0f5");
+        assert_eq!(derived_key.to_private_key().to_wif().unwrap(), "L5LxK8WV9wNDemaYBtpEURWi3sHmGsEHpSGmSfahQrreTYKukp9W");
+        assert_eq!(derived_key.to_public_key().to_hex().unwrap(), "02756de182c5dd4b717ea87e693006da62dbb3cddaa4a5cad2ed1f5bbab755f0f5");
 
         // m/0/0/12
         let second_derived = derived_key.derive(12).unwrap();
-        assert_eq!(second_derived.get_private_key().to_wif().unwrap(), "KwX8mbobXJQ89SzPXHJ8fLGZ7ya6GyqAMLEZ8Cs2QWSm6GSAvQVg");
-        assert_eq!(second_derived.get_public_key().to_hex().unwrap(), "02c815eb6b999ae9ac4edba5ca1b9a57723b4fa749afe3d3994462f0c4f2efc7dd");
+        assert_eq!(second_derived.to_private_key().to_wif().unwrap(), "KwX8mbobXJQ89SzPXHJ8fLGZ7ya6GyqAMLEZ8Cs2QWSm6GSAvQVg");
+        assert_eq!(second_derived.to_public_key().to_hex().unwrap(), "02c815eb6b999ae9ac4edba5ca1b9a57723b4fa749afe3d3994462f0c4f2efc7dd");
     }
 
     #[test]
@@ -74,7 +74,7 @@ mod xpriv_tests {
             "xprv9uHRZZhk6KAJC1avXpDAp4MDc3sQKNxDiPvvkX8Br5ngLNv1TxvUxt4cV1rGL5hj6KCesnDYUhd7oWgT11eZG7XnxHrnYeSvkzY7d2bhkJ7"
         );
 
-        // assert_eq!(derived_key.get_private_key().to_wif(true).unwrap(), "L5BmPijJjrKbiUfG4zbiFKNqkvuJ8usooJmzuD7Z8dkRoTThYnAT");
+        // assert_eq!(derived_key.to_private_key().to_wif(true).unwrap(), "L5BmPijJjrKbiUfG4zbiFKNqkvuJ8usooJmzuD7Z8dkRoTThYnAT");
         // assert_eq!(derived_key.to_public_key().to_hex().unwrap(), "035a784662a4a20a65bf6aab9ae98a6c068a81c52e4b032c0fb5400c706cfccc56");
 
         // m/0'/12'
@@ -83,7 +83,7 @@ mod xpriv_tests {
             second_derived.to_string().unwrap(),
             "xprv9wTYmMFmpgaLi3HHQHhv5tzwSbXyrwdbm6PiYgTrgu1D931Q81Doi4RhbEoxbLvBYs7f7Foq4tTU8UxTHy6yD4TYgrm8ttEiWLiwSm66akB"
         );
-        // assert_eq!(second_derived.get_private_key().to_wif(true).unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
+        // assert_eq!(second_derived.to_private_key().to_wif(true).unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
         // assert_eq!(second_derived.to_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
     }
 
@@ -99,8 +99,8 @@ mod xpriv_tests {
 
         // m/0'
         let derived_key = key.derive_from_path("m/0'/12'").unwrap();
-        assert_eq!(derived_key.get_private_key().to_wif().unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
-        assert_eq!(derived_key.get_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
+        assert_eq!(derived_key.to_private_key().to_wif().unwrap(), "KxUAqUXuB3Ksh3QwnorUhATf2bNY6CPjD3dv8EeTXdVeQF8RYQpL");
+        assert_eq!(derived_key.to_public_key().to_hex().unwrap(), "03c188374826dc4a986adf53b01d1eb5ca4bf37f0c6ceea63cd6e350a56883b369");
     }
 
     #[test]

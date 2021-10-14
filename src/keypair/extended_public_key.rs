@@ -197,15 +197,15 @@ impl ExtendedPublicKey {
 
 #[wasm_bindgen]
 impl ExtendedPublicKey {
-    #[wasm_bindgen(js_name = getPublicKey)]
-    pub fn get_public_key(&self) -> PublicKey {
+    #[wasm_bindgen(js_name = toPublicKey)]
+    pub fn to_public_key(&self) -> PublicKey {
         self.public_key.clone()
     }
 
     #[wasm_bindgen(js_name = fromXPriv)]
     pub fn from_xpriv(xpriv: &ExtendedPrivateKey) -> Self {
         Self {
-            public_key: xpriv.get_public_key(),
+            public_key: xpriv.to_public_key(),
             chain_code: xpriv.get_chain_code(),
             depth: xpriv.get_depth(),
             index: xpriv.get_index(),

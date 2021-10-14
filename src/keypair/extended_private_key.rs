@@ -240,13 +240,13 @@ impl ExtendedPrivateKey {
 
 #[wasm_bindgen]
 impl ExtendedPrivateKey {
-    #[wasm_bindgen(js_name = getPrivateKey)]
-    pub fn get_private_key(&self) -> PrivateKey {
+    #[wasm_bindgen(js_name = toPrivateKey)]
+    pub fn to_private_key(&self) -> PrivateKey {
         self.private_key.clone()
     }
 
-    #[wasm_bindgen(js_name = getPublicKey)]
-    pub fn get_public_key(&self) -> PublicKey {
+    #[wasm_bindgen(js_name = toPublicKey)]
+    pub fn to_public_key(&self) -> PublicKey {
         self.public_key.clone()
     }
 

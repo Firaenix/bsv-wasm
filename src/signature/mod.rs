@@ -39,7 +39,7 @@ impl Signature {
         })
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
+    pub(crate) fn to_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         let recovery_id_main = match recoverable::Id::new(self.recovery_i) {
             Ok(v) => v,
             Err(e) => {
@@ -146,7 +146,7 @@ impl Signature {
 
     #[wasm_bindgen(js_name = recoverPublicKey)]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, JsValue> {
-        match Signature::get_public_key(&self, &message, hash_algo) {
+        match Signature::to_public_key(&self, &message, hash_algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -174,6 +174,6 @@ impl Signature {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
-        Signature::get_public_key(self, message, hash_algo)
+        Signature::to_public_key(self, message, hash_algo)
     }
 }

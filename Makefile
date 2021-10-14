@@ -16,6 +16,15 @@ build-wasm:
 test-node:
 	make build-nodejs && pushd ./examples/node-test && yarn test ; popd
 
+test-wasm:
+	wasm-pack test --node
+
+test:
+	cargo test
+
+test-all:
+	make test && make test-wasm && make test-node
+
 publish-node:
 	# make sure not to call make build-* because wasm-pack doesnt allow you to specify subdirectories.
 	wasm-pack build --release --target nodejs

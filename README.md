@@ -18,9 +18,12 @@ https://crates.io/crates/bsv-wasm
 
 ## Usage
 ### Note: Rust and JS/TS method names and structs are the same
+### Documentation can be found on the Structs/Functions with JSDoc or at https://docs.rs/bsv-wasm/
 
 - Derive private key from XPriv and log out P2PKH String
-`ExtendedPrivateKey.fromWIF('LMyWif...').getPrivateKey().getPublicKey().toAddress().toString()`
+```ts
+ExtendedPrivateKey.fromWIF('LMyWif...').toPrivateKey().toPublicKey().toAddress().toString()
+```
 
 
 ## Caveats
@@ -37,9 +40,9 @@ https://crates.io/crates/bsv-wasm
 - Addresses (P2PKH)
 - Sighash Support
 - Extended Private Keys and Child Derivation (BIP32, BIP42)
+- ECIES
 
 ## TODO:
-- [ ] ECIES
 - [ ] Script Builder
 - [ ] Isomorphic Package for JS
 - [ ] Write documentation (Inline on functions and structs)
