@@ -23,7 +23,7 @@ describe("Transaction Tests", function () {
       Script.fromASMString("OP_0 OP_RETURN"),
       0
     );
-    tx.addInput(txin_1);
+    tx.addInput(txin_2);
     let txin_3 = new TxIn(
       Buffer.from(
         "4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a",
@@ -33,7 +33,7 @@ describe("Transaction Tests", function () {
       Script.fromASMString("OP_0 OP_RETURN"),
       0
     );
-    tx.addInput(txin_1);
+    tx.addInput(txin_3);
 
     let outpoints = tx.getOutpoints();
 
