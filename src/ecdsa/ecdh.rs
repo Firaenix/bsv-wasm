@@ -7,6 +7,8 @@ use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{throw_str, JsValue};
 
+#[wasm_bindgen]
+#[derive(Clone)]
 pub struct ECDH {}
 
 impl ECDH {

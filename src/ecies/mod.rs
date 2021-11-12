@@ -13,6 +13,8 @@ pub use ecies_ciphertext::*;
  * Electrum compatible ECIES implementation.
  * Comparable to Ecies.electrumEncrypt in BSV.JS
  */
+#[wasm_bindgen]
+#[derive(Clone)]
 pub struct ECIES {}
 
 #[wasm_bindgen]
