@@ -172,6 +172,26 @@ impl Transaction {
 
         Ok(hash)
     }
+
+    /**
+     * Returns all outpoints from this transaction as a 2D array of 36 byte buffers.
+     *
+     * Transaction.get_outpoints()
+     */
+    pub(crate) fn get_outpoints_impl(&self) -> Vec<Vec<u8>> {
+        self.inputs
+            .iter()
+            .map(|x| {
+                let mut outpoint: Vec<u8> = vec![];
+
+                outpoint.extend(x.prev_tx_id.clone());
+                outpoint.reverse();
+                outpoint.extend(x.vout.to_le_bytes());
+
+                outpoint
+            })
+            .collect()
+    }
 }
 
 /**
@@ -460,6 +480,20 @@ impl Transaction {
     }
 
     /**
+     * Returns all outpoints from this transaction as a 2D array of 36 byte buffers.
+     *
+     * @returns {Uint8Array[]} outpoint_array
+     */
+    #[wasm_bindgen(js_name = getOutpoints)]
+    pub fn get_outpoints(&mut self) -> Result<JsValue, JsValue> {
+        let outpoints = self.get_outpoints_impl();
+        match JsValue::from_serde(&outpoints) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
      * Adds an array of TxOuts to the transaction
      * @param {TxOut[]} tx_outs
      */
@@ -566,5 +600,10 @@ impl Transaction {
         for txout in tx_outs {
             self.add_output(&txout);
         }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn get_outpoints(&mut self) -> Vec<Vec<u8>> {
+        self.get_outpoints_impl()
     }
 }

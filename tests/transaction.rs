@@ -377,6 +377,76 @@ mod transaction_tests {
         assert_eq!(tx.satoshis_out(), 0)
     }
 
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn get_outpoints() {
+        let mut tx = Transaction::new(1, 0);
+
+        let txin_1 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_1);
+        let txin_2 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            1,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_2);
+        let txin_3 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            2,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_3);
+
+        let outpoints = tx.get_outpoints();
+
+        assert_eq!(&outpoints[0].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f00000000");
+        assert_eq!(&outpoints[1].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f01000000");
+        assert_eq!(&outpoints[2].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f02000000");
+    }
+
+    #[wasm_bindgen_test]
+    #[cfg(target_arch = "wasm32")]
+    fn get_outpoints_wasm() {
+        let mut tx = Transaction::new(1, 0);
+
+        let txin_1 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            0,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_1);
+        let txin_2 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            1,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_2);
+        let txin_3 = TxIn::new(
+            &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
+            2,
+            &Script::from_asm_string("").unwrap(),
+            Some(u32::MAX),
+        );
+        tx.add_input(&txin_3);
+
+        let outpoints = tx.get_outpoints().unwrap();
+
+        let outpoint_slice: Vec<Vec<u8>> = outpoints.into_serde().unwrap();
+
+        assert_eq!(&outpoint_slice[0].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f00000000");
+        assert_eq!(&outpoint_slice[1].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f01000000");
+        assert_eq!(&outpoint_slice[2].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f02000000");
+    }
+
     // For future validation
     // #[test]
     // #[wasm_bindgen_test]
