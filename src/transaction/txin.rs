@@ -242,9 +242,19 @@ impl TxIn {
         self.satoshis = Some(satoshis);
     }
 
+    #[wasm_bindgen(js_name = getSatoshis)]
+    pub fn get_satoshis(&self) -> Option<u64> {
+        self.satoshis
+    }
+
     #[wasm_bindgen(js_name = setUnlockingScript)]
     pub fn set_unlocking_script(&mut self, unlocking_script: &Script) {
         self.unlocking_script = Some(unlocking_script.clone());
+    }
+
+    #[wasm_bindgen(js_name = getUnlockingScriptBytes)]
+    pub fn get_unlocking_script_bytes(&self) -> Option<Vec<u8>> {
+        self.unlocking_script.as_ref().map(|v| v.to_bytes())
     }
 }
 

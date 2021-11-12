@@ -145,6 +145,23 @@ impl Transaction {
         Ok(buffer)
     }
 
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    pub(crate) fn to_compact_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
+        let mut buffer = vec![];
+        ciborium::ser::into_writer(&self, &mut buffer)?;
+        Ok(buffer)
+    }
+
+    /**
+     * Deserialises the provided buffer to the TX+ format
+     */
+    pub(crate) fn from_compact_bytes_impl(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        let tx = ciborium::de::from_reader(compact_buffer)?;
+        Ok(tx)
+    }
+
     pub(crate) fn get_size_impl(&self) -> Result<usize, BSVErrors> {
         let tx_bytes = self.to_bytes_impl()?;
         Ok(tx_bytes.len())
@@ -529,6 +546,28 @@ impl Transaction {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    #[wasm_bindgen(js_name = toCompactBytes)]
+    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
+        match self.to_compact_bytes_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the TX+ format
+     */
+    #[wasm_bindgen(js_name = fromCompactBytes)]
+    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, JsValue> {
+        match Transaction::from_compact_bytes_impl(compact_buffer) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -605,5 +644,19 @@ impl Transaction {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn get_outpoints(&mut self) -> Vec<Vec<u8>> {
         self.get_outpoints_impl()
+    }
+
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
+        self.to_compact_bytes_impl()
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the TX+ format
+     */
+    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        Transaction::from_compact_bytes_impl(compact_buffer)
     }
 }
