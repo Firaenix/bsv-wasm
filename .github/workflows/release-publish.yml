@@ -26,6 +26,9 @@ jobs:
 
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    - name: Install wasm-bindgen-cli Custom
+      run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
       
     - name: Run tests
       run: cargo test --verbose
@@ -53,6 +56,9 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
+      - name: Install wasm-bindgen-cli Custom
+        run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
+
       - run: make build-nodejs
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -72,6 +78,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+    - name: Install wasm-bindgen-cli Custom
+      run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
 
     - uses: actions-rs/toolchain@v1
       with:

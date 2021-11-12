@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 k256 = { version = "^0.9", features = ["ecdsa", "ecdh"] }
-wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
+wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
 hex = "^0.4"
 console_error_panic_hook = { version = "^0.1", optional = true }
 bs58 = "^0.4.0"
@@ -53,6 +53,9 @@ wasm-bindgen-test = "^0.3"
 
 [features]
 default = ["console_error_panic_hook"]
+
+[patch.crates-io]
+wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }
 
 [build]
 rustflags = ["-C", "target-feature=+simd128"]
