@@ -74,6 +74,20 @@ pub enum BSVErrors {
         block_modes::BlockModeError,
     ),
 
+    #[error("{0}")]
+    CborSerialise(
+        #[source]
+        #[from]
+        ciborium::ser::Error<std::io::Error>,
+    ),
+
+    #[error("{0}")]
+    CborDeserialise(
+        #[source]
+        #[from]
+        ciborium::de::Error<std::io::Error>,
+    ),
+
     // Custom Errors
     #[error("Unable to recover public key: {0} {1:?}")]
     PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),
