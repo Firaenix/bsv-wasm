@@ -17,7 +17,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(
@@ -29,7 +29,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("f2e1978486452bd4262f3f51fb54fb50ca55ba3e928c3aabfa27e11a1b230d02").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(
@@ -53,7 +53,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(
@@ -65,7 +65,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("f2e1978486452bd4262f3f51fb54fb50ca55ba3e928c3aabfa27e11a1b230d02").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(
@@ -91,7 +91,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(
@@ -103,7 +103,7 @@ mod tx_criteria_tests {
         tx.add_input(&TxIn::new(
             &hex::decode("f2e1978486452bd4262f3f51fb54fb50ca55ba3e928c3aabfa27e11a1b230d02").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         ));
         tx.add_input(&TxIn::new(

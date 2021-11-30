@@ -1,4 +1,5 @@
 pub mod op_codes;
+use digest::Reset;
 pub use op_codes::*;
 
 use std::{
@@ -77,10 +78,10 @@ impl Script {
         Ok(result)
     }
 
-    fn get_pushdata(cursor: &mut Cursor<Vec<u8>>, size: usize) -> Result<String, BSVErrors> {
+    fn get_pushdata(cursor: &mut Cursor<Vec<u8>>, size: usize) -> Result<Vec<u8>, BSVErrors> {
         let mut data_buf = vec![0; size];
         match cursor.read(&mut data_buf) {
-            Ok(_) => Ok(hex::encode(data_buf)),
+            Ok(_) => Ok(data_buf),
             Err(e) => Err(BSVErrors::SerialiseScript(format!("Read {} OP_PUSHDATA bytes", size), Some(e))),
         }
     }
@@ -92,9 +93,11 @@ impl Script {
         let code = match byte {
             size @ 0x01..=0x4b => {
                 let pushdata = Script::get_pushdata(cursor, size as usize)?;
+
+                let pushdata_hex = hex::encode(pushdata);
                 match extended {
-                    true => Some(format!("OP_PUSH {} {}", size, pushdata)),
-                    false => Some(pushdata),
+                    true => Some(format!("OP_PUSH {} {}", size, pushdata_hex)),
+                    false => Some(pushdata_hex),
                 }
             }
 
@@ -107,9 +110,11 @@ impl Script {
     fn format_pushdata_string(cursor: &mut Cursor<Vec<u8>>, v: OpCodes, extended: bool) -> Result<String, BSVErrors> {
         let size = Script::get_pushdata_length(cursor, v)?;
         let pushdata = Script::get_pushdata(cursor, size)?;
+
+        let pushdata_hex = hex::encode(pushdata);
         Ok(match extended {
-            true => format!("{} {} {}", v, size, pushdata),
-            false => pushdata,
+            true => format!("{} {} {}", v, size, pushdata_hex),
+            false => pushdata_hex,
         })
     }
 }
@@ -147,46 +152,55 @@ impl Script {
             }
 
             // PUSHDATA OP_CODES
-            let length = code.len() / 2;
-            match length {
-                op_push @ 0x01..=0x4b => {
-                    buffer.push(op_push as u8);
-                    buffer.append(&mut hex::decode(code)?)
-                }
-                op_pushdata1_size @ 0x4c..=0xFF => {
-                    match OpCodes::OP_PUSHDATA1.to_u8() {
-                        Some(pushdata1_byte) => buffer.push(pushdata1_byte),
-                        None => return Err(BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA1 Code to u8".into())),
-                    };
-
-                    buffer.push(op_pushdata1_size as u8);
-                    buffer.append(&mut hex::decode(code)?);
-                }
-                op_pushdata2_size @ 0x100..=0xFFFF => {
-                    match OpCodes::OP_PUSHDATA2.to_u8() {
-                        Some(pushdata2_byte) => buffer.push(pushdata2_byte),
-                        None => return Err(BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA2 Code to u8".into())),
-                    };
-
-                    buffer.write_u16::<LittleEndian>(op_pushdata2_size as u16)?;
-                    buffer.append(&mut hex::decode(code)?);
-                }
-                size => {
-                    // Cant do a standard match because 0xFFFFFFFF is too large
-                    if size > 0x10000 && size <= 0xFFFFFFFF {
-                        match OpCodes::OP_PUSHDATA4.to_u8() {
-                            Some(pushdata4_byte) => buffer.push(pushdata4_byte),
-                            None => return Err(BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA4 Code to u8".into())),
-                        };
-
-                        buffer.write_u32::<LittleEndian>(size as u32)?;
-                        buffer.append(&mut hex::decode(code)?);
-                    }
-                }
-            }
+            let data_bytes = hex::decode(code)?;
+            let mut op_pushdata = Script::encode_pushdata_impl(&data_bytes)?;
+            buffer.append(&mut op_pushdata);
         }
 
         Ok(Script(buffer))
+    }
+
+    pub(crate) fn get_pushdata_prefix_bytes_impl(length: usize) -> Result<Vec<u8>, BSVErrors> {
+        match length {
+            op_push @ 0x01..=0x4b => {
+                return Ok(vec![op_push as u8]);
+            }
+            op_pushdata1_size @ 0x4c..=0xFF => {
+                let op_pushdata1_byte = OpCodes::OP_PUSHDATA1
+                    .to_u8()
+                    .ok_or_else(|| BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA1 Code to u8".into()))?;
+
+                return Ok(vec![op_pushdata1_byte, op_pushdata1_size as u8]);
+            }
+            op_pushdata2_size @ 0x100..=0xFFFF => {
+                let op_pushdata2_byte = OpCodes::OP_PUSHDATA2
+                    .to_u8()
+                    .ok_or_else(|| BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA2 Code to u8".into()))?;
+
+                let mut push_data_prefix = vec![op_pushdata2_byte];
+                push_data_prefix.write_u16::<LittleEndian>(op_pushdata2_size as u16)?;
+
+                return Ok(push_data_prefix);
+            }
+            op_pushdata4_size if op_pushdata4_size > 0x10000 && op_pushdata4_size <= 0xFFFFFFFF => {
+                let op_pushdata4_byte = OpCodes::OP_PUSHDATA4
+                    .to_u8()
+                    .ok_or_else(|| BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA4 Code to u8".into()))?;
+
+                let mut push_data_prefix = vec![op_pushdata4_byte];
+                push_data_prefix.write_u32::<LittleEndian>(op_pushdata4_size as u32)?;
+
+                return Ok(push_data_prefix);
+            }
+            size => return Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
+        }
+    }
+
+    pub(crate) fn encode_pushdata_impl(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
+        let mut pushdata_bytes = Script::get_pushdata_prefix_bytes_impl(data_bytes.len())?;
+        pushdata_bytes.append(&mut data_bytes.to_vec());
+
+        Ok(pushdata_bytes)
     }
 }
 
@@ -240,6 +254,17 @@ impl Script {
     pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
         Script::from_asm_string_impl(asm_string)
     }
+
+    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
+        Script::encode_pushdata_impl(data_bytes)
+    }
+
+    /**
+     * Gets the OP_PUSHDATA prefix varint
+     */
+    pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
+        Script::get_pushdata_prefix_bytes_impl(length)
+    }
 }
 
 /**
@@ -275,6 +300,25 @@ impl Script {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromASMString))]
     pub fn from_asm_string(asm_string: &str) -> Result<Script, JsValue> {
         match Script::from_asm_string_impl(asm_string) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encodePushData))]
+    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
+        match Script::encode_pushdata_impl(data_bytes) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Gets the OP_PUSHDATA prefix varint
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPushDataBytes))]
+    pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, JsValue> {
+        match Script::get_pushdata_prefix_bytes_impl(length) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }

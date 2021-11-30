@@ -256,7 +256,7 @@ mod transaction_tests {
         let mut txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         txin_1.set_satoshis(500);
@@ -264,7 +264,7 @@ mod transaction_tests {
         let mut txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         txin_2.set_satoshis(500);
@@ -272,7 +272,7 @@ mod transaction_tests {
         let mut txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         txin_3.set_satoshis(2);
@@ -289,7 +289,7 @@ mod transaction_tests {
         let mut txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         txin_1.set_satoshis(500);
@@ -297,14 +297,14 @@ mod transaction_tests {
         let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_2);
         let mut txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         txin_3.set_satoshis(2);
@@ -321,21 +321,21 @@ mod transaction_tests {
         let txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_1);
         let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_2);
         let txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_3);
@@ -386,21 +386,21 @@ mod transaction_tests {
         let txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_1);
         let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             1,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_2);
         let txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             2,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_3);
@@ -420,21 +420,21 @@ mod transaction_tests {
         let txin_1 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             0,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_1);
         let txin_2 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             1,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_2);
         let txin_3 = TxIn::new(
             &hex::decode("4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a").unwrap(),
             2,
-            &Script::from_asm_string("").unwrap(),
+            &Script::default(),
             Some(u32::MAX),
         );
         tx.add_input(&txin_3);

@@ -124,4 +124,32 @@ mod tests {
             "0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG"
         );
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn encode_pushdata_test() {
+        let test_data: Vec<u8> = vec![0; 11];
+
+        let pushdata = Script::encode_pushdata(&test_data).unwrap();
+        assert_eq!(pushdata.len(), 12);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn encode_pushdata_2_test() {
+        let test_data: Vec<u8> = vec![0; 1024];
+
+        let pushdata = Script::encode_pushdata(&test_data).unwrap();
+        assert_eq!(pushdata.len(), 1027);
+    }
+
+    #[test]
+    // Cant run in wasm, data size too beeg
+    // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn encode_pushdata_4_test() {
+        let test_data: Vec<u8> = vec![0; 3_000_000_000];
+
+        let pushdata = Script::encode_pushdata(&test_data).unwrap();
+        assert_eq!(pushdata.len(), 3000000005);
+    }
 }
