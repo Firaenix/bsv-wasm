@@ -267,13 +267,13 @@ impl Transaction {
         Transaction::new_impl(2, vec![], vec![], 0)
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(setVersion))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setVersion))]
     pub fn set_version(&mut self, version: u32) -> Transaction {
         self.version = version;
         self.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(setNLocktime))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setNLocktime))]
     pub fn set_nlocktime(&mut self, n_locktime: u32) -> Transaction {
         self.n_locktime = n_locktime;
         self.clone()
