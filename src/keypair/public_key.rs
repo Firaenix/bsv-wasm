@@ -2,11 +2,12 @@ use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, EC
 
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::PrivateKey;
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey {
     point: Vec<u8>,
@@ -81,14 +82,14 @@ impl PublicKey {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl PublicKey {
-    #[wasm_bindgen(js_name = isValidMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isValidMessage))]
     pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
         self.verify_message_impl(message, signature).is_ok()
     }
 
-    #[wasm_bindgen(js_name = isCompressed)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isCompressed))]
     pub fn is_compressed(&self) -> bool {
         self.is_compressed
     }
@@ -98,9 +99,9 @@ impl PublicKey {
  * WASM Exported Methods
  */
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl PublicKey {
-    #[wasm_bindgen(js_name = fromHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<PublicKey, JsValue> {
         match PublicKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
@@ -108,7 +109,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = fromBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey, JsValue> {
         match PublicKey::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
@@ -116,7 +117,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match PublicKey::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
@@ -124,7 +125,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match PublicKey::to_hex_impl(&self) {
             Ok(v) => Ok(v),
@@ -132,12 +133,12 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = fromPrivateKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPrivateKey))]
     pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
         PublicKey::from_private_key_impl(priv_key)
     }
 
-    #[wasm_bindgen(js_name = verifyMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, JsValue> {
         match self.verify_message_impl(message, signature) {
             Ok(v) => Ok(v),
@@ -145,7 +146,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toAddress)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toAddress))]
     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, JsValue> {
         match self.to_p2pkh_address_impl() {
             Ok(v) => Ok(v),
@@ -153,7 +154,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toCompressed)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompressed))]
     pub fn to_compressed(&self) -> Result<PublicKey, JsValue> {
         match self.to_compressed_impl() {
             Ok(v) => Ok(v),
@@ -161,7 +162,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toDecompressed)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toDecompressed))]
     pub fn to_decompressed(&self) -> Result<PublicKey, JsValue> {
         match self.to_decompressed_impl() {
             Ok(v) => Ok(v),
@@ -169,7 +170,7 @@ impl PublicKey {
         }
     }
 
-    #[wasm_bindgen(js_name = encryptMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encryptMessage))]
     pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, JsValue> {
         match self.encrypt_message_impl(message, sender_private_key) {
             Ok(v) => Ok(v),

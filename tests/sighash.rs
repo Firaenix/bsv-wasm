@@ -8,7 +8,7 @@ mod sighash_tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_inputs_output_single() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::InputsOutput;
@@ -28,7 +28,7 @@ mod sighash_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_anyonecanpay_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::NONE | SigHash::ANYONECANPAY;
@@ -51,7 +51,7 @@ mod sighash_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::NONE;
@@ -70,7 +70,7 @@ mod sighash_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_single_anyonecanpay_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::SINGLE | SigHash::ANYONECANPAY;
@@ -93,7 +93,7 @@ mod sighash_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_single_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::SINGLE;

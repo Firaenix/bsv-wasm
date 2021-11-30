@@ -13,8 +13,11 @@ use k256::FieldBytes;
 use k256::{ecdsa::Signature as SecpSignature, Scalar, SecretKey};
 use rand_core::OsRng;
 use rand_core::RngCore;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 
 impl ECDSA {
@@ -80,9 +83,9 @@ impl ECDSA {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl ECDSA {
-    #[wasm_bindgen(js_name = signWithRandomK)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signWithRandomK))]
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
@@ -90,7 +93,7 @@ impl ECDSA {
         }
     }
 
-    #[wasm_bindgen(js_name = sign)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),

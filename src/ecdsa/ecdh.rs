@@ -4,10 +4,12 @@ use elliptic_curve::sec1::ToEncodedPoint;
 use elliptic_curve::Scalar;
 
 use rand_core::OsRng;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{throw_str, JsValue};
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone)]
 pub struct ECDH {}
 
@@ -22,10 +24,11 @@ impl ECDH {
         Ok(bytes.as_slice().to_vec())
     }
 }
+
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl ECDH {
-    #[wasm_bindgen(js_name = deriveSharedKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = deriveSharedKey))]
     pub fn derive_shared_key(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
         match ECDH::derive_shared_key_impl(priv_key, pub_key) {
             Ok(v) => Ok(v),

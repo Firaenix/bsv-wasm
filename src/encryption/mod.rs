@@ -4,12 +4,13 @@ use aes::{
     Aes128, Aes128Ctr, Aes256, Aes256Ctr,
 };
 use block_modes::{block_padding::Pkcs7, BlockMode, Cbc, Cfb, Ige, Pcbc};
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct AES {}
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum AESAlgorithms {
@@ -51,9 +52,9 @@ impl AES {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl AES {
-    #[wasm_bindgen(js_name = encrypt)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encrypt))]
     pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, JsValue> {
         match AES::encrypt_impl(key, iv, message, algo) {
             Ok(v) => Ok(v),
@@ -61,7 +62,7 @@ impl AES {
         }
     }
 
-    #[wasm_bindgen(js_name = decrypt)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = decrypt))]
     pub fn decrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, JsValue> {
         match AES::decrypt_impl(key, iv, message, algo) {
             Ok(v) => Ok(v),

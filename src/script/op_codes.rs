@@ -1,5 +1,6 @@
 use std::fmt;
 use strum_macros::EnumString;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 /**
@@ -10,7 +11,7 @@ use wasm_bindgen::prelude::*;
 // Constants
 // --------------------------------------------------------------------------------------------
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString)]
 #[allow(non_camel_case_types)]
 pub enum OpCodes {

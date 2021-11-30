@@ -8,7 +8,7 @@ mod ecies_tests {
 
     // Send to other party without encoding public key
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_to_other_party_and_exclude_pub_key() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -27,7 +27,7 @@ mod ecies_tests {
 
     // Send to self without encoding public key
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_to_self_and_exclude_pub_key() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -44,7 +44,7 @@ mod ecies_tests {
 
     // Send to self tests
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_specific_private_key_send_to_self() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -60,7 +60,7 @@ mod ecies_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_specific_private_key_convenience_method_send_to_self() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -76,7 +76,7 @@ mod ecies_tests {
 
     // // Send to other party tests
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_specific_private_key() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -94,7 +94,7 @@ mod ecies_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_text_specific_private_key_convenience_method() {
         // Sender
         let alice_private_key = PrivateKey::from_random();
@@ -114,7 +114,7 @@ mod ecies_tests {
 
     // Send to other party with ephemeral(anonymous) private key
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_decrypt_text_ephemeral_private_key() {
         // Recipient with Anonymous sender
         let bob_priv_key = PrivateKey::from_random();
@@ -129,7 +129,7 @@ mod ecies_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encode_decode_ciphertext() {
         // Recipient with Anonymous sender
         let bob_priv_key = PrivateKey::from_random();

@@ -7,7 +7,7 @@ mod bitcoin_signed_message_tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_and_verify_message() {
         let priv_key = PrivateKey::from_wif("L17y3TE8AgM6fiWFP4HsbaLnvuBJsQcFKYRoJoZULpTzeTCr2nEC").unwrap();
 

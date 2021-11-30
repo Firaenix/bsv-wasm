@@ -8,6 +8,7 @@ use crate::{Hash, VarInt};
 use byteorder::*;
 use serde::{Deserialize, Serialize};
 use thiserror::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 mod match_criteria;
@@ -20,7 +21,7 @@ pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Transaction {
     pub(super) version: u32,
@@ -215,39 +216,39 @@ impl Transaction {
  * Platform Agnostic Functions
  * ie. Don't need Result<T, E>
  */
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Transaction {
-    #[wasm_bindgen(js_name = getVersion)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getVersion))]
     pub fn get_version(&self) -> u32 {
         self.version
     }
 
-    #[wasm_bindgen(js_name = getInputsCount)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInputsCount))]
     pub fn get_ninputs(&self) -> usize {
         self.inputs.len()
     }
 
-    #[wasm_bindgen(js_name = getOutputsCount)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutputsCount))]
     pub fn get_noutputs(&self) -> usize {
         self.outputs.len()
     }
 
-    #[wasm_bindgen(js_name = getInput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInput))]
     pub fn get_input(&self, index: usize) -> Option<TxIn> {
         self.inputs.get(index).cloned()
     }
 
-    #[wasm_bindgen(js_name = getOutput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutput))]
     pub fn get_output(&self, index: usize) -> Option<TxOut> {
         self.outputs.get(index).cloned()
     }
 
-    #[wasm_bindgen(js_name = getNLocktime)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getNLocktime))]
     pub fn get_n_locktime(&self) -> u32 {
         self.n_locktime
     }
 
-    #[wasm_bindgen(js_name = getNLocktimeAsBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getNLocktimeAsBytes))]
     pub fn get_n_locktime_as_bytes(&self) -> Vec<u8> {
         self.n_locktime.to_be_bytes().to_vec()
     }
@@ -256,12 +257,12 @@ impl Transaction {
      * Creates a new empty transaction where you need to add inputs and outputs
      * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)
      */
-    #[wasm_bindgen(constructor)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
     pub fn new(version: u32, n_locktime: u32) -> Transaction {
         Transaction::new_impl(version, vec![], vec![], n_locktime)
     }
 
-    #[wasm_bindgen(js_name = addInput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addInput))]
     pub fn add_input(&mut self, input: &TxIn) {
         self.inputs.push(input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -269,19 +270,19 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[wasm_bindgen(js_name = addOutput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addOutput))]
     pub fn add_output(&mut self, output: &TxOut) {
         self.outputs.push(output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[wasm_bindgen(js_name = setInput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setInput))]
     pub fn set_input(&mut self, index: usize, input: &TxIn) {
         self.inputs[index] = input.clone();
     }
 
-    #[wasm_bindgen(js_name = setOutput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setOutput))]
     pub fn set_output(&mut self, index: usize, output: &TxOut) {
         self.outputs[index] = output.clone();
     }
@@ -312,7 +313,7 @@ impl Transaction {
     /**
      * Returns the first output index that matches the given parameters, returns None or null if not found.
      */
-    #[wasm_bindgen(js_name = matchOutput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutput))]
     pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
         self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
             true => Some(i),
@@ -323,7 +324,7 @@ impl Transaction {
     /**
      * Returns a list of outputs indexes that match the given parameters
      */
-    #[wasm_bindgen(js_name = matchOutputs)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutputs))]
     pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
         let matches = self
             .outputs
@@ -365,7 +366,7 @@ impl Transaction {
     /**
      * Returns the first input index that matches the given parameters, returns None or null if not found.
      */
-    #[wasm_bindgen(js_name = matchInput)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInput))]
     pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
         self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
             true => Some(i),
@@ -376,7 +377,7 @@ impl Transaction {
     /**
      * Returns a list of input indexes that match the given parameters
      */
-    #[wasm_bindgen(js_name = matchInputs)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInputs))]
     pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
         let matches = self
             .inputs
@@ -396,7 +397,7 @@ impl Transaction {
      * Returns the combined sum of all input satoshis.
      * If any of the inputs dont have satoshis defined, this returns None or null
      */
-    #[wasm_bindgen(js_name = satoshisIn)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = satoshisIn))]
     pub fn satoshis_in(&self) -> Option<u64> {
         self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
             if a == None || b == None {
@@ -410,7 +411,7 @@ impl Transaction {
     /**
      * Returns the combined sum of all output satoshis.
      */
-    #[wasm_bindgen(js_name = satoshisOut)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = satoshisOut))]
     pub fn satoshis_out(&self) -> u64 {
         self.outputs.iter().map(|x| x.value).sum()
     }
@@ -420,9 +421,9 @@ impl Transaction {
  * WASM Specific Functions
  */
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Transaction {
-    #[wasm_bindgen(js_name = fromHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
         return match Transaction::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
@@ -430,7 +431,7 @@ impl Transaction {
         };
     }
 
-    #[wasm_bindgen(js_name = fromBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, JsValue> {
         return match Transaction::from_bytes_impl(tx_bytes) {
             Ok(v) => Ok(v),
@@ -438,7 +439,7 @@ impl Transaction {
         };
     }
 
-    #[wasm_bindgen(js_name = toString)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
     pub fn to_json_string(&self) -> Result<String, JsValue> {
         match Transaction::to_json_string_impl(&self) {
             Ok(v) => Ok(v),
@@ -446,7 +447,7 @@ impl Transaction {
         }
     }
 
-    #[wasm_bindgen(js_name = toJSON)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
             Ok(v) => Ok(v),
@@ -454,7 +455,7 @@ impl Transaction {
         }
     }
 
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match Transaction::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
@@ -462,7 +463,7 @@ impl Transaction {
         }
     }
 
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match Transaction::to_hex_impl(&self) {
             Ok(v) => Ok(v),
@@ -473,7 +474,7 @@ impl Transaction {
     /**
      * Get size of current serialised Transaction object
      */
-    #[wasm_bindgen(js_name = getSize)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSize))]
     pub fn get_size(&self) -> Result<usize, JsValue> {
         match Transaction::get_size_impl(&self) {
             Ok(v) => Ok(v),
@@ -485,7 +486,7 @@ impl Transaction {
      * Adds an array of TxIn's to the transaction
      * @param {TxIn[]} tx_ins
      */
-    #[wasm_bindgen(js_name = addInputs)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addInputs))]
     pub fn add_inputs(&mut self, tx_ins: Box<[JsValue]>) {
         let js_value = &*tx_ins.to_vec();
 
@@ -501,7 +502,7 @@ impl Transaction {
      *
      * @returns {Uint8Array[]} outpoint_array
      */
-    #[wasm_bindgen(js_name = getOutpoints)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutpoints))]
     pub fn get_outpoints(&mut self) -> Result<JsValue, JsValue> {
         let outpoints = self.get_outpoints_impl();
         match JsValue::from_serde(&outpoints) {
@@ -514,7 +515,7 @@ impl Transaction {
      * Adds an array of TxOuts to the transaction
      * @param {TxOut[]} tx_outs
      */
-    #[wasm_bindgen(js_name = addOutputs)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addOutputs))]
     pub fn add_outputs(&mut self, tx_outs: Box<[JsValue]>) {
         let js_value = &*tx_outs.to_vec();
 
@@ -528,7 +529,7 @@ impl Transaction {
     /**
      * Gets the ID of the current transaction as a hex string.
      */
-    #[wasm_bindgen(js_name = getIdHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getIdHex))]
     pub fn get_id_hex(&self) -> Result<String, JsValue> {
         match self.get_id_impl() {
             Ok(v) => Ok(v.to_hex()),
@@ -539,7 +540,7 @@ impl Transaction {
     /**
      * Gets the ID of the current transaction as a Uint8Array.
      */
-    #[wasm_bindgen(js_name = getIdBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getIdBytes))]
     pub fn get_id_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.get_id_impl() {
             Ok(v) => Ok(v.to_bytes()),
@@ -550,7 +551,7 @@ impl Transaction {
     /**
      * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
      */
-    #[wasm_bindgen(js_name = toCompactBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_compact_bytes_impl() {
             Ok(v) => Ok(v),
@@ -561,7 +562,7 @@ impl Transaction {
     /**
      * Deserialises the provided CBOR buffer to the TX+ format
      */
-    #[wasm_bindgen(js_name = fromCompactBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, JsValue> {
         match Transaction::from_compact_bytes_impl(compact_buffer) {
             Ok(v) => Ok(v),

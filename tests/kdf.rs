@@ -12,7 +12,7 @@ mod kdf_tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn pbkdf2_sha256_hash_test() {
         let password = "stronk-password".as_bytes();
         let salt = "snails".as_bytes();
@@ -25,7 +25,7 @@ mod kdf_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn pbkdf2_sha256_hash_test_2() {
         let password = "stronk-password".as_bytes();
         let salt = "1ae0ee429ffca864413b59edd5612c1a86b097411280a6dfa376d91c6eba5a20".as_bytes(); // sha256 of debug@twetch.com

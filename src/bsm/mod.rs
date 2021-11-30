@@ -4,13 +4,15 @@ use std::io::Write;
 
 use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, VarInt, ECDSA};
 use thiserror::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{throw_str, JsValue};
 
 /**
  * Bitcoin Signed Message
  */
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct BSM {}
 
 const MAGIC_BYTES: &[u8] = b"Bitcoin Signed Message:\n";
@@ -57,7 +59,7 @@ impl BSM {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl BSM {
     /**
      * Sign a message with the intention of verifying with this same Address.
@@ -65,16 +67,16 @@ impl BSM {
      *
      * Returns boolean
      */
-    #[wasm_bindgen(js_name = isValidMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isValidMessage))]
     pub fn is_valid_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> bool {
         BSM::verify_message_impl(message, signature, address).is_ok()
     }
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl BSM {
-    #[wasm_bindgen(js_name = verifyMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, JsValue> {
         match BSM::verify_message_impl(message, signature, address) {
             Ok(v) => Ok(v),
@@ -82,7 +84,7 @@ impl BSM {
         }
     }
 
-    #[wasm_bindgen(js_name = signMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signMessage))]
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, JsValue> {
         match BSM::sign_impl(priv_key, message) {
             Ok(v) => Ok(v),

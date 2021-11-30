@@ -4,15 +4,16 @@ pub mod verify;
 
 pub use ecdh::*;
 
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 /**
  * Utility struct for low level ECDSA primitives
  */
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct ECDSA {}
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum SigningHash {
     Sha256,

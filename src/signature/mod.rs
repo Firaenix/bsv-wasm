@@ -7,9 +7,10 @@ use k256::{
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
     EncodedPoint, FieldBytes, Scalar,
 };
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{convert::OptionIntoWasmAbi, prelude::*, throw_str};
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     pub(crate) sig: k256::ecdsa::Signature,
@@ -81,23 +82,23 @@ impl Signature {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Signature {
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         let bytes = self.sig.to_der();
 
         hex::encode(bytes)
     }
 
-    #[wasm_bindgen(js_name = toDER)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toDER))]
     pub fn to_der_bytes(&self) -> Vec<u8> {
         let bytes = self.sig.to_der();
 
         bytes.as_bytes().to_vec()
     }
 
-    #[wasm_bindgen(js_name = toCompactBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
     pub fn to_compact_bytes(&self) -> Vec<u8> {
         // Need to handle compression?
         let mut compact_buf = vec![self.recovery_i + 27 + 4];
@@ -111,7 +112,7 @@ impl Signature {
         compact_buf
     }
 
-    #[wasm_bindgen(js_name = verifyMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(&self, message: &[u8], pub_key: &PublicKey) -> bool {
         ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256).is_ok()
     }
@@ -136,7 +137,7 @@ impl Signature {
         }
     }
 
-    #[wasm_bindgen(js_name = fromCompactBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, JsValue> {
         match Signature::from_compact_impl(compact_bytes) {
             Ok(v) => Ok(v),
@@ -144,7 +145,7 @@ impl Signature {
         }
     }
 
-    #[wasm_bindgen(js_name = recoverPublicKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = recoverPublicKey))]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, JsValue> {
         match Signature::get_public_key(&self, &message, hash_algo) {
             Ok(v) => Ok(v),

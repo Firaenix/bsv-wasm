@@ -9,7 +9,7 @@ mod private_key_tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_private_key_and_verify() {
         let priv_key = "E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262";
 
@@ -19,7 +19,7 @@ mod private_key_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn private_key_to_wif_verify() {
         let priv_key = "0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D";
 
@@ -33,7 +33,7 @@ mod private_key_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn wif_to_private_key_uncompressed() {
         let wif = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ";
 
@@ -45,7 +45,7 @@ mod private_key_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn wif_to_private_key_compressed() {
         let wif = "L5EZftvrYaSudiozVRzTqLcHLNDoVn7H5HSfM9BAN6tMJX8oTWz6";
 

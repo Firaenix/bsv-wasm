@@ -3,7 +3,9 @@ use elliptic_curve::sec1::ToEncodedPoint;
 use k256::ecdh::{self, *};
 use k256::{ProjectivePoint, PublicKey as K256PublicKey, SecretKey};
 use rand_core::OsRng;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{throw_str, JsValue};
 
 pub mod ecies_ciphertext;
@@ -13,11 +15,11 @@ pub use ecies_ciphertext::*;
  * Electrum compatible ECIES implementation.
  * Comparable to Ecies.electrumEncrypt in BSV.JS
  */
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone)]
 pub struct ECIES {}
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone)]
 pub struct CipherKeys {
     pub(crate) iv: Vec<u8>,
@@ -25,7 +27,7 @@ pub struct CipherKeys {
     pub(crate) km: Vec<u8>,
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl CipherKeys {
     pub fn get_iv(&self) -> Vec<u8> {
         self.iv.clone()
@@ -117,7 +119,7 @@ impl ECIES {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl ECIES {
     pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
         match ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key) {
@@ -130,7 +132,7 @@ impl ECIES {
      * Encrypt with a randomly generate private key.
      * This is intended to be used if you want to anonymously send a party an encrypted message.
      */
-    #[wasm_bindgen(js_name = encryptWithEphemeralKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encryptWithEphemeralKey))]
     pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey) -> Result<ECIESCiphertext, JsValue> {
         match ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key) {
             Ok(v) => Ok(v),
@@ -145,7 +147,7 @@ impl ECIES {
         }
     }
 
-    #[wasm_bindgen(js_name = deriveCipherKeys)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = deriveCipherKeys))]
     pub fn derive_cipher_keys(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, JsValue> {
         match ECIES::derive_cipher_keys_impl(priv_key, pub_key) {
             Ok(v) => Ok(v),

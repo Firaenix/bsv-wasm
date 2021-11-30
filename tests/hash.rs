@@ -11,7 +11,7 @@ mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sha1_hash_test() {
         let hash = Hash::sha_1("Hello, Bitcoin.".as_bytes());
 
@@ -19,7 +19,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sha256_hash_test() {
         let hash = Hash::sha_256("Hello, Bitcoin.".as_bytes());
 
@@ -27,7 +27,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sha256d_hash_test() {
         let hash = Hash::sha_256d("Hello, Bitcoin.".as_bytes());
 
@@ -35,7 +35,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn ripemd160_hash_test() {
         let hash = Hash::ripemd_160("Hello, Bitcoin.".as_bytes());
 
@@ -43,7 +43,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn hash160_hash_test() {
         let hash = Hash::hash_160("Hello, Bitcoin.".as_bytes());
 
@@ -55,7 +55,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sha512_hash_test() {
         let hash = Hash::sha_512("Hello, Bitcoin.".as_bytes());
 

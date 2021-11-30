@@ -9,10 +9,12 @@ use k256::ecdsa::digest::Digest;
 use k256::ecdsa::recoverable;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone)]
 pub struct PrivateKey {
     pub(crate) secret_key: SecretKey,
@@ -134,20 +136,20 @@ impl PrivateKey {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl PrivateKey {
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         self.secret_key.to_bytes().to_vec()
     }
 
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         let secret_key_bytes = self.to_bytes();
         hex::encode(secret_key_bytes)
     }
 
-    #[wasm_bindgen(js_name = fromRandom)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromRandom))]
     pub fn from_random() -> PrivateKey {
         let secret_key = k256::SecretKey::random(&mut OsRng);
 
@@ -157,7 +159,7 @@ impl PrivateKey {
         }
     }
 
-    #[wasm_bindgen(js_name = getPoint)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPoint))]
     /**
      * Finds the Public Key Point.
      * Always returns the compressed point.
@@ -167,7 +169,7 @@ impl PrivateKey {
         EncodedPoint::from_secret_key(&self.secret_key, self.is_pub_key_compressed).as_bytes().into()
     }
 
-    #[wasm_bindgen(js_name = compressPublicKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = compressPublicKey))]
     pub fn compress_public_key(&self, should_compress: bool) -> PrivateKey {
         let mut priv_key = self.clone();
         priv_key.is_pub_key_compressed = should_compress;
@@ -179,7 +181,7 @@ impl PrivateKey {
  * WASM Exported Methods
  */
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl PrivateKey {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromWIF))]
     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, JsValue> {
@@ -208,7 +210,7 @@ impl PrivateKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toWIF)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toWIF))]
     pub fn to_wif(&self) -> Result<String, JsValue> {
         match PrivateKey::to_wif_impl(&self) {
             Ok(v) => Ok(v),
@@ -216,7 +218,7 @@ impl PrivateKey {
         }
     }
 
-    #[wasm_bindgen(js_name = fromBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, JsValue> {
         match Self::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
@@ -224,7 +226,7 @@ impl PrivateKey {
         }
     }
 
-    #[wasm_bindgen(js_name = toPublicKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toPublicKey))]
     pub fn to_public_key(&self) -> Result<PublicKey, JsValue> {
         match self.to_public_key_impl() {
             Ok(v) => Ok(v),
@@ -235,7 +237,7 @@ impl PrivateKey {
     /**
      * Encrypt a message to the public key of this private key.
      */
-    #[wasm_bindgen(js_name = encryptMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encryptMessage))]
     pub fn encrypt_message(&self, message: &[u8]) -> Result<ECIESCiphertext, JsValue> {
         match self.encrypt_message_impl(message) {
             Ok(v) => Ok(v),
@@ -246,7 +248,7 @@ impl PrivateKey {
     /**
      * Decrypt a message that was sent to the public key corresponding to this private key.
      */
-    #[wasm_bindgen(js_name = decryptMessage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = decryptMessage))]
     pub fn decrypt_message(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
         match self.decrypt_message_impl(ciphertext, sender_pub_key) {
             Ok(v) => Ok(v),

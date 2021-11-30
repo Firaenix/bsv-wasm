@@ -7,13 +7,15 @@ use crate::{
     VarInt,
 };
 use serde::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 
 use byteorder::*;
 use thiserror::*;
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
     pub(crate) value: u64,
@@ -80,9 +82,9 @@ impl TxOut {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl TxOut {
-    #[wasm_bindgen(constructor)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
     pub fn new(value: u64, script_pub_key: &Script) -> TxOut {
         TxOut {
             value,
@@ -90,36 +92,36 @@ impl TxOut {
         }
     }
 
-    #[wasm_bindgen(js_name = getSatoshis)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSatoshis))]
     pub fn get_satoshis(&self) -> u64 {
         self.value
     }
 
-    #[wasm_bindgen(js_name = getSatoshisAsBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSatoshisAsBytes))]
     pub fn get_satoshis_as_bytes(&self) -> Vec<u8> {
         self.value.to_be_bytes().to_vec()
     }
 
-    #[wasm_bindgen(js_name = getScriptPubKeySize)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptPubKeySize))]
     pub fn get_script_pub_key_size(&self) -> usize {
         self.script_pub_key.get_script_length()
     }
 
-    #[wasm_bindgen(js_name = getScriptPubKey)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptPubKey))]
     pub fn get_script_pub_key(&self) -> Script {
         self.script_pub_key.clone()
     }
 
-    #[wasm_bindgen(js_name = getScriptPubKeyHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptPubKeyHex))]
     pub fn get_script_pub_key_hex(&self) -> String {
         self.script_pub_key.to_hex()
     }
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl TxOut {
-    #[wasm_bindgen(js_name = fromHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<TxOut, JsValue> {
         match TxOut::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
@@ -127,7 +129,7 @@ impl TxOut {
         }
     }
 
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match TxOut::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
@@ -135,7 +137,7 @@ impl TxOut {
         }
     }
 
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match TxOut::to_hex_impl(&self) {
             Ok(v) => Ok(v),
@@ -143,7 +145,7 @@ impl TxOut {
         }
     }
 
-    #[wasm_bindgen(js_name = toJSON)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
             Ok(v) => Ok(v),
@@ -151,7 +153,7 @@ impl TxOut {
         }
     }
 
-    #[wasm_bindgen(js_name = toString)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
     pub fn to_json_string(&self) -> Result<String, JsValue> {
         match TxOut::to_json_string_impl(&self) {
             Ok(v) => Ok(v),

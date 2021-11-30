@@ -15,9 +15,10 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::*;
 use thiserror::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>);
 
@@ -192,24 +193,24 @@ impl Script {
 /**
  * Shared Functions
  */
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Script {
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         self.0.clone()
     }
 
-    #[wasm_bindgen(js_name = fromBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(bytes: &[u8]) -> Script {
         Script(bytes.to_vec())
     }
 
-    #[wasm_bindgen(js_name = getScriptLength)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptLength))]
     pub fn get_script_length(&self) -> usize {
         self.0.len()
     }
 
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }
@@ -245,9 +246,9 @@ impl Script {
  * WASM Specific Functions
  */
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Script {
-    #[wasm_bindgen(js_name = toASMString)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toASMString))]
     pub fn to_asm_string(&self) -> Result<String, JsValue> {
         match Script::to_asm_string_impl(&self, false) {
             Ok(v) => Ok(v),
@@ -255,7 +256,7 @@ impl Script {
         }
     }
 
-    #[wasm_bindgen(js_name = toExtendedASMString)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toExtendedASMString))]
     pub fn to_extended_asm_string(&self) -> Result<String, JsValue> {
         match Script::to_asm_string_impl(&self, true) {
             Ok(v) => Ok(v),
@@ -263,7 +264,7 @@ impl Script {
         }
     }
 
-    #[wasm_bindgen(js_name = fromHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex: &str) -> Result<Script, JsValue> {
         match Script::from_hex_impl(hex) {
             Ok(v) => Ok(v),
@@ -271,7 +272,7 @@ impl Script {
         }
     }
 
-    #[wasm_bindgen(js_name = fromASMString)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromASMString))]
     pub fn from_asm_string(asm_string: &str) -> Result<Script, JsValue> {
         match Script::from_asm_string_impl(asm_string) {
             Ok(v) => Ok(v),

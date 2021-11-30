@@ -7,10 +7,12 @@ use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature, VarI
 use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use strum_macros::EnumString;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
@@ -301,7 +303,7 @@ impl Transaction {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
         ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
@@ -320,9 +322,9 @@ impl Transaction {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Transaction {
-    #[wasm_bindgen(js_name = sign)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, JsValue> {
         match Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value) {
             Ok(v) => Ok(v),
@@ -330,7 +332,7 @@ impl Transaction {
         }
     }
 
-    #[wasm_bindgen(js_name = sighashPreimage)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sighashPreimage))]
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, JsValue> {
         match Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value) {
             Ok(v) => Ok(v),
@@ -339,7 +341,7 @@ impl Transaction {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct SighashSignature {
     pub(crate) signature: Signature,
     pub(crate) sighash_type: SigHash,
@@ -363,9 +365,9 @@ impl SighashSignature {
     }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl SighashSignature {
-    #[wasm_bindgen(constructor)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
     pub fn new(signature: &Signature, sighash_type: SigHash, sighash_buffer: &[u8]) -> SighashSignature {
         SighashSignature {
             signature: signature.clone(),
@@ -387,9 +389,9 @@ impl SighashSignature {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl SighashSignature {
-    #[wasm_bindgen(js_name = toHex)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match self.to_hex_impl() {
             Ok(v) => Ok(v),
@@ -397,7 +399,7 @@ impl SighashSignature {
         }
     }
 
-    #[wasm_bindgen(js_name = toBytes)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_bytes_impl() {
             Ok(v) => Ok(v),

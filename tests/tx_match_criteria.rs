@@ -4,12 +4,13 @@ mod tx_criteria_tests {
     use bsv_wasm::*;
     extern crate wasm_bindgen_test;
     use bsv_wasm::TxIn;
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn given_transaction_with_no_criteria_match_all_inputs() {
         // Arrange
         let mut tx = Transaction::new(1, 0);
@@ -45,7 +46,7 @@ mod tx_criteria_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn given_transaction_with_p2pkh_criteria_match_p2pkh_input() {
         // Arrange
         let mut tx = Transaction::new(1, 0);
@@ -83,7 +84,7 @@ mod tx_criteria_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn given_transaction_with_p2pkh_and_min_max_sats_criteria_match_single_p2pkh_input() {
         // Arrange
         let mut tx = Transaction::new(1, 0);
@@ -132,7 +133,7 @@ mod tx_criteria_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn given_transaction_with_no_criteria_match_all_outputs() {
         // Arrange
         let mut tx = Transaction::new(1, 0);
@@ -156,7 +157,7 @@ mod tx_criteria_tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn given_transaction_with_p2pkh_and_exact_value_return_single() {
         // Arrange
         let mut tx = Transaction::new(1, 0);

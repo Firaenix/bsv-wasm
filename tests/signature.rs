@@ -6,7 +6,7 @@ mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
         let sig = Signature::from_der(&hex::decode(sig_hex).unwrap(), false).unwrap();
@@ -14,7 +14,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature_string() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
         let sig = Signature::from_hex_der(sig_hex, false).unwrap();
@@ -22,7 +22,7 @@ mod tests {
     }
 
     // #[test]
-    // #[wasm_bindgen_test]
+    // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn der_signature_test_s_r() {
     //   let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
     //   let sig = Signature::from_hex_der(sig_hex.into()).unwrap();
@@ -33,7 +33,7 @@ mod tests {
     // }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_message() {
         let wif = "L5EZftvrYaSudiozVRzTqLcHLNDoVn7H5HSfM9BAN6tMJX8oTWz6";
 
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn recover_pub_key_from_signature_sha256() {
         let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
 
@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    #[wasm_bindgen_test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn to_compact_test() {
         let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
 
