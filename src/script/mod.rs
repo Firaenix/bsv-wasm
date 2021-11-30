@@ -162,15 +162,13 @@ impl Script {
 
     pub(crate) fn get_pushdata_prefix_bytes_impl(length: usize) -> Result<Vec<u8>, BSVErrors> {
         match length {
-            op_push @ 0x01..=0x4b => {
-                return Ok(vec![op_push as u8]);
-            }
+            op_push @ 0x01..=0x4b => Ok(vec![op_push as u8]),
             op_pushdata1_size @ 0x4c..=0xFF => {
                 let op_pushdata1_byte = OpCodes::OP_PUSHDATA1
                     .to_u8()
                     .ok_or_else(|| BSVErrors::DeserialiseScript("Unable to deserialise OP_PUSHDATA1 Code to u8".into()))?;
 
-                return Ok(vec![op_pushdata1_byte, op_pushdata1_size as u8]);
+                Ok(vec![op_pushdata1_byte, op_pushdata1_size as u8])
             }
             op_pushdata2_size @ 0x100..=0xFFFF => {
                 let op_pushdata2_byte = OpCodes::OP_PUSHDATA2
@@ -180,7 +178,7 @@ impl Script {
                 let mut push_data_prefix = vec![op_pushdata2_byte];
                 push_data_prefix.write_u16::<LittleEndian>(op_pushdata2_size as u16)?;
 
-                return Ok(push_data_prefix);
+                Ok(push_data_prefix)
             }
             op_pushdata4_size if op_pushdata4_size > 0x10000 && op_pushdata4_size <= 0xFFFFFFFF => {
                 let op_pushdata4_byte = OpCodes::OP_PUSHDATA4
@@ -190,7 +188,7 @@ impl Script {
                 let mut push_data_prefix = vec![op_pushdata4_byte];
                 push_data_prefix.write_u32::<LittleEndian>(op_pushdata4_size as u32)?;
 
-                return Ok(push_data_prefix);
+                Ok(push_data_prefix)
             }
             size => return Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
         }
