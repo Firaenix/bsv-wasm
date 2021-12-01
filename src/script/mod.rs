@@ -243,7 +243,12 @@ impl Script {
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
     }
+}
 
+/**
+ * Only export to inside Rust calling code
+ */
+impl Script {
     /**
      * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
      */
