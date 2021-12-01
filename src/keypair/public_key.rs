@@ -1,5 +1,7 @@
-use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
+use std::io::{Cursor, Read};
 
+use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
+use byteorder::ReadBytesExt;
 use elliptic_curve::sec1::*;
 use k256::Secp256k1;
 #[cfg(target_arch = "wasm32")]

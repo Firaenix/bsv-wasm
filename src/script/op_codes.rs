@@ -1,3 +1,4 @@
+use num_traits::{FromPrimitive, ToPrimitive};
 use std::fmt;
 use strum_macros::EnumString;
 #[cfg(target_arch = "wasm32")]
@@ -12,7 +13,7 @@ use wasm_bindgen::prelude::*;
 // --------------------------------------------------------------------------------------------
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum OpCodes {
     /// Pushes 0 onto the stack
@@ -244,6 +245,10 @@ pub enum OpCodes {
     // --------------------------------------------------------------------------------------------
     // Pseudo-words
     // --------------------------------------------------------------------------------------------
+    /// OP_DATA followed by a varint represents arbitrary data on chain. Used for matching Script Templates.
+    OP_DATA = 251,
+    /// Represents a secp256k1 signature
+    OP_SIG = 252,
     /// Represents a public key hashed with OP_HASH160
     OP_PUBKEYHASH = 253,
     /// Represents a public key compatible with OP_CHECKSIG

@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod script_tests {
     extern crate wasm_bindgen_test;
     use bsv_wasm::Script;
     use wasm_bindgen_test::*;

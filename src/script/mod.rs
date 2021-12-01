@@ -1,5 +1,6 @@
 pub mod op_codes;
 use digest::Reset;
+use elliptic_curve::bigint::Encoding;
 pub use op_codes::*;
 
 use std::{
@@ -18,6 +19,9 @@ use serde::*;
 use thiserror::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
+
+mod script_template;
+pub use script_template::*;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -128,10 +132,10 @@ impl Script {
     }
 
     pub(crate) fn from_asm_string_impl(asm: &str) -> Result<Script, BSVErrors> {
-        let chunks = asm.split(' ');
+        let mut chunks = asm.split(' ');
         let mut buffer: Vec<u8> = Vec::new();
 
-        for code in chunks {
+        while let Some(code) = chunks.next() {
             // Number OP_CODES
             if let Ok(num_code) = u8::from_str(code) {
                 match num_code {
@@ -147,6 +151,15 @@ impl Script {
             if let Ok(opcode) = OpCodes::from_str(code) {
                 if let Some(opcode_byte) = opcode.to_u8() {
                     buffer.push(opcode_byte);
+                }
+
+                if opcode == OpCodes::OP_DATA {
+                    let length = match chunks.next().map(|length_str| u64::from_str(length_str)) {
+                        Some(Ok(v)) => v,
+                        _ => return Err(BSVErrors::DeserialiseScript("Failed to read number after OP_DATA. Expected a 64 bit number.".into())),
+                    };
+
+                    buffer.append(&mut length.to_le_bytes().into());
                 }
                 continue;
             }
@@ -199,37 +212,6 @@ impl Script {
         pushdata_bytes.append(&mut data_bytes.to_vec());
 
         Ok(pushdata_bytes)
-    }
-}
-
-/**
- * Script Template
- */
-impl Script {
-    fn does_match_script_template(&self, script_template: &Script) -> bool {
-        if self.0.len() == 0 && script_template.0.len() != 0 {
-            return false;
-        }
-
-        if self.0.len() != 0 && script_template.0.len() == 0 {
-            return false;
-        }
-
-        let mut template_cursor = Cursor::new(&script_template.0);
-
-        while let Ok(op_code) = template_cursor.read_u8() {
-            let template_position = template_cursor.position();
-
-            if self.0[template_position as usize] != op_code {
-                return false;
-            }
-
-            if template_position >= script_template.0.len() as u64 {
-                break;
-            }
-        }
-
-        true
     }
 }
 

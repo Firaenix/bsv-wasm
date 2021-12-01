@@ -89,6 +89,9 @@ pub enum BSVErrors {
     ),
 
     // Custom Errors
+    #[error("Leading byte {0} does not match compressed or uncompressed")]
+    PublicKeyReadCompressionByte(u8),
+
     #[error("Unable to recover public key: {0} {1:?}")]
     PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),
 

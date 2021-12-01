@@ -10,6 +10,18 @@ pub trait VarInt {
     fn write_varint(&mut self, varint: u64) -> std::io::Result<usize>;
 }
 
+pub fn get_varint_size(data_length: u64) -> usize {
+    if data_length <= 252 {
+        1
+    } else if data_length <= 0xffff {
+        2
+    } else if data_length <= 0xffffffff {
+        4
+    } else {
+        8
+    }
+}
+
 impl VarInt for Cursor<Vec<u8>> {
     fn read_varint(&mut self) -> Result<u64> {
         match self.read_u8() {
