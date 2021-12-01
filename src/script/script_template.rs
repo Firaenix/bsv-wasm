@@ -8,8 +8,9 @@ use std::io::{Cursor, Read};
 use std::mem::size_of;
 use strum_macros::Display;
 use thiserror::Error;
+
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, throw_str};
 
 #[derive(Debug, Error)]
 pub enum ScriptTemplateErrors {
@@ -35,10 +36,8 @@ pub enum ScriptTemplateErrors {
 /**
  * Script Template
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Script {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(jsName = doesMatchScriptTemplate))]
-    pub fn verify_with_template(&self, script_template: &Script) -> Result<(), ScriptTemplateErrors> {
+    pub fn verify_with_template_impl(&self, script_template: &Script) -> Result<(), ScriptTemplateErrors> {
         if self.0.len() == 0 && script_template.0.len() != 0 {
             return Err(ScriptTemplateErrors::LengthFailure);
         }
@@ -80,7 +79,7 @@ impl Script {
                     }
 
                     if op_code == OpCodes::OP_SIG as u8 {
-                        if let Err(e) = Signature::from_compact_bytes(&bytes) {
+                        if let Err(e) = Signature::from_compact_impl(&bytes) {
                             return Err(ScriptTemplateErrors::SignatureError(e, script_position));
                         }
                     }
@@ -103,5 +102,24 @@ impl Script {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+impl Script {
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = doesMatchScriptTemplate))]
+    pub fn verify_with_template(&self, script_template: &Script) -> Result<(), JsValue> {
+        match Script::verify_with_template_impl(&self, script_template) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Script {
+    pub fn verify_with_template(&self, script_template: &Script) -> Result<(), ScriptTemplateErrors> {
+        Script::verify_with_template_impl(&self, script_template)
     }
 }

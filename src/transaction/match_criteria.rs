@@ -52,9 +52,10 @@ impl MatchCriteria {
 impl Transaction {
     fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if crit_script != &txout.script_pub_key) {
+        if matches!(&criteria.script, Some(crit_script) if txout.script_pub_key.verify_with_template(&crit_script).is_err()) {
             return false;
         }
+
         // If exact_value is specified and doesnt match
         if criteria.exact_value.is_some() && criteria.exact_value != Some(txout.value) {
             return false;
@@ -104,7 +105,7 @@ impl Transaction {
 
     fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if crit_script != &txin.script_sig) {
+        if matches!(&criteria.script, Some(crit_script) if txin.get_finalised_script().verify_with_template(&crit_script).is_err()) {
             return false;
         }
 

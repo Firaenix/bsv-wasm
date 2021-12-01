@@ -36,6 +36,20 @@ pub struct TxIn {
 }
 
 impl TxIn {
+    pub(crate) fn get_finalised_script(&self) -> Script {
+        match self.unlocking_script.as_ref() {
+            // If there is a specified unlocking script, prepend it to the locking script
+            Some(unlock_script) => {
+                let script_sig_bytes = self.script_sig.to_bytes();
+                let mut unlock_script_bytes = unlock_script.to_bytes();
+
+                unlock_script_bytes.extend_from_slice(&script_sig_bytes);
+                Script::from_bytes(&script_sig_bytes)
+            }
+            None => self.script_sig.clone(),
+        }
+    }
+
     pub(crate) fn from_hex_impl(hex_str: &str) -> Result<TxIn, BSVErrors> {
         let txin_bytes = hex::decode(hex_str)?;
 
@@ -103,11 +117,7 @@ impl TxIn {
             return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
         }
 
-        let finalised_script = match self.unlocking_script.as_ref() {
-            // If there is a specified unlocking script, prepend it to the locking script
-            Some(us) => Script::from_asm_string_impl(&format!("{} {}", us.to_asm_string_impl(false)?, self.script_sig.to_asm_string_impl(false)?))?,
-            None => self.script_sig.clone(),
-        };
+        let finalised_script = self.get_finalised_script();
 
         // Script Sig Size
         if let Err(e) = buffer.write_varint(finalised_script.get_script_length() as u64) {
