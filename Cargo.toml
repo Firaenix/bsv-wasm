@@ -2,7 +2,7 @@
 name = "bsv-wasm"
 version = "1.2.4"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "A Bitcoin SV library with WASM in mind."
 license = "MIT"
 categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto']

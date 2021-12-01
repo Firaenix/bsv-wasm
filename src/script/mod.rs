@@ -203,6 +203,37 @@ impl Script {
 }
 
 /**
+ * Script Template
+ */
+impl Script {
+    fn does_match_script_template(&self, script_template: &Script) -> bool {
+        if self.0.len() == 0 && script_template.0.len() != 0 {
+            return false;
+        }
+
+        if self.0.len() != 0 && script_template.0.len() == 0 {
+            return false;
+        }
+
+        let mut template_cursor = Cursor::new(&script_template.0);
+
+        while let Ok(op_code) = template_cursor.read_u8() {
+            let template_position = template_cursor.position();
+
+            if self.0[template_position as usize] != op_code {
+                return false;
+            }
+
+            if template_position >= script_template.0.len() as u64 {
+                break;
+            }
+        }
+
+        true
+    }
+}
+
+/**
  * Shared Functions
  */
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
@@ -262,6 +293,13 @@ impl Script {
      */
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
         Script::get_pushdata_prefix_bytes_impl(length)
+    }
+
+    /**
+     * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
+     */
+    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Script {
+        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
 }
 
