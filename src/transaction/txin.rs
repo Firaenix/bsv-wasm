@@ -136,6 +136,21 @@ impl TxIn {
         let json = serde_json::to_string_pretty(self)?;
         Ok(json)
     }
+
+    pub(crate) fn from_outpoint_bytes_impl(outpoint: &[u8]) -> Result<TxIn, BSVErrors> {
+        if outpoint.len() != 36 {
+            return Err(BSVErrors::OutOfBounds("An Outpoint must be precisely 36 bytes long".into()));
+        }
+
+        let mut tx_in = TxIn::default();
+
+        let vout = u32::from_le_bytes([outpoint[32], outpoint[33], outpoint[34], outpoint[35]]);
+
+        tx_in.set_prev_tx_id(&outpoint[0..32]);
+        tx_in.set_vout(vout);
+
+        Ok(tx_in)
+    }
 }
 
 /**
@@ -156,6 +171,18 @@ impl TxIn {
             },
             satoshis: None,
             unlocking_script: None,
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    pub fn default() -> TxIn {
+        TxIn {
+            prev_tx_id: vec![],
+            satoshis: None,
+            script_sig: Script::default(),
+            sequence: u32::MAX,
+            unlocking_script: None,
+            vout: 0,
         }
     }
 
@@ -304,6 +331,14 @@ impl TxIn {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromOutpointBytes))]
+    pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, JsValue> {
+        match TxIn::from_outpoint_bytes_impl(outpoint) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -332,5 +367,10 @@ impl TxIn {
     pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
         let json = serde_json::to_value(self)?;
         Ok(json)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, BSVErrors> {
+        TxIn::from_outpoint_bytes_impl(outpoint)
     }
 }

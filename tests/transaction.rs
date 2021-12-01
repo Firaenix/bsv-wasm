@@ -460,4 +460,23 @@ mod transaction_tests {
     //     );
     //     assert!(txin_1.is_err(), "TxIn should error when passed an invalid txid")
     // }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn txin_from_outpoint() {
+        let outpoint = "4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a00000002";
+
+        let mut tx = Transaction::default();
+        let txin = TxIn::from_outpoint_bytes(&hex::decode(outpoint).unwrap()).unwrap();
+        tx.add_input(&txin);
+
+        assert_eq!(&txin.get_outpoint_hex(None), outpoint)
+    }
+
+    #[test]
+    fn txin_from_outpoint_slice_too_short_should_error() {
+        let txin = TxIn::from_outpoint_bytes(&vec![]);
+
+        assert!(txin.is_err(), "An Outpoint must be precisely 36 bytes long")
+    }
 }

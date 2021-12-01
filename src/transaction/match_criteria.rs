@@ -1,7 +1,7 @@
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-use crate::Script;
+use crate::{Script, Transaction, TxIn, TxOut};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
@@ -45,5 +45,113 @@ impl MatchCriteria {
         self.max_value = Some(max);
 
         self.clone()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+impl Transaction {
+    fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if matches!(&criteria.script, Some(crit_script) if crit_script != &txout.script_pub_key) {
+            return false;
+        }
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.is_some() && criteria.exact_value != Some(txout.value) {
+            return false;
+        }
+
+        // If min_value is specified and value is less than min value
+        if criteria.min_value.is_some() && criteria.min_value > Some(txout.value) {
+            return false;
+        }
+
+        // If min_value is specified and value is greater than max value
+        if criteria.max_value.is_some() && criteria.max_value < Some(txout.value) {
+            return false;
+        }
+
+        true
+    }
+
+    /**
+     * Returns the first output index that matches the given parameters, returns None or null if not found.
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutput))]
+    pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+            true => Some(i),
+            false => None,
+        })
+    }
+
+    /**
+     * Returns a list of outputs indexes that match the given parameters
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutputs))]
+    pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .outputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
+                true => Some(i),
+                false => None,
+            })
+            .collect();
+
+        matches
+    }
+
+    fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
+        // If script is specified and doesnt match
+        if matches!(&criteria.script, Some(crit_script) if crit_script != &txin.script_sig) {
+            return false;
+        }
+
+        // If exact_value is specified and doesnt match
+        if criteria.exact_value.is_some() && criteria.exact_value != txin.satoshis {
+            return false;
+        }
+
+        // If min_value is specified and value is less than min value
+        if criteria.min_value.is_some() && criteria.min_value > txin.satoshis {
+            return false;
+        }
+
+        // If min_value is specified and value is greater than max value
+        if criteria.max_value.is_some() && criteria.max_value < txin.satoshis {
+            return false;
+        }
+
+        true
+    }
+
+    /**
+     * Returns the first input index that matches the given parameters, returns None or null if not found.
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInput))]
+    pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
+        self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+            true => Some(i),
+            false => None,
+        })
+    }
+
+    /**
+     * Returns a list of input indexes that match the given parameters
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInputs))]
+    pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
+        let matches = self
+            .inputs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
+                true => Some(i),
+                false => None,
+            })
+            .collect();
+
+        matches
     }
 }

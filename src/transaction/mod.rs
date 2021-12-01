@@ -304,111 +304,6 @@ impl Transaction {
         self.outputs[index] = output.clone();
     }
 
-    fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
-        // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if crit_script != &txout.script_pub_key) {
-            return false;
-        }
-        // If exact_value is specified and doesnt match
-        if criteria.exact_value.is_some() && criteria.exact_value != Some(txout.value) {
-            return false;
-        }
-
-        // If min_value is specified and value is less than min value
-        if criteria.min_value.is_some() && criteria.min_value > Some(txout.value) {
-            return false;
-        }
-
-        // If min_value is specified and value is greater than max value
-        if criteria.max_value.is_some() && criteria.max_value < Some(txout.value) {
-            return false;
-        }
-
-        true
-    }
-
-    /**
-     * Returns the first output index that matches the given parameters, returns None or null if not found.
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutput))]
-    pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
-        self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
-            true => Some(i),
-            false => None,
-        })
-    }
-
-    /**
-     * Returns a list of outputs indexes that match the given parameters
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchOutputs))]
-    pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
-        let matches = self
-            .outputs
-            .iter()
-            .enumerate()
-            .filter_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
-                true => Some(i),
-                false => None,
-            })
-            .collect();
-
-        matches
-    }
-
-    fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
-        // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if crit_script != &txin.script_sig) {
-            return false;
-        }
-
-        // If exact_value is specified and doesnt match
-        if criteria.exact_value.is_some() && criteria.exact_value != txin.satoshis {
-            return false;
-        }
-
-        // If min_value is specified and value is less than min value
-        if criteria.min_value.is_some() && criteria.min_value > txin.satoshis {
-            return false;
-        }
-
-        // If min_value is specified and value is greater than max value
-        if criteria.max_value.is_some() && criteria.max_value < txin.satoshis {
-            return false;
-        }
-
-        true
-    }
-
-    /**
-     * Returns the first input index that matches the given parameters, returns None or null if not found.
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInput))]
-    pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
-        self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
-            true => Some(i),
-            false => None,
-        })
-    }
-
-    /**
-     * Returns a list of input indexes that match the given parameters
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = matchInputs))]
-    pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
-        let matches = self
-            .inputs
-            .iter()
-            .enumerate()
-            .filter_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
-                true => Some(i),
-                false => None,
-            })
-            .collect();
-
-        matches
-    }
-
     /**
      * XT Method:
      * Returns the combined sum of all input satoshis.
@@ -665,14 +560,14 @@ impl Transaction {
     }
 
     /**
-     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + XT
      */
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         self.to_compact_bytes_impl()
     }
 
     /**
-     * Deserialises the provided CBOR buffer to the TX+ format
+     * Deserialises the provided CBOR buffer to the XT format
      */
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
         Transaction::from_compact_bytes_impl(compact_buffer)
