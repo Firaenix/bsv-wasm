@@ -243,6 +243,13 @@ impl Script {
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
     }
+
+    /**
+     * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
+     */
+    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Script {
+        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
+    }
 }
 
 /**
@@ -275,13 +282,6 @@ impl Script {
      */
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
         Script::get_pushdata_prefix_bytes_impl(length)
-    }
-
-    /**
-     * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
-     */
-    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Script {
-        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
 }
 
