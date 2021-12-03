@@ -2,7 +2,6 @@
 **/*.rs.bk
 Cargo.lock
 bin/
-pkg/
 wasm-pack.log
 .DS_Store
 
@@ -23,3 +22,8 @@ node_modules
 examples/node-test/node.mjs
 
 examples/**/dist
+
+!pkg/
+pkg/*
+!pkg/web/
+!pkg/web/.gitignore
