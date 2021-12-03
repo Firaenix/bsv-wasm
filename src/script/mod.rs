@@ -246,6 +246,10 @@ impl Script {
         Script::to_asm_string_impl(self, false)
     }
 
+    pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
+        Script::from_bytes_impl(bytes)
+    }
+
     pub fn to_extended_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, true)
     }
@@ -289,6 +293,14 @@ impl Script {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex: &str) -> Result<Script, JsValue> {
         match Script::from_hex_impl(hex) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
+    pub fn from_bytes(bytes: &[u8]) -> Result<Script, JsValue> {
+        match Script::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
