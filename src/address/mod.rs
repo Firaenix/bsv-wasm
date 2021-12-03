@@ -1,13 +1,14 @@
 use crate::{BSVErrors, Hash, Script, SighashSignature, BSM};
 use crate::{PrivateKey, PublicKey, Signature};
 
+use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct P2PKHAddress {
     pubkey_hash: Vec<u8>,
 }
