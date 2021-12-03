@@ -42,13 +42,11 @@ impl TxIn {
         match self.unlocking_script.as_ref() {
             // If there is a specified unlocking script, prepend it to the locking script
             Some(unlock_script) => {
-                // let script_sig_bytes = self.script_sig.to_bytes();
-                // let mut unlock_script_bytes = unlock_script.to_bytes();
+                let script_sig_bytes = self.script_sig.to_bytes();
+                let mut unlock_script_bytes = unlock_script.to_bytes();
 
-                // unlock_script_bytes.extend_from_slice(&script_sig_bytes);
-                // Script::from_bytes_impl(&script_sig_bytes)
-
-                Ok(self.script_sig.clone())
+                unlock_script_bytes.extend_from_slice(&script_sig_bytes);
+                Script::from_bytes_impl(&script_sig_bytes)
             }
             None => Ok(self.script_sig.clone()),
         }
@@ -234,7 +232,7 @@ impl TxIn {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptSigHex))]
     pub fn get_script_sig_hex(&self) -> String {
-        hex::encode(self.script_sig.to_bytes().clone())
+        hex::encode(self.script_sig.to_bytes())
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSequence))]

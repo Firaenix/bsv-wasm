@@ -204,9 +204,9 @@ impl Script {
                 (MatchToken::AnyData, ScriptBit::Push(_)) => true,
                 (MatchToken::AnyData, ScriptBit::PushData(_, _)) => true,
 
-                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_compact_impl(&sig_buf).is_ok(),
+                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_compact_impl(sig_buf).is_ok(),
 
-                (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(&pubkey_buf).is_ok(),
+                (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(pubkey_buf).is_ok(),
 
                 (MatchToken::PublicKeyHash, ScriptBit::Push(pubkeyhash_buf)) => pubkeyhash_buf.len() == 20, // OP_HASH160
 
