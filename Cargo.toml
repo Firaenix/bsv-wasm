@@ -63,7 +63,7 @@ wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "univ
 rustflags = ["-C", "target-feature=+simd128"]
 
 [profile.release]
-opt-level = 3
+opt-level = 'z'
 lto = true
 
 [profile.test]

@@ -109,17 +109,6 @@ function takeObject(idx) {
     return ret;
 }
 
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-    return instance.ptr;
-}
-
-const u32CvtShim = new Uint32Array(2);
-
-const uint64CvtShim = new BigUint64Array(u32CvtShim.buffer);
-
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
@@ -131,9 +120,20 @@ function passArray8ToWasm0(arg, malloc) {
     return ptr;
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
+
+const u32CvtShim = new Uint32Array(2);
+
+const uint64CvtShim = new BigUint64Array(u32CvtShim.buffer);
 
 let cachegetUint32Memory0 = null;
 function getUint32Memory0() {
@@ -642,6 +642,18 @@ OP_2MUL:141,"141":"OP_2MUL",
 OP_2DIV:142,"142":"OP_2DIV", });
 /**
 */
+export const DataLengthConstraints = Object.freeze({ Equals:0,"0":"Equals",GreaterThan:1,"1":"GreaterThan",LessThan:2,"2":"LessThan",GreaterThanOrEquals:3,"3":"GreaterThanOrEquals",LessThanOrEquals:4,"4":"LessThanOrEquals", });
+/**
+*/
+export const MatchDataTypes = Object.freeze({ Data:0,"0":"Data",Signature:1,"1":"Signature",PublicKey:2,"2":"PublicKey",PublicKeyHash:3,"3":"PublicKeyHash", });
+/**
+*/
+export const AESAlgorithms = Object.freeze({ AES128_CBC:0,"0":"AES128_CBC",AES256_CBC:1,"1":"AES256_CBC",AES128_CTR:2,"2":"AES128_CTR",AES256_CTR:3,"3":"AES256_CTR", });
+/**
+*/
+export const SigningHash = Object.freeze({ Sha256:0,"0":"Sha256",Sha256d:1,"1":"Sha256d", });
+/**
+*/
 export const SigHash = Object.freeze({ FORKID:64,"64":"FORKID",ALL:1,"1":"ALL",NONE:2,"2":"NONE",SINGLE:3,"3":"SINGLE",ANYONECANPAY:128,"128":"ANYONECANPAY",
 /**
 *
@@ -697,18 +709,6 @@ Legacy_Input:130,"130":"Legacy_Input",
 *
 */
 Legacy_InputOutput:131,"131":"Legacy_InputOutput", });
-/**
-*/
-export const DataLengthConstraints = Object.freeze({ Equals:0,"0":"Equals",GreaterThan:1,"1":"GreaterThan",LessThan:2,"2":"LessThan",GreaterThanOrEquals:3,"3":"GreaterThanOrEquals",LessThanOrEquals:4,"4":"LessThanOrEquals", });
-/**
-*/
-export const MatchDataTypes = Object.freeze({ Data:0,"0":"Data",Signature:1,"1":"Signature",PublicKey:2,"2":"PublicKey",PublicKeyHash:3,"3":"PublicKeyHash", });
-/**
-*/
-export const AESAlgorithms = Object.freeze({ AES128_CBC:0,"0":"AES128_CBC",AES256_CBC:1,"1":"AES256_CBC",AES128_CTR:2,"2":"AES128_CTR",AES256_CTR:3,"3":"AES256_CTR", });
-/**
-*/
-export const SigningHash = Object.freeze({ Sha256:0,"0":"Sha256",Sha256d:1,"1":"Sha256d", });
 /**
 */
 export const PBKDF2Hashes = Object.freeze({ SHA1:0,"0":"SHA1",SHA256:1,"1":"SHA256",SHA512:2,"2":"SHA512", });
@@ -1214,7 +1214,7 @@ export class ECIESCiphertext {
     getCiphertext() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.cipherkeys_get_ke(retptr, this.ptr);
+            wasm.eciesciphertext_getCiphertext(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayU8FromWasm0(r0, r1).slice();
@@ -1230,7 +1230,7 @@ export class ECIESCiphertext {
     getHMAC() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.cipherkeys_get_km(retptr, this.ptr);
+            wasm.eciesciphertext_getHMAC(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayU8FromWasm0(r0, r1).slice();
@@ -2836,58 +2836,6 @@ export class Transaction {
         wasm.__wbg_transaction_free(ptr);
     }
     /**
-    * @param {PublicKey} pub_key
-    * @param {SighashSignature} sig
-    * @returns {boolean}
-    */
-    verify(pub_key, sig) {
-        _assertClass(pub_key, PublicKey);
-        _assertClass(sig, SighashSignature);
-        var ret = wasm.transaction_verify(this.ptr, pub_key.ptr, sig.ptr);
-        return ret !== 0;
-    }
-    /**
-    * @param {PrivateKey} priv_key
-    * @param {number} sighash
-    * @param {number} n_tx_in
-    * @param {Script} unsigned_script
-    * @param {BigInt} value
-    * @returns {SighashSignature}
-    */
-    sign(priv_key, sighash, n_tx_in, unsigned_script, value) {
-        _assertClass(priv_key, PrivateKey);
-        _assertClass(unsigned_script, Script);
-        uint64CvtShim[0] = value;
-        const low0 = u32CvtShim[0];
-        const high0 = u32CvtShim[1];
-        var ret = wasm.transaction_sign(this.ptr, priv_key.ptr, sighash, n_tx_in, unsigned_script.ptr, low0, high0);
-        return SighashSignature.__wrap(ret);
-    }
-    /**
-    * @param {number} sighash
-    * @param {number} n_tx_in
-    * @param {Script} unsigned_script
-    * @param {BigInt} value
-    * @returns {Uint8Array}
-    */
-    sighashPreimage(sighash, n_tx_in, unsigned_script, value) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(unsigned_script, Script);
-            uint64CvtShim[0] = value;
-            const low0 = u32CvtShim[0];
-            const high0 = u32CvtShim[1];
-            wasm.transaction_sighashPreimage(retptr, this.ptr, sighash, n_tx_in, unsigned_script.ptr, low0, high0);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v1 = getArrayU8FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 1);
-            return v1;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
     *
     *     * Returns the first output index that matches the given parameters, returns None or null if not found.
     *
@@ -3332,6 +3280,58 @@ export class Transaction {
         var len0 = WASM_VECTOR_LEN;
         var ret = wasm.transaction_fromCompactBytes(ptr0, len0);
         return Transaction.__wrap(ret);
+    }
+    /**
+    * @param {PublicKey} pub_key
+    * @param {SighashSignature} sig
+    * @returns {boolean}
+    */
+    verify(pub_key, sig) {
+        _assertClass(pub_key, PublicKey);
+        _assertClass(sig, SighashSignature);
+        var ret = wasm.transaction_verify(this.ptr, pub_key.ptr, sig.ptr);
+        return ret !== 0;
+    }
+    /**
+    * @param {PrivateKey} priv_key
+    * @param {number} sighash
+    * @param {number} n_tx_in
+    * @param {Script} unsigned_script
+    * @param {BigInt} value
+    * @returns {SighashSignature}
+    */
+    sign(priv_key, sighash, n_tx_in, unsigned_script, value) {
+        _assertClass(priv_key, PrivateKey);
+        _assertClass(unsigned_script, Script);
+        uint64CvtShim[0] = value;
+        const low0 = u32CvtShim[0];
+        const high0 = u32CvtShim[1];
+        var ret = wasm.transaction_sign(this.ptr, priv_key.ptr, sighash, n_tx_in, unsigned_script.ptr, low0, high0);
+        return SighashSignature.__wrap(ret);
+    }
+    /**
+    * @param {number} sighash
+    * @param {number} n_tx_in
+    * @param {Script} unsigned_script
+    * @param {BigInt} value
+    * @returns {Uint8Array}
+    */
+    sighashPreimage(sighash, n_tx_in, unsigned_script, value) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(unsigned_script, Script);
+            uint64CvtShim[0] = value;
+            const low0 = u32CvtShim[0];
+            const high0 = u32CvtShim[1];
+            wasm.transaction_sighashPreimage(retptr, this.ptr, sighash, n_tx_in, unsigned_script.ptr, low0, high0);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1);
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 /**
@@ -3882,20 +3882,20 @@ async function init(input) {
         var ret = getObject(arg0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_randomFillSync_64cc7d048f228ca8 = function() { return handleError(function (arg0, arg1, arg2) {
-        getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
-    }, arguments) };
-    imports.wbg.__wbg_getRandomValues_98117e9a7e993920 = function() { return handleError(function (arg0, arg1) {
-        getObject(arg0).getRandomValues(getObject(arg1));
-    }, arguments) };
-    imports.wbg.__wbg_process_2f24d6544ea7b200 = function(arg0) {
-        var ret = getObject(arg0).process;
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_is_object = function(arg0) {
         const val = getObject(arg0);
         var ret = typeof(val) === 'object' && val !== null;
         return ret;
+    };
+    imports.wbg.__wbg_getRandomValues_98117e9a7e993920 = function() { return handleError(function (arg0, arg1) {
+        getObject(arg0).getRandomValues(getObject(arg1));
+    }, arguments) };
+    imports.wbg.__wbg_randomFillSync_64cc7d048f228ca8 = function() { return handleError(function (arg0, arg1, arg2) {
+        getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
+    }, arguments) };
+    imports.wbg.__wbg_process_2f24d6544ea7b200 = function(arg0) {
+        var ret = getObject(arg0).process;
+        return addHeapObject(ret);
     };
     imports.wbg.__wbg_versions_6164651e75405d4a = function(arg0) {
         var ret = getObject(arg0).versions;
@@ -3957,13 +3957,6 @@ async function init(input) {
         var ret = new Uint8Array(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_set_969ad0a60e51d320 = function(arg0, arg1, arg2) {
-        getObject(arg0).set(getObject(arg1), arg2 >>> 0);
-    };
-    imports.wbg.__wbg_length_1eb8fc608a0d4cdb = function(arg0) {
-        var ret = getObject(arg0).length;
-        return ret;
-    };
     imports.wbg.__wbg_newwithlength_929232475839a482 = function(arg0) {
         var ret = new Uint8Array(arg0 >>> 0);
         return addHeapObject(ret);
@@ -3971,6 +3964,13 @@ async function init(input) {
     imports.wbg.__wbg_subarray_8b658422a224f479 = function(arg0, arg1, arg2) {
         var ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
         return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_length_1eb8fc608a0d4cdb = function(arg0) {
+        var ret = getObject(arg0).length;
+        return ret;
+    };
+    imports.wbg.__wbg_set_969ad0a60e51d320 = function(arg0, arg1, arg2) {
+        getObject(arg0).set(getObject(arg1), arg2 >>> 0);
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
