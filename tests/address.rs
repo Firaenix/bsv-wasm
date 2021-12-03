@@ -2,6 +2,7 @@
 mod tests {
     use bsv_wasm::{address::*, PrivateKey, PublicKey};
     extern crate wasm_bindgen_test;
+    use serde::{Deserialize, Serialize};
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
@@ -11,7 +12,7 @@ mod tests {
         // Arrange
         let pub_key_hash = "3c3fa3d4adcaf8f52d5b1843975e122548269937";
         let pub_key_hash_bytes = hex::decode(pub_key_hash).unwrap();
-        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes);
+        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes).unwrap();
 
         // Act
         let address_string = address.to_address_string().unwrap();
@@ -26,7 +27,7 @@ mod tests {
         // Arrange
         let pub_key_hash = "47c6ad3495d35e6df17ccb06831cb44dbd570995";
         let pub_key_hash_bytes = hex::decode(pub_key_hash).unwrap();
-        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes);
+        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes).unwrap();
 
         // Act
         let address_string = address.to_address_string().unwrap();
@@ -41,7 +42,7 @@ mod tests {
         // Arrange
         let pub_key_hash = "47c6ad3495d35e6df17ccb06831cb44dbd570995";
         let pub_key_hash_bytes = hex::decode(pub_key_hash).unwrap();
-        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes);
+        let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes).unwrap();
 
         // Act
         let decoded_pub_key_hash_bytes = address.to_pubkey_hash();
@@ -111,5 +112,22 @@ mod tests {
         );
 
         assert_eq!(pub_key.to_p2pkh_address().unwrap().to_address_string().unwrap(), "1BH9Udn8uspgnHJtDMJ8SjVx97ytKxkY8");
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn p2pkhaddress_to_json_returns_base58_address() {
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        struct Test {
+            p2pkh: P2PKHAddress,
+        }
+
+        let address = P2PKHAddress::from_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem").unwrap();
+
+        let test = Test { p2pkh: address };
+
+        assert_eq!(serde_json::to_string(&test).unwrap(), "{\"p2pkh\":\"1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem\"}");
+
+        assert_eq!(serde_json::from_str::<Test>("{\"p2pkh\":\"1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem\"}").unwrap(), test)
     }
 }

@@ -1,4 +1,4 @@
-use std::{fmt::Display, num::ParseIntError};
+use std::{array::TryFromSliceError, fmt::Display, num::ParseIntError};
 
 use thiserror::*;
 
@@ -121,6 +121,12 @@ pub enum BSVErrors {
 
     #[error("{0}")]
     ECIESError(String),
+
+    #[error("{0}")]
+    P2PKHAddress(&'static str),
+
+    #[error("Unable to deserialise P2PKH from slice {0}")]
+    P2PKHAddressFromSlice(#[source] TryFromSliceError),
 
     //=========== Serialisation Errors ==============
     #[error("Error deserialising transaction field {0}: {1}")]
