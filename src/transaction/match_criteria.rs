@@ -1,12 +1,12 @@
+use crate::{Script, ScriptTemplate, Transaction, TxIn, TxOut};
+
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-
-use crate::{Script, Transaction, TxIn, TxOut};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
 pub struct MatchCriteria {
-    pub(crate) script: Option<Script>,
+    pub(crate) script_template: Option<ScriptTemplate>,
     pub(crate) exact_value: Option<u64>,
     pub(crate) min_value: Option<u64>,
     pub(crate) max_value: Option<u64>,
@@ -19,9 +19,9 @@ impl MatchCriteria {
         MatchCriteria::default()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setScript))]
-    pub fn set_script(&mut self, script: &Script) -> MatchCriteria {
-        self.script = Some(script.clone());
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setScriptTemplate))]
+    pub fn set_script_template(&mut self, script_template: &ScriptTemplate) -> MatchCriteria {
+        self.script_template = Some(script_template.clone());
 
         self.clone()
     }
@@ -52,7 +52,7 @@ impl MatchCriteria {
 impl Transaction {
     fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if txout.script_pub_key.verify_with_template(&crit_script).is_err()) {
+        if matches!(&criteria.script_template, Some(crit_script) if !txout.script_pub_key.test(crit_script)) {
             return false;
         }
 
@@ -105,7 +105,7 @@ impl Transaction {
 
     fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
-        if matches!(&criteria.script, Some(crit_script) if txin.get_finalised_script().verify_with_template(&crit_script).is_err()) {
+        if matches!(&criteria.script_template, Some(crit_script) if txin.get_finalised_script().unwrap().test(&crit_script) == false) {
             return false;
         }
 

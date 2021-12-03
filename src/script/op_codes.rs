@@ -1,4 +1,5 @@
 use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use strum_macros::EnumString;
 #[cfg(target_arch = "wasm32")]
@@ -13,7 +14,7 @@ use wasm_bindgen::prelude::*;
 // --------------------------------------------------------------------------------------------
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString, PartialEq, Eq, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum OpCodes {
     /// Pushes 0 onto the stack

@@ -1,4 +1,6 @@
 use crate::BSVErrors;
+use crate::VarIntReader;
+use crate::VarIntWriter;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
@@ -36,17 +38,19 @@ pub struct TxIn {
 }
 
 impl TxIn {
-    pub(crate) fn get_finalised_script(&self) -> Script {
+    pub(crate) fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
         match self.unlocking_script.as_ref() {
             // If there is a specified unlocking script, prepend it to the locking script
             Some(unlock_script) => {
-                let script_sig_bytes = self.script_sig.to_bytes();
-                let mut unlock_script_bytes = unlock_script.to_bytes();
+                // let script_sig_bytes = self.script_sig.to_bytes();
+                // let mut unlock_script_bytes = unlock_script.to_bytes();
 
-                unlock_script_bytes.extend_from_slice(&script_sig_bytes);
-                Script::from_bytes(&script_sig_bytes)
+                // unlock_script_bytes.extend_from_slice(&script_sig_bytes);
+                // Script::from_bytes_impl(&script_sig_bytes)
+
+                Ok(self.script_sig.clone())
             }
-            None => self.script_sig.clone(),
+            None => Ok(self.script_sig.clone()),
         }
     }
 
@@ -94,7 +98,7 @@ impl TxIn {
         Ok(TxIn {
             prev_tx_id,
             vout,
-            script_sig: Script(script_sig),
+            script_sig: Script::from_bytes_impl(&script_sig)?,
             sequence,
             satoshis: None,
             unlocking_script: None,
@@ -117,7 +121,7 @@ impl TxIn {
             return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
         }
 
-        let finalised_script = self.get_finalised_script();
+        let finalised_script = self.get_finalised_script()?;
 
         // Script Sig Size
         if let Err(e) = buffer.write_varint(finalised_script.get_script_length() as u64) {
@@ -125,7 +129,7 @@ impl TxIn {
         }
 
         // Script Sig
-        if let Err(e) = buffer.write(&finalised_script.0) {
+        if let Err(e) = buffer.write(&finalised_script.to_bytes()) {
             return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e));
         }
 
@@ -220,7 +224,7 @@ impl TxIn {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptSigSize))]
     pub fn get_script_sig_size(&self) -> u64 {
-        self.script_sig.0.len() as u64
+        self.script_sig.get_script_length() as u64
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptSig))]
@@ -230,7 +234,7 @@ impl TxIn {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptSigHex))]
     pub fn get_script_sig_hex(&self) -> String {
-        hex::encode(self.script_sig.0.clone())
+        hex::encode(self.script_sig.to_bytes().clone())
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSequence))]

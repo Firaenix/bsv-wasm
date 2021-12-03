@@ -1,125 +1,63 @@
 pub mod op_codes;
-use digest::Reset;
-use elliptic_curve::bigint::Encoding;
+use crate::OpCodes::OP_0;
+use crate::VarIntReader;
 pub use op_codes::*;
+use strum_macros::Display;
 
+use crate::utils::{from_hex, to_hex};
 use std::{
     io::{Cursor, Read},
     str::FromStr,
     usize,
 };
 
-use crate::{
-    utils::{from_hex, to_hex},
-    BSVErrors,
-};
+use crate::{BSVErrors, VarInt};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
-use serde::*;
-use thiserror::*;
+
+use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
 mod script_template;
 pub use script_template::*;
 
+#[derive(Debug, Clone, Display, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ScriptBit {
+    OpCode(OpCodes),
+    Push(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] Vec<u8>),
+    PushData(OpCodes, #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] Vec<u8>),
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Script(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] pub(crate) Vec<u8>);
+pub struct Script(pub(crate) Vec<ScriptBit>);
 
 /**
  * Serialise Methods
  */
 impl Script {
-    pub(crate) fn to_asm_string_impl(&self, extended: bool) -> Result<String, BSVErrors> {
-        let mut cursor = Cursor::new(self.0.clone());
-
-        // Read bytes until end of string
-        self.read_opcodes(&mut cursor, "", extended)
-    }
-
-    fn read_opcodes(&self, cursor: &mut Cursor<Vec<u8>>, builder_str: &str, extended: bool) -> Result<String, BSVErrors> {
-        if cursor.position() >= self.0.len() as u64 {
-            return Ok(builder_str.to_string());
-        }
-        let mut new_str = builder_str.to_string();
-
-        if cursor.position() > 0 {
-            new_str.push(' ');
-        }
-
-        let byte = cursor.read_u8()?;
-
-        if let Some(special_opcode) = Script::get_special_opcode(byte, extended, cursor)? {
-            new_str.push_str(&special_opcode);
-            return Script::read_opcodes(self, cursor, &new_str, extended);
-        }
-
-        let opcode_str = match FromPrimitive::from_u8(byte) {
-            Some(v @ OpCodes::OP_0) => match extended {
-                true => v.to_string(),
-                false => 0.to_string(),
-            },
-            Some(v @ OpCodes::OP_PUSHDATA1) => Script::format_pushdata_string(cursor, v, extended)?,
-            Some(v @ OpCodes::OP_PUSHDATA2) => Script::format_pushdata_string(cursor, v, extended)?,
-            Some(v @ OpCodes::OP_PUSHDATA4) => Script::format_pushdata_string(cursor, v, extended)?,
-            Some(v) => v.to_string(),
-            None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
-        };
-
-        new_str.push_str(&opcode_str);
-        Script::read_opcodes(self, cursor, &new_str, extended)
-    }
-
-    fn get_pushdata_length(cursor: &mut Cursor<Vec<u8>>, opcode: OpCodes) -> Result<usize, BSVErrors> {
-        let result = match opcode {
-            OpCodes::OP_PUSHDATA1 => cursor.read_u8().map(|x| x as usize),
-            OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>().map(|x| x as usize),
-            OpCodes::OP_PUSHDATA4 => cursor.read_u32::<LittleEndian>().map(|x| x as usize),
-            _ => return Err(BSVErrors::SerialiseScript(format!("Given opcode {} is not pushdata", opcode), None)),
-        }?;
-
-        Ok(result)
-    }
-
-    fn get_pushdata(cursor: &mut Cursor<Vec<u8>>, size: usize) -> Result<Vec<u8>, BSVErrors> {
-        let mut data_buf = vec![0; size];
-        match cursor.read(&mut data_buf) {
-            Ok(_) => Ok(data_buf),
-            Err(e) => Err(BSVErrors::SerialiseScript(format!("Read {} OP_PUSHDATA bytes", size), Some(e))),
-        }
-    }
-
-    /**
-     * OpCodes such as OP_PUSH or the numerical OpCodes (OP_1-OP_16)
-     */
-    fn get_special_opcode(byte: u8, extended: bool, cursor: &mut Cursor<Vec<u8>>) -> Result<Option<String>, BSVErrors> {
-        let code = match byte {
-            size @ 0x01..=0x4b => {
-                let pushdata = Script::get_pushdata(cursor, size as usize)?;
-
-                let pushdata_hex = hex::encode(pushdata);
-                match extended {
-                    true => Some(format!("OP_PUSH {} {}", size, pushdata_hex)),
-                    false => Some(pushdata_hex),
-                }
-            }
-
-            v @ 82..=96 => OpCodes::from_u8(v).map(|num_opcode| num_opcode.to_string()),
-            _ => None,
-        };
-        Ok(code)
-    }
-
-    fn format_pushdata_string(cursor: &mut Cursor<Vec<u8>>, v: OpCodes, extended: bool) -> Result<String, BSVErrors> {
-        let size = Script::get_pushdata_length(cursor, v)?;
-        let pushdata = Script::get_pushdata(cursor, size)?;
-
-        let pushdata_hex = hex::encode(pushdata);
-        Ok(match extended {
-            true => format!("{} {} {}", v, size, pushdata_hex),
-            false => pushdata_hex,
-        })
+    pub(crate) fn to_asm_string_impl(&self, extended: bool) -> String {
+        self.0
+            .iter()
+            .map(|x| match x {
+                ScriptBit::OpCode(OP_0) => match extended {
+                    true => OP_0.to_string(),
+                    false => 0.to_string(),
+                },
+                ScriptBit::OpCode(code) => code.to_string(),
+                ScriptBit::Push(bytes) => match extended {
+                    true => format!("OP_PUSH {} {}", bytes.len(), hex::encode(bytes)),
+                    false => hex::encode(bytes),
+                },
+                ScriptBit::PushData(code, bytes) => match extended {
+                    true => format!("{} {} {}", code, bytes.len(), hex::encode(bytes)),
+                    false => hex::encode(bytes),
+                },
+            })
+            .collect::<Vec<String>>()
+            .join(" ")
     }
 }
 
@@ -128,49 +66,76 @@ impl Script {
  */
 impl Script {
     pub(crate) fn from_hex_impl(hex: &str) -> Result<Script, BSVErrors> {
-        Ok(Script::from_bytes(&hex::decode(hex)?))
+        Script::from_bytes_impl(&hex::decode(hex)?)
+    }
+
+    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<Script, BSVErrors> {
+        let mut cursor = Cursor::new(bytes);
+
+        let mut bit_accumulator = vec![];
+        while let Ok(byte) = cursor.read_u8() {
+            if byte > 0x01 && byte <= 0x4b {
+                let mut data = vec![0; byte as usize];
+                if let Err(e) = cursor.read(&mut data) {
+                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e.to_string())));
+                }
+
+                bit_accumulator.push(ScriptBit::Push(data));
+                continue;
+            }
+
+            let bit = match OpCodes::from_u8(byte) {
+                Some(v @ (OpCodes::OP_PUSHDATA1 | OpCodes::OP_PUSHDATA2 | OpCodes::OP_PUSHDATA4)) => {
+                    let data_length = match cursor.read_varint() {
+                        Ok(v) => v,
+                        Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA varint {}", e.to_string()))),
+                    };
+
+                    let mut data = vec![0; data_length as usize];
+                    if let Err(e) = cursor.read(&mut data) {
+                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e.to_string())));
+                    }
+
+                    ScriptBit::PushData(v, data)
+                }
+                Some(v) => ScriptBit::OpCode(v),
+                None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
+            };
+
+            bit_accumulator.push(bit);
+        }
+
+        Ok(Script(bit_accumulator))
+    }
+
+    fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
+        // Number OP_CODES
+        if let Ok(num_code) = u8::from_str(code) {
+            match num_code {
+                0 => return Ok(ScriptBit::OpCode(OP_0)),
+                v @ 1..=16 => return Ok(ScriptBit::OpCode(OpCodes::from_u8(v + 80).unwrap())),
+                _ => (),
+            }
+        }
+
+        // Standard OP_CODES
+        if let Ok(opcode) = OpCodes::from_str(code) {
+            return Ok(ScriptBit::OpCode(opcode));
+        }
+
+        // PUSHDATA OP_CODES
+        let data_bytes = hex::decode(code)?;
+        let bit = match VarInt::get_pushdata_opcode(data_bytes.len() as u64) {
+            Some(v) => ScriptBit::PushData(v, data_bytes),
+            None => ScriptBit::Push(data_bytes),
+        };
+        Ok(bit)
     }
 
     pub(crate) fn from_asm_string_impl(asm: &str) -> Result<Script, BSVErrors> {
-        let mut chunks = asm.split(' ');
-        let mut buffer: Vec<u8> = Vec::new();
+        let bits: Result<Vec<_>, _> = asm.split(' ').map(Script::map_string_to_script_bit).collect();
 
-        while let Some(code) = chunks.next() {
-            // Number OP_CODES
-            if let Ok(num_code) = u8::from_str(code) {
-                match num_code {
-                    v @ 0 => buffer.push(v),
-                    v @ 1..=16 => buffer.push(v + 80),
-                    _ => (),
-                }
-
-                continue;
-            }
-
-            // Standard OP_CODES
-            if let Ok(opcode) = OpCodes::from_str(code) {
-                if let Some(opcode_byte) = opcode.to_u8() {
-                    buffer.push(opcode_byte);
-                }
-
-                if opcode == OpCodes::OP_DATA {
-                    let length = match chunks.next().map(|length_str| u64::from_str(length_str)) {
-                        Some(Ok(v)) => v,
-                        _ => return Err(BSVErrors::DeserialiseScript("Failed to read number after OP_DATA. Expected a 64 bit number.".into())),
-                    };
-
-                    buffer.append(&mut length.to_le_bytes().into());
-                }
-                continue;
-            }
-
-            // PUSHDATA OP_CODES
-            let data_bytes = hex::decode(code)?;
-            let mut op_pushdata = Script::encode_pushdata_impl(&data_bytes)?;
-            buffer.append(&mut op_pushdata);
-        }
-
-        Ok(Script(buffer))
+        Ok(Script(bits?))
     }
 
     pub(crate) fn get_pushdata_prefix_bytes_impl(length: usize) -> Result<Vec<u8>, BSVErrors> {
@@ -222,17 +187,32 @@ impl Script {
 impl Script {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
-        self.0.clone()
-    }
+        let bytes = self
+            .0
+            .iter()
+            .map(|x| match x {
+                ScriptBit::OpCode(code) => vec![*code as u8],
+                ScriptBit::Push(bytes) => {
+                    let mut pushbytes = bytes.clone();
+                    pushbytes.insert(0, bytes.len() as u8);
+                    pushbytes
+                }
+                ScriptBit::PushData(code, bytes) => {
+                    let mut pushbytes = vec![*code as u8];
+                    pushbytes.extend(VarInt::get_varint_bytes(bytes.len() as u64));
+                    pushbytes.extend(bytes);
+                    pushbytes
+                }
+            })
+            .flatten()
+            .collect();
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Script {
-        Script(bytes.to_vec())
+        bytes
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptLength))]
     pub fn get_script_length(&self) -> usize {
-        self.0.len()
+        self.to_bytes().len()
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
@@ -241,7 +221,7 @@ impl Script {
     }
 
     pub fn remove_codeseparators(&mut self) {
-        self.0 = self.0.clone().into_iter().filter(|x| *x != OpCodes::OP_CODESEPARATOR.to_u8().unwrap()).collect();
+        self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
 }
 
@@ -252,8 +232,8 @@ impl Script {
     /**
      * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
      */
-    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Script {
-        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
+    pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Script, BSVErrors> {
+        Script::from_bytes_impl(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
 }
 
@@ -262,11 +242,11 @@ impl Script {
  */
 #[cfg(not(target_arch = "wasm32"))]
 impl Script {
-    pub fn to_asm_string(&self) -> Result<String, BSVErrors> {
+    pub fn to_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, false)
     }
 
-    pub fn to_extended_asm_string(&self) -> Result<String, BSVErrors> {
+    pub fn to_extended_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, true)
     }
 
@@ -297,19 +277,13 @@ impl Script {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Script {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toASMString))]
-    pub fn to_asm_string(&self) -> Result<String, JsValue> {
-        match Script::to_asm_string_impl(&self, false) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
+    pub fn to_asm_string(&self) -> String {
+        Script::to_asm_string_impl(&self, false)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toExtendedASMString))]
-    pub fn to_extended_asm_string(&self) -> Result<String, JsValue> {
-        match Script::to_asm_string_impl(&self, true) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
+    pub fn to_extended_asm_string(&self) -> String {
+        Script::to_asm_string_impl(&self, true)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]

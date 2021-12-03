@@ -11,7 +11,7 @@ mod transaction_tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    fn deserialise_transaction_hex() {
+    fn deserialise_and_serialise_transaction_hex() {
         let tx_hex = "01000000029e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f000000008c493046022100e9318720bee5425378b4763b0427158b1051eec8b08442ce3fbfbf7b30202a44022100d4172239ebd701dae2fbaaccd9f038e7ca166707333427e3fb2a2865b19a7f27014104510c67f46d2cbb29476d1f0b794be4cb549ea59ab9cc1e731969a7bf5be95f7ad5e7f904e5ccf50a9dc1714df00fbeb794aa27aaff33260c1032d931a75c56f2ffffffffa3195e7a1ab665473ff717814f6881485dc8759bebe97e31c301ffe7933a656f020000008b48304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c50141042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442ffffffff02206b1000000000001976a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88acf0ca0100000000001976a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac00000000";
         let tx = Transaction::from_hex(tx_hex).unwrap();
 
@@ -45,7 +45,12 @@ mod transaction_tests {
         assert_eq!(tx_out_1.get_script_pub_key_size(), 25);
         assert_eq!(tx_out_1.get_script_pub_key(), Script::from_hex("76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac").unwrap());
 
-        assert_eq!(tx.to_json_string().unwrap(), "{\"version\":1,\"inputs\":[{\"prev_tx_id\":\"3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e\",\"vout\":0,\"script_sig\":\"493046022100e9318720bee5425378b4763b0427158b1051eec8b08442ce3fbfbf7b30202a44022100d4172239ebd701dae2fbaaccd9f038e7ca166707333427e3fb2a2865b19a7f27014104510c67f46d2cbb29476d1f0b794be4cb549ea59ab9cc1e731969a7bf5be95f7ad5e7f904e5ccf50a9dc1714df00fbeb794aa27aaff33260c1032d931a75c56f2\",\"sequence\":4294967295},{\"prev_tx_id\":\"6f653a93e7ff01c3317ee9eb9b75c85d4881684f8117f73f4765b61a7a5e19a3\",\"vout\":2,\"script_sig\":\"48304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c50141042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442\",\"sequence\":4294967295}],\"outputs\":[{\"value\":1076000,\"script_pub_key\":\"76a91420bb5c3bfaef0231dc05190e7f1c8e22e098991e88ac\"},{\"value\":117488,\"script_pub_key\":\"76a9149e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c88ac\"}],\"n_locktime\":0}")
+        let json_string = tx.to_json_string().unwrap();
+        assert_eq!(json_string, "{\"version\":1,\"inputs\":[{\"prev_tx_id\":\"3f36d1e82cd2f327970c84cbf0d4e4d116f9a15dd02259329ac40d7b6a018d9e\",\"vout\":0,\"script_sig\":[\"3046022100e9318720bee5425378b4763b0427158b1051eec8b08442ce3fbfbf7b30202a44022100d4172239ebd701dae2fbaaccd9f038e7ca166707333427e3fb2a2865b19a7f2701\",\"04510c67f46d2cbb29476d1f0b794be4cb549ea59ab9cc1e731969a7bf5be95f7ad5e7f904e5ccf50a9dc1714df00fbeb794aa27aaff33260c1032d931a75c56f2\"],\"sequence\":4294967295},{\"prev_tx_id\":\"6f653a93e7ff01c3317ee9eb9b75c85d4881684f8117f73f4765b61a7a5e19a3\",\"vout\":2,\"script_sig\":[\"304502201c282f35f3e02a1f32d2089265ad4b561f07ea3c288169dedcf2f785e6065efa022100e8db18aadacb382eed13ee04708f00ba0a9c40e3b21cf91da8859d0f7d99e0c501\",\"042b409e1ebbb43875be5edde9c452c82c01e3903d38fa4fd89f3887a52cb8aea9dc8aec7e2c9d5b3609c03eb16259a2537135a1bf0f9c5fbbcbdbaf83ba402442\"],\"sequence\":4294967295}],\"outputs\":[{\"value\":1076000,\"script_pub_key\":[\"OP_DUP\",\"OP_HASH160\",\"20bb5c3bfaef0231dc05190e7f1c8e22e098991e\",\"OP_EQUALVERIFY\",\"OP_CHECKSIG\"]},{\"value\":117488,\"script_pub_key\":[\"OP_DUP\",\"OP_HASH160\",\"9e3e2d23973a04ec1b02be97c30ab9f2f27c3b2c\",\"OP_EQUALVERIFY\",\"OP_CHECKSIG\"]}],\"n_locktime\":0}");
+
+        let rehydrated_tx = Transaction::from_json_string(&json_string).unwrap();
+
+        assert_eq!(rehydrated_tx, tx, "Rehydrated JSON Tx doesnt match original Tx")
     }
 
     #[test]

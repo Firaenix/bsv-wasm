@@ -4,6 +4,8 @@ use std::io::Write;
 
 use crate::BSVErrors;
 use crate::Script;
+use crate::VarIntReader;
+use crate::VarIntWriter;
 use crate::{Hash, VarInt};
 use byteorder::*;
 use serde::{Deserialize, Serialize};
@@ -175,6 +177,10 @@ impl Transaction {
     pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
         let json = serde_json::to_string(self)?;
         Ok(json)
+    }
+
+    pub(crate) fn from_json_string_impl(json_string: &str) -> Result<Transaction, BSVErrors> {
+        Ok(serde_json::from_str(json_string)?)
     }
 
     /**
@@ -359,6 +365,14 @@ impl Transaction {
         }
     }
 
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromJsonString))]
+    pub fn from_json_string(json_string: &str) -> Result<Transaction, JsValue> {
+        match Transaction::from_json_string_impl(json_string) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
@@ -522,6 +536,11 @@ impl Transaction {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         Transaction::to_json_string_impl(self)
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
+    pub fn from_json_string(json_string: &str) -> Result<Transaction, BSVErrors> {
+        Transaction::from_json_string_impl(json_string)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

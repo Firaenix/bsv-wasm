@@ -1,4 +1,4 @@
-use crate::{BSVErrors, Script};
+use crate::{BSVErrors, Script, VarIntReader, VarIntWriter};
 use std::io::Read;
 use std::io::{Cursor, Write};
 
@@ -52,7 +52,7 @@ impl TxOut {
 
         Ok(TxOut {
             value: satoshis,
-            script_pub_key: Script(script_pub_key),
+            script_pub_key: Script::from_bytes_impl(&script_pub_key)?,
         })
     }
 

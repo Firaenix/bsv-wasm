@@ -1,5 +1,6 @@
 use crate::BSVErrors;
 use crate::Hash;
+use crate::VarIntWriter;
 use std::io::Write;
 
 use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, VarInt, ECDSA};
