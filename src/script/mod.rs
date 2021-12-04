@@ -86,7 +86,6 @@ impl Script {
 
             let bit = match OpCodes::from_u8(byte) {
                 Some(v @ (OpCodes::OP_PUSHDATA1 | OpCodes::OP_PUSHDATA2 | OpCodes::OP_PUSHDATA4)) => {
-                    println!("Read OP_CODE {}", v);
                     let data_length = match v {
                         OpCodes::OP_PUSHDATA1 => cursor.read_u8()? as usize,
                         OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>()? as usize,
@@ -100,10 +99,7 @@ impl Script {
 
                     ScriptBit::PushData(v, data)
                 }
-                Some(v) => {
-                    println!("Read OP_CODE {}", v);
-                    ScriptBit::OpCode(v)
-                }
+                Some(v) => ScriptBit::OpCode(v),
                 None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
             };
 
@@ -213,11 +209,7 @@ impl Script {
                         _ => (bytes.len() as u32).to_le_bytes().to_vec(),
                     };
                     pushbytes.extend(length_bytes);
-
-                    println!("{} with varint hex {}", code, hex::encode(&pushbytes));
                     pushbytes.extend(bytes);
-
-                    println!("{} with varint with data hex {}", code, hex::encode(&pushbytes));
                     pushbytes
                 }
             })

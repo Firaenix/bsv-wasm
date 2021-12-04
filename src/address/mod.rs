@@ -68,8 +68,6 @@ impl P2PKHAddress {
 
         let address = bs58::encode(address_bytes);
         let addr_string = address.into_string();
-
-        println!("Seralising to string {}", addr_string);
         Ok(addr_string)
     }
 
