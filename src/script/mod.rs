@@ -46,7 +46,6 @@ impl Script {
                     true => OP_0.to_string(),
                     false => 0.to_string(),
                 },
-                ScriptBit::OpCode(code) => code.to_string(),
                 ScriptBit::Push(bytes) => match extended {
                     true => format!("OP_PUSH {} {}", bytes.len(), hex::encode(bytes)),
                     false => hex::encode(bytes),
@@ -55,6 +54,7 @@ impl Script {
                     true => format!("{} {} {}", code, bytes.len(), hex::encode(bytes)),
                     false => hex::encode(bytes),
                 },
+                ScriptBit::OpCode(code) => code.to_string(),
             })
             .collect::<Vec<String>>()
             .join(" ")
@@ -204,9 +204,13 @@ impl Script {
                 ScriptBit::PushData(code, bytes) => {
                     let mut pushbytes = vec![*code as u8];
 
-                    println!("{} hex {}", code, hex::encode(&pushbytes));
-
-                    pushbytes.extend(VarInt::get_varint_bytes(bytes.len() as u64));
+                    let length_bytes = match code {
+                        OpCodes::OP_PUSHDATA1 => vec![bytes.len() as u8],
+                        OpCodes::OP_PUSHDATA2 => (bytes.len() as u16).to_le_bytes().to_vec(),
+                        OpCodes::OP_PUSHDATA4 => (bytes.len() as u32).to_le_bytes().to_vec(),
+                        _ => panic!("Somehow was given an opcode that wasnt a PUSHDATA"),
+                    };
+                    pushbytes.extend(length_bytes);
 
                     println!("{} with varint hex {}", code, hex::encode(&pushbytes));
                     pushbytes.extend(bytes);
@@ -270,7 +274,9 @@ impl Script {
     }
 
     pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
-        Script::from_asm_string_impl(asm_string)
+        let script = Script::from_asm_string_impl(asm_string);
+
+        script
     }
 
     pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
