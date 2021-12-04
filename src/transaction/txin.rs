@@ -156,9 +156,12 @@ impl TxIn {
 
         let mut tx_in = TxIn::default();
 
+        let mut outpoint_bytes = outpoint[0..32].to_vec();
+        outpoint_bytes.reverse();
+
         let vout = u32::from_le_bytes([outpoint[32], outpoint[33], outpoint[34], outpoint[35]]);
 
-        tx_in.set_prev_tx_id(&outpoint[0..32]);
+        tx_in.set_prev_tx_id(&outpoint_bytes);
         tx_in.set_vout(vout);
 
         Ok(tx_in)
