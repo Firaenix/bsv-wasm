@@ -469,13 +469,16 @@ mod transaction_tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn txin_from_outpoint() {
-        let outpoint = "4fe512f97769bc2fe47b0dadb1767404ebe2be50b3ea39a9b93d6325ee287e9a00000002";
+        let outpoint = "9057a1b008f17a6e1b1b39522072598ecf0d73b256c6b2c34e98257d72ce3c7907000000";
+
+        // 793cce727d25984ec3b2c656b2730dcf8e59722052391b1b6e7af108b0a15790 <-- we need this
+        // 0100000001793cce727d25984ec3b2c656b2730dcf8e59722052391b1b6e7af108b0a15790070000006a47304402204628fa202f16798ef858baba566f34d96434c61241460ee453cab8193ce87a0102206fd052780b9a8efe4d5fa6d7a2f969220e14aeb7a10b1392b5fda11417f32699412102e6bb51b303ca9cb8e805fa3d104cb030e0ad6872678f5ddb2e3a14188c571f33ffffffff0223020000000000001976a914a0b2113032da4c2c0e22960f12045cecca837c7088ac2f020000000000001976a9146fb1a8e42086219215c45a5e9cb1d94d8fbd845388ac00000000
 
         let mut tx = Transaction::default();
         let txin = TxIn::from_outpoint_bytes(&hex::decode(outpoint).unwrap()).unwrap();
         tx.add_input(&txin);
 
-        assert_eq!(&txin.get_outpoint_hex(None), outpoint)
+        assert_eq!(&txin.get_outpoint_hex(Some(true)), outpoint)
     }
 
     #[test]

@@ -112,11 +112,13 @@ impl Script {
 
     fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
         // Number OP_CODES
-        if let Ok(num_code) = u8::from_str(code) {
-            match num_code {
-                0 => return Ok(ScriptBit::OpCode(OP_0)),
-                v @ 1..=16 => return Ok(ScriptBit::OpCode(OpCodes::from_u8(v + 80).unwrap())),
-                _ => (),
+        if code.len() > 0 && code.len() < 3 {
+            if let Ok(num_code) = u8::from_str(code) {
+                match num_code {
+                    0 => return Ok(ScriptBit::OpCode(OP_0)),
+                    v @ 1..=16 => return Ok(ScriptBit::OpCode(OpCodes::from_u8(v + 80).unwrap())),
+                    _ => (),
+                }
             }
         }
 

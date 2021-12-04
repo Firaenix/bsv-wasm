@@ -166,6 +166,14 @@ mod script_tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn long_zero_buffer() {
+        let script = Script::from_asm_string("0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+
+        assert_eq!(script.to_asm_string(), "0000000000000000000000000000000000000000000000000000000000000000");
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn read_p2pkh_address_to_script() {
         let address = P2PKHAddress::from_string("1PnDKikz2eGJY3F36ALD2zvpgh8G2HKpAR").unwrap();
 
