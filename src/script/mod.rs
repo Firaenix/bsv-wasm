@@ -74,7 +74,7 @@ impl Script {
 
         let mut bit_accumulator = vec![];
         while let Ok(byte) = cursor.read_u8() {
-            if byte > 0x01 && byte <= 0x4b {
+            if byte >= 0x01 && byte <= 0x4b {
                 let mut data = vec![0; byte as usize];
                 if let Err(e) = cursor.read(&mut data) {
                     return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e.to_string())));
@@ -100,7 +100,7 @@ impl Script {
                     ScriptBit::PushData(v, data)
                 }
                 Some(v) => ScriptBit::OpCode(v),
-                None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
+                None => return Err(BSVErrors::DeserialiseScript(format!("Unknown opcode {}", byte))),
             };
 
             bit_accumulator.push(bit);
