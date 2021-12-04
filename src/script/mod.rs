@@ -98,7 +98,10 @@ impl Script {
 
                     ScriptBit::PushData(v, data)
                 }
-                Some(v) => ScriptBit::OpCode(v),
+                Some(v) => {
+                    println!("Matched opcode {}", v);
+                    ScriptBit::OpCode(v)
+                }
                 None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
             };
 
@@ -199,8 +202,15 @@ impl Script {
                 }
                 ScriptBit::PushData(code, bytes) => {
                     let mut pushbytes = vec![*code as u8];
+
+                    println!("{} hex {}", code, hex::encode(&pushbytes));
+
                     pushbytes.extend(VarInt::get_varint_bytes(bytes.len() as u64));
+
+                    println!("{} with varint hex {}", code, hex::encode(&pushbytes));
                     pushbytes.extend(bytes);
+
+                    println!("{} with varint with data hex {}", code, hex::encode(&pushbytes));
                     pushbytes
                 }
             })

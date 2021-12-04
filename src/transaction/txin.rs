@@ -6,7 +6,7 @@ use std::io::Read;
 use std::io::Write;
 
 use crate::{
-    utils::{from_hex, to_hex},
+    utils::{from_reverse_hex, to_reverse_hex},
     Script, VarInt,
 };
 use serde::*;
@@ -19,7 +19,7 @@ use thiserror::*;
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxIn {
-    #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
+    #[serde(serialize_with = "to_reverse_hex", deserialize_with = "from_reverse_hex")]
     pub(crate) prev_tx_id: Vec<u8>,
     pub(crate) vout: u32,
     pub(crate) script_sig: Script,
