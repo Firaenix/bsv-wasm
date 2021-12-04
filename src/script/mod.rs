@@ -86,9 +86,11 @@ impl Script {
 
             let bit = match OpCodes::from_u8(byte) {
                 Some(v @ (OpCodes::OP_PUSHDATA1 | OpCodes::OP_PUSHDATA2 | OpCodes::OP_PUSHDATA4)) => {
-                    let data_length = match cursor.read_varint() {
-                        Ok(v) => v,
-                        Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA varint {}", e.to_string()))),
+                    let data_length = match v {
+                        OpCodes::OP_PUSHDATA1 => cursor.read_u8()? as u32,
+                        OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>()? as u32,
+                        OpCodes::OP_PUSHDATA4 => cursor.read_u32::<LittleEndian>()? as u32,
+                        _ => return Err(BSVErrors::DeserialiseScript("This shouldnt happen, got OPCODE that isnt OP_PUSHDATA".to_string())),
                     };
 
                     let mut data = vec![0; data_length as usize];
@@ -98,10 +100,7 @@ impl Script {
 
                     ScriptBit::PushData(v, data)
                 }
-                Some(v) => {
-                    println!("Matched opcode {}", v);
-                    ScriptBit::OpCode(v)
-                }
+                Some(v) => ScriptBit::OpCode(v),
                 None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
             };
 
