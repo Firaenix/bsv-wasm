@@ -33,9 +33,9 @@ impl VarInt {
     pub fn get_pushdata_opcode(length: u64) -> Option<OpCodes> {
         if length <= 252 {
             None
-        } else if length <= 0xffff {
+        } else if length <= 0xff {
             Some(OpCodes::OP_PUSHDATA1)
-        } else if length <= 0xffffffff {
+        } else if length <= 0xffff {
             Some(OpCodes::OP_PUSHDATA2)
         } else {
             Some(OpCodes::OP_PUSHDATA4)
@@ -45,11 +45,11 @@ impl VarInt {
     pub fn get_varint_bytes(length: u64) -> Vec<u8> {
         if length <= 252 {
             vec![length as u8]
-        } else if length <= 0xffff {
+        } else if length <= 0xff {
             let mut push1 = vec![0xfd];
             push1.extend((length as u16).to_le_bytes());
             push1
-        } else if length <= 0xffffffff {
+        } else if length <= 0xffff {
             let mut push2 = vec![0xfe];
             push2.extend((length as u32).to_le_bytes());
             push2

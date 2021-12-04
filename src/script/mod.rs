@@ -86,21 +86,24 @@ impl Script {
 
             let bit = match OpCodes::from_u8(byte) {
                 Some(v @ (OpCodes::OP_PUSHDATA1 | OpCodes::OP_PUSHDATA2 | OpCodes::OP_PUSHDATA4)) => {
+                    println!("Read OP_CODE {}", v);
                     let data_length = match v {
-                        OpCodes::OP_PUSHDATA1 => cursor.read_u8()? as u32,
-                        OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>()? as u32,
-                        OpCodes::OP_PUSHDATA4 => cursor.read_u32::<LittleEndian>()? as u32,
-                        _ => return Err(BSVErrors::DeserialiseScript("This shouldnt happen, got OPCODE that isnt OP_PUSHDATA".to_string())),
+                        OpCodes::OP_PUSHDATA1 => cursor.read_u8()? as usize,
+                        OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>()? as usize,
+                        _ => cursor.read_u32::<LittleEndian>()? as usize,
                     };
 
-                    let mut data = vec![0; data_length as usize];
+                    let mut data = vec![0; data_length];
                     if let Err(e) = cursor.read(&mut data) {
                         return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e.to_string())));
                     }
 
                     ScriptBit::PushData(v, data)
                 }
-                Some(v) => ScriptBit::OpCode(v),
+                Some(v) => {
+                    println!("Read OP_CODE {}", v);
+                    ScriptBit::OpCode(v)
+                }
                 None => return Err(BSVErrors::SerialiseScript(format!("Unknown opcode {}", byte), None)),
             };
 
@@ -205,10 +208,9 @@ impl Script {
                     let mut pushbytes = vec![*code as u8];
 
                     let length_bytes = match code {
-                        OpCodes::OP_PUSHDATA1 => vec![bytes.len() as u8],
+                        OpCodes::OP_PUSHDATA1 => (bytes.len() as u8).to_le_bytes().to_vec(),
                         OpCodes::OP_PUSHDATA2 => (bytes.len() as u16).to_le_bytes().to_vec(),
-                        OpCodes::OP_PUSHDATA4 => (bytes.len() as u32).to_le_bytes().to_vec(),
-                        _ => panic!("Somehow was given an opcode that wasnt a PUSHDATA"),
+                        _ => (bytes.len() as u32).to_le_bytes().to_vec(),
                     };
                     pushbytes.extend(length_bytes);
 
