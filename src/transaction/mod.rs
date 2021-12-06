@@ -530,7 +530,7 @@ impl Transaction {
     /**
      * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
      */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytesHex))]
     pub fn to_compact_bytes_hex(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_compact_bytes_impl() {
             Ok(v) => Ok(v),
