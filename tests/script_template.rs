@@ -53,7 +53,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 1);
 
         match &extracted[0] {
-            Match(MatchDataTypes::PublicKeyHash, v) => assert_eq!(v, &hex::decode("05186ff0711831d110ca96ddfc47816b5a31900d").unwrap()),
+            (MatchDataTypes::PublicKeyHash, v) => assert_eq!(v, &hex::decode("05186ff0711831d110ca96ddfc47816b5a31900d").unwrap()),
             _ => assert!(false, "Index 0 did not contain a PubKeyHash"),
         }
     }
@@ -73,7 +73,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 1);
 
         match &extracted[0] {
-            Match(MatchDataTypes::Data, v) => {
+            (MatchDataTypes::Data, v) => {
                 assert_eq!(v.len(), 32, "Data was not 32 bytes long");
                 assert_eq!(v, &hex::decode("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2").unwrap())
             }
@@ -98,7 +98,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 2);
 
         match &extracted[0] {
-            Match(MatchDataTypes::Data, v) => {
+            (MatchDataTypes::Data, v) => {
                 assert_eq!(v.len(), 32, "Data was not 32 bytes long");
                 assert_eq!(v, &hex::decode("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2").unwrap())
             }
@@ -106,7 +106,7 @@ mod script_template_tests {
         }
 
         match &extracted[1] {
-            Match(MatchDataTypes::Data, v) => {
+            (MatchDataTypes::Data, v) => {
                 assert_eq!(v.len(), 2, "Data was not 2 bytes long");
                 assert_eq!(v, &hex::decode("21e8").unwrap())
             }
@@ -150,7 +150,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 1);
 
         match &extracted[0] {
-            Match(MatchDataTypes::PublicKey, v) => {
+            (MatchDataTypes::PublicKey, v) => {
                 assert_eq!(v.len(), 33, "Data was not 32 bytes long");
                 assert_eq!(v, &hex::decode("03652aee2d0a773eccc4bc5f7816bd4c525f408da26422171a22829bfde4109296").unwrap())
             }
@@ -172,7 +172,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 1);
 
         match &extracted[0] {
-            Match(MatchDataTypes::PublicKey, v) => {
+            (MatchDataTypes::PublicKey, v) => {
                 assert_eq!(v.len(), 65, "Data was not 65 bytes long");
                 assert_eq!(
                     v,
@@ -197,7 +197,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 3);
 
         match &extracted[0] {
-            Match(MatchDataTypes::PublicKey, v) => {
+            (MatchDataTypes::PublicKey, v) => {
                 assert_eq!(v.len(), 65, "Data was not 65 bytes long");
                 assert_eq!(
                     v,
@@ -208,7 +208,7 @@ mod script_template_tests {
         }
 
         match &extracted[1] {
-            Match(MatchDataTypes::PublicKey, v) => {
+            (MatchDataTypes::PublicKey, v) => {
                 assert_eq!(v.len(), 33, "Data was not 33 bytes long");
                 assert_eq!(v, &hex::decode("03652aee2d0a773eccc4bc5f7816bd4c525f408da26422171a22829bfde4109296").unwrap())
             }
@@ -216,7 +216,7 @@ mod script_template_tests {
         }
 
         match &extracted[2] {
-            Match(MatchDataTypes::PublicKeyHash, v) => {
+            (MatchDataTypes::PublicKeyHash, v) => {
                 assert_eq!(v.len(), 20, "Data was not 20 bytes long");
                 assert_eq!(v, &hex::decode("05186ff0711831d110ca96ddfc47816b5a31900d").unwrap())
             }
@@ -238,7 +238,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 3);
 
         match &extracted[0] {
-            Match(MatchDataTypes::Signature, v) => {
+            (MatchDataTypes::Signature, v) => {
                 assert_eq!(v.len(), 73, "Signature was not 73 bytes long");
                 assert_eq!(
                     v,
@@ -249,7 +249,7 @@ mod script_template_tests {
         }
 
         match &extracted[1] {
-            Match(MatchDataTypes::PublicKey, v) => {
+            (MatchDataTypes::PublicKey, v) => {
                 assert_eq!(v.len(), 33, "PubKey was not 33 bytes long");
                 assert_eq!(v, &hex::decode("0319a38fb498ff221b6e1b528b911c62f6ff2ac5023405c637859e4d7ff28f265d").unwrap())
             }
@@ -257,7 +257,7 @@ mod script_template_tests {
         }
 
         match &extracted[2] {
-            Match(MatchDataTypes::PublicKeyHash, v) => {
+            (MatchDataTypes::PublicKeyHash, v) => {
                 assert_eq!(v.len(), 20, "PubKeyHash was not 20 bytes long");
                 assert_eq!(v, &hex::decode("08ed73ac2a3564dd1a431c61f7c2ce6b64e1fe80").unwrap())
             }
@@ -279,7 +279,7 @@ mod script_template_tests {
         assert_eq!(extracted.len(), 3);
 
         match &extracted[0] {
-            Match(MatchDataTypes::Data, v) => {
+            (MatchDataTypes::Data, v) => {
                 assert_eq!(v.len(), 20, "Data was not 20 bytes long");
                 assert_eq!(v, &hex::decode("b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6").unwrap())
             }
@@ -287,7 +287,7 @@ mod script_template_tests {
         }
 
         match &extracted[1] {
-            Match(MatchDataTypes::PublicKeyHash, v) => {
+            (MatchDataTypes::PublicKeyHash, v) => {
                 assert_eq!(v.len(), 20, "PubKeyhash was not 20 bytes long");
                 assert_eq!(v, &hex::decode("f9dfc5a4ae5256e5938c2d819738f7b57e4d7b46").unwrap())
             }
@@ -295,7 +295,7 @@ mod script_template_tests {
         }
 
         match &extracted[2] {
-            Match(MatchDataTypes::Data, v) => {
+            (MatchDataTypes::Data, v) => {
                 assert_eq!(v, &hex::decode("7b227469746c65223a22547572626f20466f78202331222c226465736372697074696f6e223a225765206c696b652074686520666f78222c226e756d626572223a312c22736572696573223a36392c22696d616765223a22623a2f2f33376136636339636639613461613662356632316534333331363935666666613466323039363335366239633636336436393636333962336363303765376531222c2261747472696275746573223a5b7b2274726169745f74797065223a22436f6c6f72222c2276616c7565223a224f72616e6765227d2c7b2274726169745f74797065223a22446975726e616c697479222c2276616c7565223a22446179227d5d7d").unwrap())
             }
             _ => assert!(false, "Index 2 did not contain Data"),
