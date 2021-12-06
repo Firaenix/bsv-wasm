@@ -1,5 +1,6 @@
 pub mod op_codes;
 use crate::OpCodes::OP_0;
+use crate::OpCodes::OP_1;
 use crate::VarIntReader;
 pub use op_codes::*;
 use strum_macros::Display;
@@ -268,9 +269,7 @@ impl Script {
     }
 
     pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
-        let script = Script::from_asm_string_impl(asm_string);
-
-        script
+        Script::from_asm_string_impl(asm_string)
     }
 
     pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {

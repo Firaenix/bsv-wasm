@@ -66,7 +66,7 @@ pub enum MatchDataTypes {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Match(MatchDataTypes, Vec<u8>);
+pub struct Match(pub MatchDataTypes, pub Vec<u8>);
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone)]
@@ -224,11 +224,11 @@ impl Script {
                 (MatchToken::AnyData, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::Data, data.clone())),
                 (MatchToken::AnyData, ScriptBit::PushData(_, data)) => matches.push(Match(MatchDataTypes::Data, data.clone())),
 
-                (MatchToken::Signature, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::Data, data.clone())),
+                (MatchToken::Signature, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::Signature, data.clone())),
 
-                (MatchToken::PublicKey, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::Data, data.clone())),
+                (MatchToken::PublicKey, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::PublicKey, data.clone())),
 
-                (MatchToken::PublicKeyHash, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::Data, data.clone())), // OP_HASH160
+                (MatchToken::PublicKeyHash, ScriptBit::Push(data)) => matches.push(Match(MatchDataTypes::PublicKeyHash, data.clone())), // OP_HASH160
                 _ => (),
             }
         }
@@ -242,10 +242,33 @@ impl Script {
 }
 
 impl Script {
+    /// Matches the Script against the provided ScriptTemplate.  
+    ///
+    /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
+    ///
+    /// # Example
+    /// ```
+    /// let script = Script::from_asm_string("OP_HASH160 b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6 OP_EQUALVERIFY OP_DUP OP_HASH160 f9dfc5a4ae5256e5938c2d819738f7b57e4d7b46 OP_EQUALVERIFY OP_CHECKSIG OP_RETURN 21e8").unwrap();
+    /// let script_template = ScriptTemplate::from_asm_string("OP_HASH160 OP_DATA=20 OP_EQUALVERIFY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG OP_RETURN OP_DATA").unwrap();
+    ///
+    /// let match_result = script.matches(&script_template);
+    /// let extracted = match_result.unwrap();
+    /// assert_eq!(extracted.len(), 3);
+    /// match &extracted[0] {
+    ///    Match(MatchDataTypes::Data, v) => {
+    ///        assert_eq!(v.len(), 20, "Data was not 20 bytes long");
+    ///        assert_eq!(v, &hex::decode("b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6").unwrap())
+    ///    }
+    ///    _ => assert!(false, "Index 0 did not contain Signature"),
+    /// }
+    /// ```
     pub fn matches(&self, script_template: &ScriptTemplate) -> Result<Vec<Match>, ScriptTemplateErrors> {
         self.match_impl(script_template)
     }
 
+    /// Matches the Script against the provided ScriptTemplate.
+    ///
+    /// Returns `true` if the Script matches the ScriptTemplate.
     pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
         self.test_impl(script_template)
     }

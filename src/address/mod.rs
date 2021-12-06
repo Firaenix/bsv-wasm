@@ -37,7 +37,7 @@ impl<'de> Deserialize<'de> for P2PKHAddress {
 impl P2PKHAddress {
     pub(crate) fn from_pubkey_hash_impl(hash_bytes: &[u8]) -> Result<P2PKHAddress, BSVErrors> {
         let mut addr = vec![0x00];
-        addr.extend_from_slice(&hash_bytes);
+        addr.extend_from_slice(hash_bytes);
 
         let shad_bytes = Hash::sha_256d(&addr).to_bytes();
         let checksum_bytes = &shad_bytes[0..4];
