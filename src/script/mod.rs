@@ -75,7 +75,7 @@ impl Script {
 
         let mut bit_accumulator = vec![];
         while let Ok(byte) = cursor.read_u8() {
-            if byte >= 0x01 && byte <= 0x4b {
+            if (0x01..=0x4b).contains(&byte) {
                 let mut data = vec![0; byte as usize];
                 if let Err(e) = cursor.read(&mut data) {
                     return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e.to_string())));
@@ -112,14 +112,25 @@ impl Script {
 
     fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
         // Number OP_CODES
-        if code.len() > 0 && code.len() < 3 {
-            if let Ok(num_code) = u8::from_str(code) {
-                match num_code {
-                    0 => return Ok(ScriptBit::OpCode(OP_0)),
-                    v @ 1..=16 => return Ok(ScriptBit::OpCode(OpCodes::from_u8(v + 80).unwrap())),
-                    _ => (),
-                }
-            }
+        match code {
+            "0" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
+            "1" => return Ok(ScriptBit::OpCode(OpCodes::OP_1)),
+            "2" => return Ok(ScriptBit::OpCode(OpCodes::OP_2)),
+            "3" => return Ok(ScriptBit::OpCode(OpCodes::OP_3)),
+            "4" => return Ok(ScriptBit::OpCode(OpCodes::OP_4)),
+            "5" => return Ok(ScriptBit::OpCode(OpCodes::OP_5)),
+            "6" => return Ok(ScriptBit::OpCode(OpCodes::OP_6)),
+            "7" => return Ok(ScriptBit::OpCode(OpCodes::OP_7)),
+            "8" => return Ok(ScriptBit::OpCode(OpCodes::OP_8)),
+            "9" => return Ok(ScriptBit::OpCode(OpCodes::OP_9)),
+            "10" => return Ok(ScriptBit::OpCode(OpCodes::OP_10)),
+            "11" => return Ok(ScriptBit::OpCode(OpCodes::OP_11)),
+            "12" => return Ok(ScriptBit::OpCode(OpCodes::OP_12)),
+            "13" => return Ok(ScriptBit::OpCode(OpCodes::OP_13)),
+            "14" => return Ok(ScriptBit::OpCode(OpCodes::OP_14)),
+            "15" => return Ok(ScriptBit::OpCode(OpCodes::OP_15)),
+            "16" => return Ok(ScriptBit::OpCode(OpCodes::OP_16)),
+            _ => (),
         }
 
         // Standard OP_CODES

@@ -131,7 +131,7 @@ impl P2PKHAddress {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toPubKeyHashHex))]
     pub fn to_pubkey_hash_hex(&self) -> String {
-        hex::encode(self.0.clone())
+        hex::encode(self.0)
     }
 
     /**

@@ -9,7 +9,7 @@ use strum_macros::Display;
 use thiserror::Error;
 
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str};
+use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 #[derive(Debug, Error)]
 pub enum ScriptTemplateErrors {
@@ -241,8 +241,9 @@ impl Script {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Script {
-    /// Matches the Script against the provided ScriptTemplate.  
+    /// Matches the Script against the provided ScriptTemplate.
     ///
     /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
     ///
@@ -271,6 +272,34 @@ impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///
     /// Returns `true` if the Script matches the ScriptTemplate.
+    pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
+        self.test_impl(script_template)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+impl Script {
+    /// Matches the Script against the provided ScriptTemplate.
+    ///
+    /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
+    /// @returns {[string, Uint8Array][]}
+    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, JsValue> {
+        let matches = match self.match_impl(script_template) {
+            Ok(v) => v,
+            Err(e) => throw_str(&e.to_string()),
+        };
+
+        match JsValue::from_serde(&matches) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /// Matches the Script against the provided ScriptTemplate.
+    ///
+    /// Returns `true` if the Script matches the ScriptTemplate.
+    /// #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
     pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
         self.test_impl(script_template)
     }
