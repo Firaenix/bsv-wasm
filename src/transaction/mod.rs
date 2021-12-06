@@ -174,6 +174,10 @@ impl Transaction {
         Ok(hex::encode(&self.to_bytes_impl()?))
     }
 
+    pub(crate) fn to_compact_hex_impl(&self) -> Result<String, BSVErrors> {
+        Ok(hex::encode(&self.to_compact_bytes_impl()?))
+    }
+
     pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
         let json = serde_json::to_string(self)?;
         Ok(json)
@@ -293,9 +297,39 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = prependInput))]
+    pub fn prepend_input(&mut self, input: &TxIn) {
+        self.inputs.insert(0, input.clone());
+        // Transaction has been changed, need to recalculate inputs hashes
+        self.hash_cache.hash_inputs = None;
+        self.hash_cache.hash_sequence = None;
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = insertInput))]
+    pub fn insert_input(&mut self, index: usize, input: &TxIn) {
+        self.inputs.insert(index, input.clone());
+        // Transaction has been changed, need to recalculate inputs hashes
+        self.hash_cache.hash_inputs = None;
+        self.hash_cache.hash_sequence = None;
+    }
+
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addOutput))]
     pub fn add_output(&mut self, output: &TxOut) {
         self.outputs.push(output.clone());
+        // Transaction has been changed, need to recalculate outputs hashes
+        self.hash_cache.hash_outputs = None;
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = prependOutput))]
+    pub fn prepend_output(&mut self, output: &TxOut) {
+        self.outputs.insert(0, output.clone());
+        // Transaction has been changed, need to recalculate outputs hashes
+        self.hash_cache.hash_outputs = None;
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = insertOutput))]
+    pub fn insert_output(&mut self, index: usize, output: &TxOut) {
+        self.outputs.insert(index, output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
@@ -397,6 +431,14 @@ impl Transaction {
         }
     }
 
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
+    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
+        match Transaction::to_compact_hex_impl(&self) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
     /**
      * Get size of current serialised Transaction object
      */
@@ -486,6 +528,17 @@ impl Transaction {
     }
 
     /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
+    pub fn to_compact_bytes_hex(&self) -> Result<Vec<u8>, JsValue> {
+        match self.to_compact_bytes_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
      * Deserialises the provided CBOR buffer to the TX+ format
      */
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
@@ -557,6 +610,11 @@ impl Transaction {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         Transaction::to_hex_impl(self)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn to_compact_hex(&self) -> Result<String, BSVErrors> {
+        Transaction::to_compact_hex_impl(self)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
