@@ -15,7 +15,7 @@ mod script_template_tests {
         )
         .unwrap();
 
-        assert_eq!(script.test(&script_template), false);
+        assert_eq!(script.is_match(&script_template), false);
     }
 
     #[test]
@@ -30,7 +30,7 @@ mod script_template_tests {
         )
         .unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
 
         assert!(true);
     }
@@ -41,7 +41,7 @@ mod script_template_tests {
         let script = Script::from_asm_string("OP_DUP OP_HASH160 05186ff0711831d110ca96ddfc47816b5a31900d OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
         let script_template = ScriptTemplate::from_asm_string("OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
 
         assert!(true);
     }
@@ -54,7 +54,7 @@ mod script_template_tests {
                 .unwrap();
 
         let script_template = ScriptTemplate::from_asm_string("OP_DATA=32 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG").unwrap();
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
 
         assert!(true);
     }
@@ -69,7 +69,7 @@ mod script_template_tests {
                 .unwrap();
 
         let script_template = ScriptTemplate::from_asm_string("OP_DATA=32 OP_DATA=2 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG").unwrap();
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
 
         assert!(true);
     }
@@ -82,7 +82,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
-        assert!(script.r#match(&script_template).is_err());
+        assert!(script.matches(&script_template).is_err());
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
@@ -93,7 +93,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
-        assert_eq!(script.test(&script_template), false)
+        assert_eq!(script.is_match(&script_template), false)
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_PUBKEY OP_CHECKSIG").unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
         assert!(true);
     }
 
@@ -114,7 +114,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_PUBKEY OP_CHECKSIG").unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
         assert!(true);
     }
 
@@ -125,7 +125,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_PUBKEY OP_CHECKSIG OP_1 OP_DUP OP_PUBKEY OP_CHECKSIG OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
         assert!(true);
     }
 
@@ -136,7 +136,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_SIG OP_PUBKEY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
         assert!(true);
     }
 
@@ -147,7 +147,7 @@ mod script_template_tests {
 
         let script_template = ScriptTemplate::from_asm_string("OP_HASH160 OP_DATA=20 OP_EQUALVERIFY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG OP_RETURN OP_DATA").unwrap();
 
-        script.r#match(&script_template).unwrap();
+        script.matches(&script_template).unwrap();
         assert!(true);
     }
 }

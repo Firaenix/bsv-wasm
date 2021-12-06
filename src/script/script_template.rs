@@ -241,41 +241,12 @@ impl Script {
     }
 }
 
-// #[cfg(target_arch = "wasm32")]
-// #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-// impl Script {
-//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = match))]
-//     pub fn r#match(&self, script_template: &ScriptTemplate) -> Result<Vec<JsValue>, JsValue> {
-//         match self.match_impl(&script_template) {
-//             Ok(v) => {
-//                 let mut js_vec: Vec<JsValue> = vec![];
-
-//                 for x in v.iter() {
-//                     match JsValue::from_serde(&x) {
-//                         Ok(v) => js_vec.push(v),
-//                         Err(e) => throw_str(&e.to_string()),
-//                     }
-//                 }
-//                 Ok(js_vec)
-//             }
-
-//             Err(e) => throw_str(&e.to_string()),
-//         }
-//     }
-
-//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-//     pub fn test(&self, script_template: &ScriptTemplate) -> bool {
-//         self.test_impl(script_template)
-//     }
-// }
-
-// #[cfg(not(target_arch = "wasm32"))]
 impl Script {
-    pub fn r#match(&self, script_template: &ScriptTemplate) -> Result<Vec<Match>, ScriptTemplateErrors> {
+    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<Vec<Match>, ScriptTemplateErrors> {
         self.match_impl(script_template)
     }
 
-    pub fn test(&self, script_template: &ScriptTemplate) -> bool {
+    pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
         self.test_impl(script_template)
     }
 }
