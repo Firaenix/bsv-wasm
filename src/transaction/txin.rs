@@ -27,6 +27,7 @@ pub struct TxIn {
 
     /**
      * Part of the extended transaction serialisation format.
+     * TODO: Rename this to locking script (it is the representation of this TxIn's past life as a UTXO)
      */
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) unlocking_script: Option<Script>,
@@ -42,10 +43,10 @@ impl TxIn {
         match self.unlocking_script.as_ref() {
             // If there is a specified unlocking script, prepend it to the locking script
             Some(unlock_script) => {
-                let script_sig_bytes = self.script_sig.to_bytes();
-                let mut unlock_script_bytes = unlock_script.to_bytes();
+                let mut script_sig_bytes = self.script_sig.to_bytes();
+                let unlock_script_bytes = unlock_script.to_bytes();
 
-                unlock_script_bytes.extend_from_slice(&script_sig_bytes);
+                script_sig_bytes.extend_from_slice(&unlock_script_bytes);
                 Script::from_bytes_impl(&script_sig_bytes)
             }
             None => Ok(self.script_sig.clone()),
