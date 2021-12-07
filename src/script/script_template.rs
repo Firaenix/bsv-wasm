@@ -30,7 +30,7 @@ pub enum ScriptTemplateErrors {
     ),
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone, Display)]
 pub enum DataLengthConstraints {
     Equals,
@@ -55,7 +55,7 @@ pub enum MatchToken {
     PublicKeyHash,
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone, Display, Serialize, Deserialize)]
 pub enum MatchDataTypes {
     Data,
@@ -64,11 +64,7 @@ pub enum MatchDataTypes {
     PublicKeyHash,
 }
 
-// #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-pub type Match = (MatchDataTypes, Vec<u8>);
-
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone)]
 pub struct ScriptTemplate(Vec<MatchToken>);
 
@@ -180,7 +176,7 @@ impl ScriptTemplate {
  * Script Template
  */
 impl Script {
-    pub fn match_impl(&self, script_template: &ScriptTemplate) -> Result<Vec<Match>, ScriptTemplateErrors> {
+    pub fn match_impl(&self, script_template: &ScriptTemplate) -> Result<Vec<(MatchDataTypes, Vec<u8>)>, ScriptTemplateErrors> {
         if self.0.is_empty() && !script_template.0.is_empty() {
             return Err(ScriptTemplateErrors::EmptyScriptDoesntMatch);
         }
@@ -265,7 +261,7 @@ impl Script {
     ///    _ => assert!(false, "Index 0 did not contain Signature"),
     /// }
     /// ```
-    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<Vec<Match>, ScriptTemplateErrors> {
+    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<Vec<(MatchDataTypes, Vec<u8>)>, ScriptTemplateErrors> {
         self.match_impl(script_template)
     }
 

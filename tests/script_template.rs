@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod script_template_tests {
     extern crate wasm_bindgen_test;
-    use bsv_wasm::{Match, MatchDataTypes, OpCodes, Script, ScriptTemplate, ScriptTemplateErrors};
+    use bsv_wasm::{MatchDataTypes, OpCodes, Script, ScriptTemplate, ScriptTemplateErrors};
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
