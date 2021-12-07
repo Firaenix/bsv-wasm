@@ -19,8 +19,8 @@ pub enum ScriptTemplateErrors {
     #[error("Failed to parse OP_DATA code {0}: {1}")]
     OpDataParse(String, String),
 
-    #[error("Script is empty but template is not.")]
-    EmptyScriptDoesntMatch,
+    #[error("Script Template and Script lengths do not match.")]
+    LengthsDiffer,
 
     #[error("{0}")]
     MalformedHex(
@@ -177,8 +177,8 @@ impl ScriptTemplate {
  */
 impl Script {
     pub fn match_impl(&self, script_template: &ScriptTemplate) -> Result<Vec<(MatchDataTypes, Vec<u8>)>, ScriptTemplateErrors> {
-        if self.0.is_empty() && !script_template.0.is_empty() {
-            return Err(ScriptTemplateErrors::EmptyScriptDoesntMatch);
+        if self.0.len() != script_template.0.len() {
+            return Err(ScriptTemplateErrors::LengthsDiffer);
         }
 
         let mut matches = vec![];

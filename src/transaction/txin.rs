@@ -39,7 +39,7 @@ pub struct TxIn {
 }
 
 impl TxIn {
-    pub(crate) fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
+    pub(crate) fn get_finalised_script_impl(&self) -> Result<Script, BSVErrors> {
         match self.unlocking_script.as_ref() {
             // If there is a specified unlocking script, prepend it to the locking script
             Some(unlock_script) => {
@@ -423,6 +423,15 @@ impl TxIn {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    /// Concatenates ScriptSig and UnlockingScript into a single script.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getFinalisedScript))]
+    pub fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
+        match self.get_finalised_script_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -485,5 +494,9 @@ impl TxIn {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, BSVErrors> {
         TxIn::from_outpoint_bytes_impl(outpoint)
+    }
+
+    pub fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
+        self.get_finalised_script_impl()
     }
 }

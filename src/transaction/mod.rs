@@ -654,4 +654,8 @@ impl Transaction {
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
         Transaction::from_compact_bytes_impl(compact_buffer)
     }
+
+    pub fn from_compact_hex(compact_hex: &str) -> Result<Self, BSVErrors> {
+        Transaction::from_compact_bytes_impl(&hex::decode(compact_hex)?)
+    }
 }
