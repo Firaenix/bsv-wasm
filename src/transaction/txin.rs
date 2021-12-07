@@ -426,7 +426,7 @@ impl TxIn {
 
     /// Concatenates ScriptSig and UnlockingScript into a single script.
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getFinalisedScript))]
-    pub fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
+    pub fn get_finalised_script(&self) -> Result<Script, JsValue> {
         match self.get_finalised_script_impl() {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
