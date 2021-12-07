@@ -25,16 +25,16 @@ wasm-tests:
 
 publish-node:
 	# make sure not to call make build-* because wasm-pack doesnt allow you to specify subdirectories.
-	wasm-pack build --release --target nodejs
+	wasm-pack build --release --target nodejs -- --features wasm-bindgen-exports
 	wasm-pack publish ./pkg
 
 publish-web:
-	wasm-pack build --release --target web
+	wasm-pack build --release --target web -- --features wasm-bindgen-exports
 	sed -i "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
 	wasm-pack publish ./pkg
 
 publish-bundler:
-	wasm-pack build --release --target bundler
+	wasm-pack build --release --target bundler -- --features wasm-bindgen-exports
 	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/package.json
 	wasm-pack publish ./pkg
 
