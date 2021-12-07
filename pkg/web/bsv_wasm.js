@@ -143,10 +143,6 @@ function getUint32Memory0() {
     return cachegetUint32Memory0;
 }
 
-function getArrayU32FromWasm0(ptr, len) {
-    return getUint32Memory0().subarray(ptr / 4, ptr / 4 + len);
-}
-
 function passArrayJsValueToWasm0(array, malloc) {
     const ptr = malloc(array.length * 4);
     const mem = getUint32Memory0();
@@ -155,6 +151,10 @@ function passArrayJsValueToWasm0(array, malloc) {
     }
     WASM_VECTOR_LEN = array.length;
     return ptr;
+}
+
+function getArrayU32FromWasm0(ptr, len) {
+    return getUint32Memory0().subarray(ptr / 4, ptr / 4 + len);
 }
 
 function handleError(f, args) {
@@ -699,6 +699,9 @@ Legacy_Input:130,"130":"Legacy_Input",
 Legacy_InputOutput:131,"131":"Legacy_InputOutput", });
 /**
 */
+export const PBKDF2Hashes = Object.freeze({ SHA1:0,"0":"SHA1",SHA256:1,"1":"SHA256",SHA512:2,"2":"SHA512", });
+/**
+*/
 export const DataLengthConstraints = Object.freeze({ Equals:0,"0":"Equals",GreaterThan:1,"1":"GreaterThan",LessThan:2,"2":"LessThan",GreaterThanOrEquals:3,"3":"GreaterThanOrEquals",LessThanOrEquals:4,"4":"LessThanOrEquals", });
 /**
 */
@@ -709,9 +712,6 @@ export const AESAlgorithms = Object.freeze({ AES128_CBC:0,"0":"AES128_CBC",AES25
 /**
 */
 export const SigningHash = Object.freeze({ Sha256:0,"0":"Sha256",Sha256d:1,"1":"Sha256d", });
-/**
-*/
-export const PBKDF2Hashes = Object.freeze({ SHA1:0,"0":"SHA1",SHA256:1,"1":"SHA256",SHA512:2,"2":"SHA512", });
 /**
 */
 export class AES {
@@ -1798,6 +1798,25 @@ export class KDF {
         wasm.__wbg_kdf_free(ptr);
     }
     /**
+    *
+    *     * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated
+    *
+    * @param {Uint8Array} password
+    * @param {Uint8Array | undefined} salt
+    * @param {number} hash_algo
+    * @param {number} rounds
+    * @param {number} output_length
+    * @returns {KDF}
+    */
+    static pbkdf2(password, salt, hash_algo, rounds, output_length) {
+        var ptr0 = passArray8ToWasm0(password, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = isLikeNone(salt) ? 0 : passArray8ToWasm0(salt, wasm.__wbindgen_malloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.kdf_pbkdf2(ptr0, len0, ptr1, len1, hash_algo, rounds, output_length);
+        return KDF.__wrap(ret);
+    }
+    /**
     * @returns {Hash}
     */
     getHash() {
@@ -1819,41 +1838,6 @@ export class KDF {
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
-    }
-    /**
-    *
-    *     * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated
-    *
-    * @param {Uint8Array} password
-    * @param {Uint8Array | undefined} salt
-    * @param {number} hash_algo
-    * @param {number} rounds
-    * @param {number} output_length
-    * @returns {KDF}
-    */
-    static pbkdf2(password, salt, hash_algo, rounds, output_length) {
-        var ptr0 = passArray8ToWasm0(password, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = isLikeNone(salt) ? 0 : passArray8ToWasm0(salt, wasm.__wbindgen_malloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ret = wasm.kdf_pbkdf2(ptr0, len0, ptr1, len1, hash_algo, rounds, output_length);
-        return KDF.__wrap(ret);
-    }
-}
-/**
-*/
-export class Match {
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_match_free(ptr);
     }
 }
 /**
@@ -2438,6 +2422,32 @@ export class Script {
         wasm.__wbg_script_free(ptr);
     }
     /**
+    * Matches the Script against the provided ScriptTemplate.
+    *
+    * If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
+    * @returns {[string, Uint8Array][]}
+    * @param {ScriptTemplate} script_template
+    * @returns {any}
+    */
+    matches(script_template) {
+        _assertClass(script_template, ScriptTemplate);
+        var ret = wasm.script_matches(this.ptr, script_template.ptr);
+        return takeObject(ret);
+    }
+    /**
+    * Matches the Script against the provided ScriptTemplate.
+    *
+    * Returns `true` if the Script matches the ScriptTemplate.
+    * #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
+    * @param {ScriptTemplate} script_template
+    * @returns {boolean}
+    */
+    is_match(script_template) {
+        _assertClass(script_template, ScriptTemplate);
+        var ret = wasm.script_is_match(this.ptr, script_template.ptr);
+        return ret !== 0;
+    }
+    /**
     * @returns {Uint8Array}
     */
     toBytes() {
@@ -2888,86 +2898,6 @@ export class Transaction {
         }
     }
     /**
-    *
-    *     * Returns the first output index that matches the given parameters, returns None or null if not found.
-    *
-    * @param {MatchCriteria} criteria
-    * @returns {number | undefined}
-    */
-    matchOutput(criteria) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(criteria, MatchCriteria);
-            wasm.transaction_matchOutput(retptr, this.ptr, criteria.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-    *
-    *     * Returns a list of outputs indexes that match the given parameters
-    *
-    * @param {MatchCriteria} criteria
-    * @returns {Uint32Array}
-    */
-    matchOutputs(criteria) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(criteria, MatchCriteria);
-            wasm.transaction_matchOutputs(retptr, this.ptr, criteria.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU32FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 4);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-    *
-    *     * Returns the first input index that matches the given parameters, returns None or null if not found.
-    *
-    * @param {MatchCriteria} criteria
-    * @returns {number | undefined}
-    */
-    matchInput(criteria) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(criteria, MatchCriteria);
-            wasm.transaction_matchInput(retptr, this.ptr, criteria.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-    *
-    *     * Returns a list of input indexes that match the given parameters
-    *
-    * @param {MatchCriteria} criteria
-    * @returns {Uint32Array}
-    */
-    matchInputs(criteria) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(criteria, MatchCriteria);
-            wasm.transaction_matchInputs(retptr, this.ptr, criteria.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU32FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 4);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
     * @returns {number}
     */
     getVersion() {
@@ -3070,11 +3000,41 @@ export class Transaction {
         wasm.transaction_addInput(this.ptr, input.ptr);
     }
     /**
+    * @param {TxIn} input
+    */
+    prependInput(input) {
+        _assertClass(input, TxIn);
+        wasm.transaction_prependInput(this.ptr, input.ptr);
+    }
+    /**
+    * @param {number} index
+    * @param {TxIn} input
+    */
+    insertInput(index, input) {
+        _assertClass(input, TxIn);
+        wasm.transaction_insertInput(this.ptr, index, input.ptr);
+    }
+    /**
     * @param {TxOut} output
     */
     addOutput(output) {
         _assertClass(output, TxOut);
         wasm.transaction_addOutput(this.ptr, output.ptr);
+    }
+    /**
+    * @param {TxOut} output
+    */
+    prependOutput(output) {
+        _assertClass(output, TxOut);
+        wasm.transaction_prependOutput(this.ptr, output.ptr);
+    }
+    /**
+    * @param {number} index
+    * @param {TxOut} output
+    */
+    insertOutput(index, output) {
+        _assertClass(output, TxOut);
+        wasm.transaction_insertOutput(this.ptr, index, output.ptr);
     }
     /**
     * @param {number} index
@@ -3219,6 +3179,21 @@ export class Transaction {
         }
     }
     /**
+    * @returns {string}
+    */
+    toCompactHex() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.transaction_toCompactHex(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return getStringFromWasm0(r0, r1);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_free(r0, r1);
+        }
+    }
+    /**
     *
     *     * Get size of current serialised Transaction object
     *
@@ -3322,6 +3297,25 @@ export class Transaction {
     }
     /**
     *
+    *     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+    *
+    * @returns {Uint8Array}
+    */
+    toCompactBytesHex() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.transaction_toCompactBytes(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    *
     *     * Deserialises the provided CBOR buffer to the TX+ format
     *
     * @param {Uint8Array} compact_buffer
@@ -3332,6 +3326,86 @@ export class Transaction {
         var len0 = WASM_VECTOR_LEN;
         var ret = wasm.transaction_fromCompactBytes(ptr0, len0);
         return Transaction.__wrap(ret);
+    }
+    /**
+    *
+    *     * Returns the first output index that matches the given parameters, returns None or null if not found.
+    *
+    * @param {MatchCriteria} criteria
+    * @returns {number | undefined}
+    */
+    matchOutput(criteria) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(criteria, MatchCriteria);
+            wasm.transaction_matchOutput(retptr, this.ptr, criteria.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return r0 === 0 ? undefined : r1 >>> 0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    *
+    *     * Returns a list of outputs indexes that match the given parameters
+    *
+    * @param {MatchCriteria} criteria
+    * @returns {Uint32Array}
+    */
+    matchOutputs(criteria) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(criteria, MatchCriteria);
+            wasm.transaction_matchOutputs(retptr, this.ptr, criteria.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU32FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 4);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    *
+    *     * Returns the first input index that matches the given parameters, returns None or null if not found.
+    *
+    * @param {MatchCriteria} criteria
+    * @returns {number | undefined}
+    */
+    matchInput(criteria) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(criteria, MatchCriteria);
+            wasm.transaction_matchInput(retptr, this.ptr, criteria.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return r0 === 0 ? undefined : r1 >>> 0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    *
+    *     * Returns a list of input indexes that match the given parameters
+    *
+    * @param {MatchCriteria} criteria
+    * @returns {Uint32Array}
+    */
+    matchInputs(criteria) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(criteria, MatchCriteria);
+            wasm.transaction_matchInputs(retptr, this.ptr, criteria.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU32FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 4);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 /**

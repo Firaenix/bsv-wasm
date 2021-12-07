@@ -542,6 +542,13 @@ export enum SigHash {
 }
 /**
 */
+export enum PBKDF2Hashes {
+  SHA1,
+  SHA256,
+  SHA512,
+}
+/**
+*/
 export enum DataLengthConstraints {
   Equals,
   GreaterThan,
@@ -570,13 +577,6 @@ export enum AESAlgorithms {
 export enum SigningHash {
   Sha256,
   Sha256d,
-}
-/**
-*/
-export enum PBKDF2Hashes {
-  SHA1,
-  SHA256,
-  SHA512,
 }
 /**
 */
@@ -997,14 +997,6 @@ export class Hash {
 export class KDF {
   free(): void;
 /**
-* @returns {Hash}
-*/
-  getHash(): Hash;
-/**
-* @returns {Uint8Array}
-*/
-  getSalt(): Uint8Array;
-/**
 *
 *     * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated
 *     
@@ -1016,11 +1008,14 @@ export class KDF {
 * @returns {KDF}
 */
   static pbkdf2(password: Uint8Array, salt: Uint8Array | undefined, hash_algo: number, rounds: number, output_length: number): KDF;
-}
 /**
+* @returns {Hash}
 */
-export class Match {
-  free(): void;
+  getHash(): Hash;
+/**
+* @returns {Uint8Array}
+*/
+  getSalt(): Uint8Array;
 }
 /**
 */
@@ -1260,6 +1255,24 @@ export class PublicKey {
 export class Script {
   free(): void;
 /**
+* Matches the Script against the provided ScriptTemplate.
+*
+* If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
+* @returns {[string, Uint8Array][]}
+* @param {ScriptTemplate} script_template
+* @returns {any}
+*/
+  matches(script_template: ScriptTemplate): any;
+/**
+* Matches the Script against the provided ScriptTemplate.
+*
+* Returns `true` if the Script matches the ScriptTemplate.
+* #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
+* @param {ScriptTemplate} script_template
+* @returns {boolean}
+*/
+  is_match(script_template: ScriptTemplate): boolean;
+/**
 * @returns {Uint8Array}
 */
   toBytes(): Uint8Array;
@@ -1419,38 +1432,6 @@ export class Transaction {
 */
   sighashPreimage(sighash: number, n_tx_in: number, unsigned_script: Script, value: BigInt): Uint8Array;
 /**
-*
-*     * Returns the first output index that matches the given parameters, returns None or null if not found.
-*     
-* @param {MatchCriteria} criteria
-* @returns {number | undefined}
-*/
-  matchOutput(criteria: MatchCriteria): number | undefined;
-/**
-*
-*     * Returns a list of outputs indexes that match the given parameters
-*     
-* @param {MatchCriteria} criteria
-* @returns {Uint32Array}
-*/
-  matchOutputs(criteria: MatchCriteria): Uint32Array;
-/**
-*
-*     * Returns the first input index that matches the given parameters, returns None or null if not found.
-*     
-* @param {MatchCriteria} criteria
-* @returns {number | undefined}
-*/
-  matchInput(criteria: MatchCriteria): number | undefined;
-/**
-*
-*     * Returns a list of input indexes that match the given parameters
-*     
-* @param {MatchCriteria} criteria
-* @returns {Uint32Array}
-*/
-  matchInputs(criteria: MatchCriteria): Uint32Array;
-/**
 * @returns {number}
 */
   getVersion(): number;
@@ -1508,9 +1489,27 @@ export class Transaction {
 */
   addInput(input: TxIn): void;
 /**
+* @param {TxIn} input
+*/
+  prependInput(input: TxIn): void;
+/**
+* @param {number} index
+* @param {TxIn} input
+*/
+  insertInput(index: number, input: TxIn): void;
+/**
 * @param {TxOut} output
 */
   addOutput(output: TxOut): void;
+/**
+* @param {TxOut} output
+*/
+  prependOutput(output: TxOut): void;
+/**
+* @param {number} index
+* @param {TxOut} output
+*/
+  insertOutput(index: number, output: TxOut): void;
 /**
 * @param {number} index
 * @param {TxIn} input
@@ -1569,6 +1568,10 @@ export class Transaction {
 */
   toHex(): string;
 /**
+* @returns {string}
+*/
+  toCompactHex(): string;
+/**
 *
 *     * Get size of current serialised Transaction object
 *     
@@ -1623,12 +1626,51 @@ export class Transaction {
   toCompactBytes(): Uint8Array;
 /**
 *
+*     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+*     
+* @returns {Uint8Array}
+*/
+  toCompactBytesHex(): Uint8Array;
+/**
+*
 *     * Deserialises the provided CBOR buffer to the TX+ format
 *     
 * @param {Uint8Array} compact_buffer
 * @returns {Transaction}
 */
   static fromCompactBytes(compact_buffer: Uint8Array): Transaction;
+/**
+*
+*     * Returns the first output index that matches the given parameters, returns None or null if not found.
+*     
+* @param {MatchCriteria} criteria
+* @returns {number | undefined}
+*/
+  matchOutput(criteria: MatchCriteria): number | undefined;
+/**
+*
+*     * Returns a list of outputs indexes that match the given parameters
+*     
+* @param {MatchCriteria} criteria
+* @returns {Uint32Array}
+*/
+  matchOutputs(criteria: MatchCriteria): Uint32Array;
+/**
+*
+*     * Returns the first input index that matches the given parameters, returns None or null if not found.
+*     
+* @param {MatchCriteria} criteria
+* @returns {number | undefined}
+*/
+  matchInput(criteria: MatchCriteria): number | undefined;
+/**
+*
+*     * Returns a list of input indexes that match the given parameters
+*     
+* @param {MatchCriteria} criteria
+* @returns {Uint32Array}
+*/
+  matchInputs(criteria: MatchCriteria): Uint32Array;
 }
 /**
 */
@@ -1811,6 +1853,7 @@ export interface InitOutput {
   readonly sighashsignature_new: (a: number, b: number, c: number, d: number) => number;
   readonly sighashsignature_toHex: (a: number, b: number) => void;
   readonly sighashsignature_toBytes: (a: number, b: number) => void;
+  readonly kdf_pbkdf2: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly __wbg_hash_free: (a: number) => void;
   readonly hash_toBytes: (a: number, b: number) => void;
   readonly hash_toHex: (a: number, b: number) => void;
@@ -1828,10 +1871,11 @@ export interface InitOutput {
   readonly hash_hash160Hmac: (a: number, b: number, c: number, d: number) => number;
   readonly ecdh_deriveSharedKey: (a: number, b: number, c: number) => void;
   readonly __wbg_ecdh_free: (a: number) => void;
-  readonly __wbg_match_free: (a: number) => void;
   readonly __wbg_scripttemplate_free: (a: number) => void;
   readonly scripttemplate_from_script: (a: number) => number;
   readonly scripttemplate_from_asm_string: (a: number, b: number) => number;
+  readonly script_matches: (a: number, b: number) => number;
+  readonly script_is_match: (a: number, b: number) => number;
   readonly __wbg_privatekey_free: (a: number) => void;
   readonly privatekey_toBytes: (a: number, b: number) => void;
   readonly privatekey_toHex: (a: number, b: number) => void;
@@ -1873,6 +1917,18 @@ export interface InitOutput {
   readonly txin_toBytes: (a: number, b: number) => void;
   readonly txin_toHex: (a: number, b: number) => void;
   readonly txin_fromOutpointBytes: (a: number, b: number) => number;
+  readonly __wbg_script_free: (a: number) => void;
+  readonly script_toBytes: (a: number, b: number) => void;
+  readonly script_getScriptLength: (a: number) => number;
+  readonly script_toHex: (a: number, b: number) => void;
+  readonly script_remove_codeseparators: (a: number) => void;
+  readonly script_toASMString: (a: number, b: number) => void;
+  readonly script_toExtendedASMString: (a: number, b: number) => void;
+  readonly script_fromHex: (a: number, b: number) => number;
+  readonly script_fromBytes: (a: number, b: number) => number;
+  readonly script_fromASMString: (a: number, b: number) => number;
+  readonly script_encodePushData: (a: number, b: number, c: number) => void;
+  readonly script_getPushDataBytes: (a: number, b: number) => void;
   readonly __wbg_p2pkhaddress_free: (a: number) => void;
   readonly p2pkhaddress_toPubKeyHashBytes: (a: number, b: number) => void;
   readonly p2pkhaddress_toPubKeyHashHex: (a: number, b: number) => void;
@@ -1890,22 +1946,45 @@ export interface InitOutput {
   readonly bytes_reverse: (a: number) => void;
   readonly bytes_toHex: (a: number, b: number) => void;
   readonly bytes_fromHex: (a: number, b: number) => number;
-  readonly __wbg_script_free: (a: number) => void;
-  readonly script_toBytes: (a: number, b: number) => void;
-  readonly script_getScriptLength: (a: number) => number;
-  readonly script_toHex: (a: number, b: number) => void;
-  readonly script_remove_codeseparators: (a: number) => void;
-  readonly script_toASMString: (a: number, b: number) => void;
-  readonly script_toExtendedASMString: (a: number, b: number) => void;
-  readonly script_fromHex: (a: number, b: number) => number;
-  readonly script_fromBytes: (a: number, b: number) => number;
-  readonly script_fromASMString: (a: number, b: number) => number;
-  readonly script_encodePushData: (a: number, b: number, c: number) => void;
-  readonly script_getPushDataBytes: (a: number, b: number) => void;
-  readonly bsm_isValidMessage: (a: number, b: number, c: number, d: number) => number;
-  readonly bsm_verifyMessage: (a: number, b: number, c: number, d: number) => number;
-  readonly bsm_signMessage: (a: number, b: number, c: number) => number;
-  readonly __wbg_bsm_free: (a: number) => void;
+  readonly __wbg_transaction_free: (a: number) => void;
+  readonly transaction_getVersion: (a: number) => number;
+  readonly transaction_getInputsCount: (a: number) => number;
+  readonly transaction_getOutputsCount: (a: number) => number;
+  readonly transaction_getInput: (a: number, b: number) => number;
+  readonly transaction_getOutput: (a: number, b: number) => number;
+  readonly transaction_getNLocktime: (a: number) => number;
+  readonly transaction_getNLocktimeAsBytes: (a: number, b: number) => void;
+  readonly transaction_new: (a: number, b: number) => number;
+  readonly transaction_default: () => number;
+  readonly transaction_setVersion: (a: number, b: number) => number;
+  readonly transaction_setNLocktime: (a: number, b: number) => number;
+  readonly transaction_addInput: (a: number, b: number) => void;
+  readonly transaction_prependInput: (a: number, b: number) => void;
+  readonly transaction_insertInput: (a: number, b: number, c: number) => void;
+  readonly transaction_addOutput: (a: number, b: number) => void;
+  readonly transaction_prependOutput: (a: number, b: number) => void;
+  readonly transaction_insertOutput: (a: number, b: number, c: number) => void;
+  readonly transaction_setInput: (a: number, b: number, c: number) => void;
+  readonly transaction_setOutput: (a: number, b: number, c: number) => void;
+  readonly transaction_satoshisIn: (a: number, b: number) => void;
+  readonly transaction_satoshisOut: (a: number, b: number) => void;
+  readonly transaction_fromHex: (a: number, b: number) => number;
+  readonly transaction_fromBytes: (a: number, b: number) => number;
+  readonly transaction_toString: (a: number, b: number) => void;
+  readonly transaction_fromJsonString: (a: number, b: number) => number;
+  readonly transaction_toJSON: (a: number) => number;
+  readonly transaction_toBytes: (a: number, b: number) => void;
+  readonly transaction_toHex: (a: number, b: number) => void;
+  readonly transaction_toCompactHex: (a: number, b: number) => void;
+  readonly transaction_getSize: (a: number) => number;
+  readonly transaction_addInputs: (a: number, b: number, c: number) => void;
+  readonly transaction_getOutpoints: (a: number) => number;
+  readonly transaction_addOutputs: (a: number, b: number, c: number) => void;
+  readonly transaction_getIdHex: (a: number, b: number) => void;
+  readonly transaction_getIdBytes: (a: number, b: number) => void;
+  readonly transaction_toCompactBytes: (a: number, b: number) => void;
+  readonly transaction_fromCompactBytes: (a: number, b: number) => number;
+  readonly transaction_toCompactBytesHex: (a: number, b: number) => void;
   readonly __wbg_matchcriteria_free: (a: number) => void;
   readonly matchcriteria_new: () => number;
   readonly matchcriteria_setScriptTemplate: (a: number, b: number) => number;
@@ -1928,45 +2007,13 @@ export interface InitOutput {
   readonly txout_toHex: (a: number, b: number) => void;
   readonly txout_toJSON: (a: number) => number;
   readonly txout_toString: (a: number, b: number) => void;
+  readonly bsm_isValidMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly bsm_verifyMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly bsm_signMessage: (a: number, b: number, c: number) => number;
+  readonly __wbg_bsm_free: (a: number) => void;
   readonly __wbg_kdf_free: (a: number) => void;
   readonly kdf_getHash: (a: number) => number;
   readonly kdf_getSalt: (a: number, b: number) => void;
-  readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly __wbg_aes_free: (a: number) => void;
-  readonly __wbg_transaction_free: (a: number) => void;
-  readonly transaction_getVersion: (a: number) => number;
-  readonly transaction_getInputsCount: (a: number) => number;
-  readonly transaction_getOutputsCount: (a: number) => number;
-  readonly transaction_getInput: (a: number, b: number) => number;
-  readonly transaction_getOutput: (a: number, b: number) => number;
-  readonly transaction_getNLocktime: (a: number) => number;
-  readonly transaction_getNLocktimeAsBytes: (a: number, b: number) => void;
-  readonly transaction_new: (a: number, b: number) => number;
-  readonly transaction_default: () => number;
-  readonly transaction_setVersion: (a: number, b: number) => number;
-  readonly transaction_setNLocktime: (a: number, b: number) => number;
-  readonly transaction_addInput: (a: number, b: number) => void;
-  readonly transaction_addOutput: (a: number, b: number) => void;
-  readonly transaction_setInput: (a: number, b: number, c: number) => void;
-  readonly transaction_setOutput: (a: number, b: number, c: number) => void;
-  readonly transaction_satoshisIn: (a: number, b: number) => void;
-  readonly transaction_satoshisOut: (a: number, b: number) => void;
-  readonly transaction_fromHex: (a: number, b: number) => number;
-  readonly transaction_fromBytes: (a: number, b: number) => number;
-  readonly transaction_toString: (a: number, b: number) => void;
-  readonly transaction_fromJsonString: (a: number, b: number) => number;
-  readonly transaction_toJSON: (a: number) => number;
-  readonly transaction_toBytes: (a: number, b: number) => void;
-  readonly transaction_toHex: (a: number, b: number) => void;
-  readonly transaction_getSize: (a: number) => number;
-  readonly transaction_addInputs: (a: number, b: number, c: number) => void;
-  readonly transaction_getOutpoints: (a: number) => number;
-  readonly transaction_addOutputs: (a: number, b: number, c: number) => void;
-  readonly transaction_getIdHex: (a: number, b: number) => void;
-  readonly transaction_getIdBytes: (a: number, b: number) => void;
-  readonly transaction_toCompactBytes: (a: number, b: number) => void;
-  readonly transaction_fromCompactBytes: (a: number, b: number) => number;
   readonly __wbg_publickey_free: (a: number) => void;
   readonly publickey_isValidMessage: (a: number, b: number, c: number, d: number) => number;
   readonly publickey_isCompressed: (a: number) => number;
@@ -1980,6 +2027,8 @@ export interface InitOutput {
   readonly publickey_toCompressed: (a: number) => number;
   readonly publickey_toDecompressed: (a: number) => number;
   readonly publickey_encryptMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly ecdsa_verify: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly __wbg_eciesciphertext_free: (a: number) => void;
   readonly eciesciphertext_getCipherKeys: (a: number) => number;
@@ -1996,6 +2045,7 @@ export interface InitOutput {
   readonly ecies_deriveCipherKeys: (a: number, b: number) => number;
   readonly eciesciphertext_getCiphertext: (a: number, b: number) => void;
   readonly eciesciphertext_getHMAC: (a: number, b: number) => void;
+  readonly __wbg_aes_free: (a: number) => void;
   readonly __wbg_ecdsa_free: (a: number) => void;
   readonly __wbg_ecies_free: (a: number) => void;
   readonly __wbg_extendedprivatekey_free: (a: number) => void;
@@ -2021,7 +2071,6 @@ export interface InitOutput {
   readonly signature_fromHexDER: (a: number, b: number, c: number) => number;
   readonly signature_fromCompactBytes: (a: number, b: number) => number;
   readonly signature_recoverPublicKey: (a: number, b: number, c: number, d: number) => number;
-  readonly kdf_pbkdf2: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly ecdsa_signWithRandomK: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly ecdsa_sign: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly __wbg_extendedpublickey_free: (a: number) => void;

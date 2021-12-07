@@ -54,7 +54,8 @@ features = ["js"]
 wasm-bindgen-test = "^0.3"
 
 [features]
-default = ["console_error_panic_hook"]
+wasm-bindgen-exports = ['wasm-bindgen-script-template']
+wasm-bindgen-script-template = []
 
 [patch.crates-io]
 wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }

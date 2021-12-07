@@ -30,7 +30,7 @@ pub enum ScriptTemplateErrors {
     ),
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone, Display)]
 pub enum DataLengthConstraints {
     Equals,
@@ -55,7 +55,7 @@ pub enum MatchToken {
     PublicKeyHash,
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone, Display, Serialize, Deserialize)]
 pub enum MatchDataTypes {
     Data,
@@ -68,7 +68,7 @@ pub enum MatchDataTypes {
 // #[derive(Debug, Clone, Serialize, Deserialize)]
 pub type Match = (MatchDataTypes, Vec<u8>);
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone)]
 pub struct ScriptTemplate(Vec<MatchToken>);
 
@@ -147,7 +147,7 @@ impl ScriptTemplate {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-script-template"))]
 impl ScriptTemplate {
     pub fn from_script(script: &Script) -> Result<ScriptTemplate, ScriptTemplateErrors> {
         ScriptTemplate::from_script_impl(script)
@@ -158,8 +158,8 @@ impl ScriptTemplate {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 impl ScriptTemplate {
     pub fn from_script(script: &Script) -> Result<ScriptTemplate, JsValue> {
         match ScriptTemplate::from_script_impl(script) {
@@ -241,7 +241,7 @@ impl Script {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-script-template"))]
 impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///
@@ -277,8 +277,8 @@ impl Script {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///

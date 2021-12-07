@@ -4,7 +4,7 @@
     "Firaenix <Nick.Carton@gmail.com>"
   ],
   "description": "A Bitcoin SV library with WASM in mind.",
-  "version": "1.3.0",
+  "version": "1.3.0-beta.1",
   "license": "MIT",
   "files": [
     "bsv_wasm_bg.wasm",

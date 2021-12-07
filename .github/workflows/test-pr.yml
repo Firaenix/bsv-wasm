@@ -32,7 +32,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Run WASM tests
-      run: wasm-pack test --node
+      run: make wasm-tests
 
   node-test:
       runs-on: ubuntu-latest
