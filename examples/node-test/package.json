@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -r esm tests/*.test.js"
+    "test": "node --experimental-wasm-reftypes node_modules/mocha/bin/_mocha -r esm tests/*.test.js"
   },
   "author": "",
   "license": "ISC",

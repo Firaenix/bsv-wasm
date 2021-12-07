@@ -27,3 +27,5 @@ examples/**/dist
 pkg/*
 !pkg/web/
 !pkg/web/.gitignore
+!pkg/deno/
+!pkg/deno/.gitignore

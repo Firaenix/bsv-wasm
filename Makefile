@@ -10,6 +10,10 @@ build-bundler:
 build-nodejs:
 	wasm-pack build --release --out-dir ./pkg/node --target nodejs -- --features wasm-bindgen-exports
 
+build-deno:
+	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports
+	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/deno --target web --reference-types --weak-refs
+
 build-wasm:
 	make build-web ; make build-bundler ; make build-nodejs
 
