@@ -431,14 +431,6 @@ impl Transaction {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
-    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
-        match Transaction::to_compact_hex_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
     /**
      * Get size of current serialised Transaction object
      */
@@ -527,12 +519,9 @@ impl Transaction {
         }
     }
 
-    /**
-     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytesHex))]
-    pub fn to_compact_bytes_hex(&self) -> Result<Vec<u8>, JsValue> {
-        match self.to_compact_bytes_impl() {
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
+    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
+        match Transaction::to_compact_hex_impl(&self) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -544,6 +533,22 @@ impl Transaction {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, JsValue> {
         match Transaction::from_compact_bytes_impl(compact_buffer) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the TX+ format
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactHex))]
+    pub fn from_compact_hex(compact_hex: String) -> Result<Transaction, JsValue> {
+        let compact_buffer = match hex::decode(compact_hex) {
+            Ok(v) => v,
+            Err(e) => throw_str(&e.to_string()),
+        };
+
+        match Transaction::from_compact_bytes_impl(&compact_buffer) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }

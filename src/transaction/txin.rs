@@ -119,7 +119,7 @@ impl TxIn {
             return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
         }
 
-        let finalised_script = self.get_finalised_script()?;
+        let finalised_script = self.script_sig.clone();
 
         // Script Sig Size
         if let Err(e) = buffer.write_varint(finalised_script.get_script_length() as u64) {
@@ -165,6 +165,23 @@ impl TxIn {
         tx_in.set_vout(vout);
 
         Ok(tx_in)
+    }
+
+    /**
+     * Deserialises the provided buffer to the TX+ format
+     */
+    pub(crate) fn from_compact_bytes_impl(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        let tx = ciborium::de::from_reader(compact_buffer)?;
+        Ok(tx)
+    }
+
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    pub(crate) fn to_compact_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
+        let mut buffer = vec![];
+        ciborium::ser::into_writer(&self, &mut buffer)?;
+        Ok(buffer)
     }
 }
 
@@ -295,6 +312,11 @@ impl TxIn {
         self.unlocking_script = Some(unlocking_script.clone());
     }
 
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getUnlockingScript))]
+    pub fn get_unlocking_script(&self) -> Option<Script> {
+        self.unlocking_script.clone()
+    }
+
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getUnlockingScriptBytes))]
     pub fn get_unlocking_script_bytes(&self) -> Option<Vec<u8>> {
         self.unlocking_script.as_ref().map(|v| v.to_bytes())
@@ -354,6 +376,52 @@ impl TxIn {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
+    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
+        match self.to_compact_bytes_impl() {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
+    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
+        match self.to_compact_bytes_impl() {
+            Ok(v) => Ok(hex::encode(v)),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the TX+ format
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
+    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<TxIn, JsValue> {
+        match TxIn::from_compact_bytes_impl(compact_buffer) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the TX+ format
+     */
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactHex))]
+    pub fn from_compact_hex(compact_hex: String) -> Result<TxIn, JsValue> {
+        let compact_buffer = match hex::decode(compact_hex) {
+            Ok(v) => v,
+            Err(e) => throw_str(&e.to_string()),
+        };
+
+        match TxIn::from_compact_bytes_impl(&compact_buffer) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 /**
@@ -371,6 +439,35 @@ impl TxIn {
 
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         TxIn::to_hex_impl(self)
+    }
+
+    /**
+     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + XT
+     */
+    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
+        self.to_compact_bytes_impl()
+    }
+
+    /**
+     * Deserialises the provided CBOR buffer to the XT format
+     */
+    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        TxIn::from_compact_bytes_impl(compact_buffer)
+    }
+
+    /**
+     * Serialises this entire transaction to CBOR Hex, preserving all fields from the standard Transaction format + XT
+     */
+    pub fn to_compact_hex(&self) -> Result<String, BSVErrors> {
+        Ok(hex::encode(self.to_compact_bytes_impl()?))
+    }
+
+    /**
+     * Deserialises the provided CBOR hex to the XT format
+     */
+    pub fn from_compact_hex(compact_hex: &str) -> Result<Self, BSVErrors> {
+        let compact_buffer = hex::decode(compact_hex)?;
+        TxIn::from_compact_bytes_impl(&compact_buffer)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
