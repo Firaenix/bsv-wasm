@@ -1,5 +1,5 @@
 import { Bsm, PrivKey, PubKey, KeyPair, Address } from 'bsv'
-import { PrivateKey, PublicKey, P2PKHAddress, SigningHash, BSM,  } from '../../../pkg/node/bsv_wasm';
+import { PrivateKey, PublicKey, P2PKHAddress, SigningHash, BSM, Signature  } from '../../../pkg/node/bsv_wasm';
 
 import { assert, util } from 'chai';
 
@@ -16,7 +16,7 @@ describe("Bitcoin Signed Messages", function() {
         const address_js = new Address().fromPubKey(pub_js);
 
 
-        const message = Buffer.from('Hello, Bitcoin', 'utf8');
+        const message = Buffer.from(`Hello, Bitcoin - ${Date.now().toString()}`, 'utf8');
 
         const signature_js = Bsm.sign(message, new KeyPair().fromPrivKey(priv_js))
         assert.equal(Bsm.verify(message, signature_js, address_js), true);
@@ -28,10 +28,13 @@ describe("Bitcoin Signed Messages", function() {
         const signature_wasm_b64 = Buffer.from(signature_wasm.toCompactBytes()).toString('base64')
         const verification_wasm = Bsm.verify(message, signature_wasm_b64, address_js)
         assert.equal(verification_wasm, true);
+
+
+        const wasm_reconstruct_sig = Signature.fromCompactBytes(Buffer.from(signature_wasm.toCompactBytes(), 'base64'));
       
-        assert.equal(address_wasm.verifyBitcoinMessage(message, signature_wasm), true);
-        assert.equal(BSM.verifyMessage(message, signature_wasm, address_wasm), true);
-        assert.equal(BSM.isValidMessage(message, signature_wasm, address_wasm), true);
+        assert.equal(address_wasm.verifyBitcoinMessage(message, wasm_reconstruct_sig), true);
+        assert.equal(BSM.verifyMessage(message, wasm_reconstruct_sig, address_wasm), true);
+        assert.equal(BSM.isValidMessage(message, wasm_reconstruct_sig, address_wasm), true);
         
         const validSignature = 'IEASldKxt6sTOO1vMc3x2wN2qa5iZAUUHcj+fzekoLpOL5fl/W8ZApmSGzT211K83hHD3EQ6VE4RFEezVmPWd6Q='
         assert.equal(address_js.toString(), address_wasm.toString());

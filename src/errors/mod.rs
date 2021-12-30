@@ -17,7 +17,6 @@ pub enum BSVErrors {
         #[from]
         elliptic_curve::Error,
     ),
-
     #[error("{0}")]
     HexDecode(
         #[source]
@@ -92,8 +91,11 @@ pub enum BSVErrors {
     #[error("Leading byte {0} does not match compressed or uncompressed")]
     PublicKeyReadCompressionByte(u8),
 
-    #[error("Unable to recover public key: {0} {1:?}")]
-    PublicKeyRecoveryError(String, #[source] Option<ecdsa::Error>),
+    #[error("{1}")]
+    PublicKeyRecoveryError(String, #[source] ecdsa::Error),
+
+    #[error("{0}")]
+    PublicKeyError(String),
 
     #[error("Unable to verify message: {0}")]
     MessageVerification(String),
@@ -127,6 +129,9 @@ pub enum BSVErrors {
 
     #[error("Unable to deserialise P2PKH from slice {0}")]
     P2PKHAddressFromSlice(#[source] TryFromSliceError),
+
+    #[error("{0}")]
+    SignatureError(&'static str),
 
     //=========== Serialisation Errors ==============
     #[error("Error deserialising transaction field {0}: {1}")]

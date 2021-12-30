@@ -61,7 +61,7 @@ impl PrivateKey {
     }
 
     pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PrivateKey, BSVErrors> {
-        let secret_key = SecretKey::from_bytes(bytes)?;
+        let secret_key = SecretKey::from_be_bytes(bytes)?;
 
         Ok(PrivateKey {
             secret_key,
@@ -140,7 +140,7 @@ impl PrivateKey {
 impl PrivateKey {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
-        self.secret_key.to_bytes().to_vec()
+        self.secret_key.to_be_bytes().to_vec()
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
@@ -166,7 +166,7 @@ impl PrivateKey {
      * To get the decompressed point: PublicKey::from_bytes(point).to_decompressed()
      */
     pub fn get_point(&self) -> Vec<u8> {
-        EncodedPoint::from_secret_key(&self.secret_key, self.is_pub_key_compressed).as_bytes().into()
+        self.secret_key.to_be_bytes().to_vec()
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = compressPublicKey))]

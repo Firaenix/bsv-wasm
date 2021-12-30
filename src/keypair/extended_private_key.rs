@@ -9,6 +9,7 @@ use std::{
     vec,
 };
 
+use elliptic_curve::ops::Reduce;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
@@ -176,9 +177,9 @@ impl ExtendedPrivateKey {
             None => return Err(BSVErrors::InvalidSeedHmacError("Could not get 32 bytes for chain code".into())),
         };
 
-        let parent_scalar = SecretKey::from_bytes(self.private_key.clone().to_bytes().as_slice())?.to_secret_scalar();
+        let parent_scalar = SecretKey::from_be_bytes(&self.private_key.to_bytes())?.to_nonzero_scalar();
 
-        let il_scalar = Scalar::from_bytes_reduced(&SecretKey::from_bytes(private_key_bytes)?.to_secret_scalar().to_bytes());
+        let il_scalar = *SecretKey::from_be_bytes(private_key_bytes.into())?.to_nonzero_scalar();
 
         // child_private_key = il + parent_key % n
         let derived_private_key = parent_scalar.add(il_scalar);

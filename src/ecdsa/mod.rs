@@ -19,5 +19,3 @@ pub enum SigningHash {
     Sha256,
     Sha256d,
 }
-
-pub 

@@ -11,7 +11,11 @@ categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto']
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "^0.9", features = ["ecdsa", "ecdh"] }
+k256 = { version = "0.10.0", features = ["ecdsa", "ecdh", "digest", "arithmetic", "sha256"] }
+ecdsa = { version = "0.13.3", features = ["sign"] }
+elliptic-curve = { version = "0.11.6", features = ["dev", "ecdh"] }
+
+
 hex = "^0.4"
 bs58 = "^0.4.0"
 thiserror = "^1.0"
@@ -25,7 +29,7 @@ num-traits = "^0.2"
 num-derive = "^0.3"
 aes = { version = "^0.7.4", features = ["ctr"] }
 block-modes = "^0.8.1"
-ecdsa = "^0.12.2"
+
 pbkdf2 = "^0.8.0"
 sha-1 = "^0.9.6"
 sha2 = "^0.9.5"
@@ -36,11 +40,6 @@ digest = "^0.9.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
 console_error_panic_hook = { version = "^0.1", optional = true }
-
-[dependencies.elliptic-curve]
-version = "^0.10"
-features = ["hazmat"]
-default-features = true
 
 [dependencies.rand_core]
 version = "^0.6"

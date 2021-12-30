@@ -38,6 +38,5 @@ publish-bundler:
 	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/package.json
 	wasm-pack publish ./pkg
 
-
 create-isomorphic:
 	rollup pkg/node/bsv_wasm.js --format umd --name bsv_wasm_iso --file pkg/node/bsv_wasm_iso.js

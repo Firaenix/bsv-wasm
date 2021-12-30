@@ -101,7 +101,7 @@ impl ECIES {
     }
 
     pub(crate) fn derive_cipher_keys_impl(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, BSVErrors> {
-        let private_scalar = *priv_key.secret_key.to_secret_scalar();
+        let private_scalar = *priv_key.secret_key.to_nonzero_scalar();
         let pub_key_point = K256PublicKey::from_sec1_bytes(&pub_key.to_bytes_impl()?)?.to_projective();
 
         let shared_point = pub_key_point * private_scalar;

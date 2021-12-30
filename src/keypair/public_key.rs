@@ -2,8 +2,8 @@ use std::io::{Cursor, Read};
 
 use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 use byteorder::ReadBytesExt;
-use elliptic_curve::sec1::*;
-use k256::Secp256k1;
+use elliptic_curve::{sec1::*, subtle::Choice, Curve, DecompactPoint, DecompressPoint};
+use k256::{AffinePoint, Secp256k1};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
@@ -30,12 +30,12 @@ impl PublicKey {
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
-        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
+        let point = EncodedPoint::<Secp256k1>::from_bytes(&self.point).map_err(|e| BSVErrors::PublicKeyError(e.to_string()))?;
         Ok(point.as_bytes().to_vec())
     }
 
     pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<PublicKey, BSVErrors> {
-        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(bytes)?;
+        let point = EncodedPoint::<Secp256k1>::from_bytes(bytes).map_err(|e| BSVErrors::PublicKeyError(e.to_string()))?;
         Ok(PublicKey::from_encoded_point(&point))
     }
 
@@ -47,16 +47,22 @@ impl PublicKey {
     }
 
     pub(crate) fn to_decompressed_impl(&self) -> Result<PublicKey, BSVErrors> {
-        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
-        if let Some(decompressed_point) = point.decompress() {
-            return Ok(PublicKey::from_encoded_point(&decompressed_point));
-        }
+        use elliptic_curve::DecompressPoint;
 
-        Ok(PublicKey::from_encoded_point(&point))
+        let point = EncodedPoint::<Secp256k1>::from_bytes(&self.point).unwrap();
+
+        let decompressed_point: EncodedPoint<Secp256k1> = match point.coordinates() {
+            Coordinates::Compressed { x, y_is_odd } => AffinePoint::decompress(x, Choice::from(y_is_odd as u8)).map(|s| s.to_encoded_point(false)).into(),
+            Coordinates::Compact { .. } | Coordinates::Identity => None,
+            Coordinates::Uncompressed { .. } => Some(point.clone()),
+        }
+        .unwrap();
+
+        Ok(PublicKey::from_encoded_point(&decompressed_point))
     }
 
     pub(crate) fn to_compressed_impl(&self) -> Result<PublicKey, BSVErrors> {
-        let point: EncodedPoint<Secp256k1> = EncodedPoint::from_bytes(&self.point)?;
+        let point = EncodedPoint::<Secp256k1>::from_bytes(&self.point).map_err(|e| BSVErrors::PublicKeyError(e.to_string()))?;
         Ok(PublicKey::from_encoded_point(&point.compress()))
     }
 

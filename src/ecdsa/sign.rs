@@ -1,18 +1,22 @@
 use crate::get_hash_digest;
+use crate::hash::sha256d_digest::Sha256d;
 use crate::BSVErrors;
 use crate::PrivateKey;
+use crate::RecoveryInfo;
 use crate::Signature;
 use crate::ECDSA;
 use crate::{reverse_digest::ReversibleDigest, Sha256r, SigningHash};
-use digest::{consts::U32, BlockInput, Digest, FixedOutput, Reset, Update};
-use ecdsa::{
-    hazmat::{FromDigest, RecoverableSignPrimitive},
-    rfc6979::{self, generate_k},
-};
+use digest::{BlockInput, Digest, FixedOutput, Reset, Update};
+use ecdsa::hazmat::{rfc6979_generate_k, SignPrimitive};
+use ecdsa::RecoveryId;
+use elliptic_curve::ops::Reduce;
+use k256::ecdsa::recoverable::*;
 use k256::FieldBytes;
+use k256::U256;
 use k256::{ecdsa::Signature as SecpSignature, Scalar, SecretKey};
 use rand_core::OsRng;
 use rand_core::RngCore;
+use sha2::Sha256;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
@@ -21,36 +25,53 @@ use wasm_bindgen::throw_str;
 use wasm_bindgen::JsValue;
 
 impl ECDSA {
-    fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, bool), ecdsa::Error>
-    where
-        D: digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
-    {
-        let priv_scalar = priv_key.to_secret_scalar();
+    fn sign_preimage_deterministic_k(priv_key: &SecretKey, digest: &[u8], reverse_endian_k: bool, hash_algo: SigningHash) -> Result<(SecpSignature, Option<RecoveryId>), ecdsa::Error> {
+        let priv_scalar = priv_key.to_nonzero_scalar();
         let k_digest = match reverse_endian_k {
-            true => digest.reverse(),
-            false => digest.clone(),
+            true => {
+                let mut reversed_digest = digest.to_vec();
+                reversed_digest.reverse();
+
+                // TODO: Does this need to be from_be_slice ?
+                let scalar_uint = U256::from_le_slice(&reversed_digest);
+                Scalar::from_uint_reduced(scalar_uint)
+            }
+            false => Scalar::from_uint_reduced(U256::from_le_slice(digest)),
         };
-        let k = **generate_k(&priv_scalar, k_digest, &[]);
-        let msg_scalar = Scalar::from_digest(digest);
-        priv_scalar.try_sign_recoverable_prehashed(&k, &msg_scalar)
+
+        let k = match hash_algo {
+            SigningHash::Sha256 => **rfc6979_generate_k::<_, Sha256>(&priv_scalar, &k_digest, &[]),
+            SigningHash::Sha256d => **rfc6979_generate_k::<_, Sha256d>(&priv_scalar, &k_digest, &[]),
+        };
+        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest));
+        priv_scalar.try_sign_prehashed(k, msg_scalar)
     }
 
-    fn sign_preimage_random_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, bool), ecdsa::Error>
-    where
-        D: digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
-    {
+    fn sign_preimage_random_k(priv_key: &SecretKey, digest: &[u8], reverse_endian_k: bool, hash_algo: SigningHash) -> Result<(SecpSignature, Option<RecoveryId>), ecdsa::Error> {
         let mut added_entropy = FieldBytes::default();
         let rng = &mut OsRng;
         rng.fill_bytes(&mut added_entropy);
 
-        let priv_scalar = priv_key.to_secret_scalar();
+        let priv_scalar = priv_key.to_nonzero_scalar();
         let k_digest = match reverse_endian_k {
-            true => digest.reverse(),
-            false => digest.clone(),
+            true => {
+                let mut reversed_digest = digest.to_vec();
+                reversed_digest.reverse();
+
+                // TODO: Does this need to be from_be_slice ?
+                let scalar_uint = U256::from_le_slice(&reversed_digest);
+                Scalar::from_uint_reduced(scalar_uint)
+            }
+            false => Scalar::from_uint_reduced(U256::from_le_slice(digest)),
         };
-        let k = **generate_k(&priv_scalar, k_digest, &added_entropy);
-        let msg_scalar = Scalar::from_digest(digest);
-        priv_scalar.try_sign_recoverable_prehashed(&k, &msg_scalar)
+
+        let k = match hash_algo {
+            SigningHash::Sha256 => **rfc6979_generate_k::<_, Sha256>(&priv_scalar, &k_digest, &added_entropy),
+            SigningHash::Sha256d => **rfc6979_generate_k::<_, Sha256d>(&priv_scalar, &k_digest, &added_entropy),
+        };
+
+        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest));
+        priv_scalar.try_sign_prehashed(k, msg_scalar)
     }
 
     /**
@@ -60,11 +81,13 @@ impl ECDSA {
      */
     pub(crate) fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         let digest = get_hash_digest(hash_algo, preimage);
-        let (sig, is_recoverable) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
-        let signature = Signature::from_der_impl(sig.to_der().as_bytes(), is_recoverable)?;
+        let (sig, recovery) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest.finalize().as_slice(), reverse_k, hash_algo)?;
 
-        Ok(signature)
+        Ok(Signature {
+            sig,
+            recovery: recovery.map(|x| RecoveryInfo::new(x.is_y_odd(), x.is_x_reduced(), private_key.is_pub_key_compressed)),
+        })
     }
 
     /**
@@ -74,11 +97,13 @@ impl ECDSA {
      */
     pub(crate) fn sign_with_random_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         let digest = get_hash_digest(hash_algo, preimage);
-        let (sig, is_recoverable) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest, reverse_k)?;
 
-        let signature = Signature::from_der_impl(sig.to_der().as_bytes(), is_recoverable)?;
+        let (sig, recovery) = ECDSA::sign_preimage_random_k(&private_key.secret_key, digest.finalize().as_slice(), reverse_k, hash_algo)?;
 
-        Ok(signature)
+        Ok(Signature {
+            sig,
+            recovery: recovery.map(|x| RecoveryInfo::new(x.is_y_odd(), x.is_x_reduced(), private_key.is_pub_key_compressed)),
+        })
     }
 }
 

@@ -1,7 +1,10 @@
 use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigningHash, ECDSA};
 use digest::Digest;
 use ecdsa::signature::{DigestVerifier, Signature as SigTrait};
+use elliptic_curve::bigint::UInt;
 use elliptic_curve::sec1::*;
+use elliptic_curve::{bigint::ByteArray, ops::Reduce};
+use k256::Secp256k1;
 use k256::{
     ecdsa::Signature as SecpSignature,
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
@@ -12,51 +15,81 @@ use wasm_bindgen::{convert::OptionIntoWasmAbi, prelude::*, throw_str};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecoveryInfo {
+    is_y_odd: bool,
+    is_x_reduced: bool,
+    is_pubkey_compressed: bool,
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+impl RecoveryInfo {
+    pub fn new(is_y_odd: bool, is_x_reduced: bool, is_pubkey_compressed: bool) -> RecoveryInfo {
+        RecoveryInfo {
+            is_y_odd,
+            is_x_reduced,
+            is_pubkey_compressed,
+        }
+    }
+
+    pub fn from_byte(recovery_byte: u8, is_pubkey_compressed: bool) -> RecoveryInfo {
+        RecoveryInfo {
+            is_x_reduced: (recovery_byte & 0b10) != 0,
+            is_y_odd: (recovery_byte & 1) != 0,
+            is_pubkey_compressed,
+        }
+    }
+
+    pub fn default() -> RecoveryInfo {
+        RecoveryInfo {
+            is_y_odd: false,
+            is_x_reduced: false,
+            is_pubkey_compressed: false,
+        }
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     pub(crate) sig: k256::ecdsa::Signature,
-    pub(crate) recovery_i: u8,
+    pub(crate) recovery: Option<RecoveryInfo>,
 }
 
 /**
  * Implementation Methods
  */
 impl Signature {
-    pub(crate) fn from_der_impl(bytes: &[u8], is_recoverable: bool) -> Result<Signature, BSVErrors> {
+    pub(crate) fn from_der_impl(bytes: &[u8]) -> Result<Signature, BSVErrors> {
         let sig = SecpSignature::from_der(bytes)?;
 
-        Ok(Signature {
-            sig,
-            recovery_i: is_recoverable as u8,
-        })
+        Ok(Signature { sig, recovery: None })
     }
 
-    pub(crate) fn from_hex_der_impl(hex: &str, is_recoverable: bool) -> Result<Signature, BSVErrors> {
+    pub(crate) fn from_hex_der_impl(hex: &str) -> Result<Signature, BSVErrors> {
         let bytes = hex::decode(hex)?;
-        let sig = SecpSignature::from_der(&bytes)?;
-
-        Ok(Signature {
-            sig,
-            recovery_i: is_recoverable as u8,
-        })
+        Signature::from_der_impl(&bytes)
     }
 
     pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
-        let recovery_id_main = match recoverable::Id::new(self.recovery_i) {
-            Ok(v) => v,
-            Err(e) => {
+        let recovery = match &self.recovery {
+            Some(v) => v,
+            None => {
                 return Err(BSVErrors::PublicKeyRecoveryError(
-                    format!("Recovery I ({}) is too large, must be 0 or 1 for this library. {}", self.recovery_i, e),
-                    None,
+                    "No recovery info is provided in this signature, unable to recover private key. Use compact byte serialisation instead.".into(),
+                    ecdsa::Error::new(),
                 ))
             }
         };
 
-        let recoverable_sig = recoverable::Signature::new(&self.sig, recovery_id_main)?;
+        let id = ecdsa::RecoveryId::new(recovery.is_y_odd, recovery.is_x_reduced);
+        let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
+
+        let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
         let message_digest = get_hash_digest(hash_algo, message);
         let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
             Ok(v) => v,
             Err(e) => {
-                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {}", self.to_hex(), self.recovery_i), Some(e)));
+                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_hex(), recovery), e));
             }
         };
 
@@ -68,17 +101,25 @@ impl Signature {
     pub(crate) fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
-        let i = match compact_bytes[0] - 27 {
-            x if x > 4 => x - 4,
-            x => x,
+        let (recovery, is_compressed) = match compact_bytes[0] - 27 - 4 {
+            x if x < 0 => (x + 4, false),
+            x => (x, true),
         };
 
-        let r = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[1..33]));
-        let s = Scalar::from_bytes_reduced(FieldBytes::from_slice(&compact_bytes[33..65]));
+        // TODO: Check Recovery Endianness so we can recover x and y info.
+        if recovery > 3 {
+            return Err(BSVErrors::SignatureError("Cannot have recovery byte that is larger than 3."));
+        }
+
+        let r = *FieldBytes::from_slice(&compact_bytes[1..33]);
+        let s = *FieldBytes::from_slice(&compact_bytes[33..65]);
 
         let sig = SecpSignature::from_scalars(r, s)?;
 
-        Ok(Signature { sig, recovery_i: i })
+        Ok(Signature {
+            sig,
+            recovery: Some(RecoveryInfo::from_byte(recovery, is_compressed)),
+        })
     }
 }
 
@@ -98,11 +139,23 @@ impl Signature {
         bytes.as_bytes().to_vec()
     }
 
+    /// NOTE: Provide recovery info if the current signature object doesnt contain it.
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
-    pub fn to_compact_bytes(&self) -> Vec<u8> {
-        // Need to handle compression?
-        let mut compact_buf = vec![self.recovery_i + 27 + 4];
+    pub fn to_compact_bytes(&self, recovery_info: Option<RecoveryInfo>) -> Vec<u8> {
+        // TODO: Test Compact Bytes length vs DER only
+        let RecoveryInfo {
+            is_y_odd,
+            is_x_reduced,
+            is_pubkey_compressed,
+        } = recovery_info.or(self.recovery.clone()).unwrap_or(RecoveryInfo::default());
 
+        let mut recovery = ((is_x_reduced as u8) << 1 | (is_y_odd as u8)) + 27 + 4;
+
+        if !is_pubkey_compressed {
+            recovery = recovery - 4
+        }
+
+        let mut compact_buf = vec![recovery];
         let r_bytes = &*self.sig.r().to_bytes();
         compact_buf.extend_from_slice(r_bytes);
 
@@ -160,13 +213,13 @@ impl Signature {
 #[cfg(not(target_arch = "wasm32"))]
 impl Signature {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_der(bytes: &[u8], is_recoverable: bool) -> Result<Signature, BSVErrors> {
-        Signature::from_der_impl(bytes, is_recoverable)
+    pub fn from_der(bytes: &[u8]) -> Result<Signature, BSVErrors> {
+        Signature::from_der_impl(bytes)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn from_hex_der(hex: &str, is_recoverable: bool) -> Result<Signature, BSVErrors> {
-        Signature::from_hex_der_impl(hex, is_recoverable)
+    pub fn from_hex_der(hex: &str) -> Result<Signature, BSVErrors> {
+        Signature::from_hex_der_impl(hex)
     }
 
     pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {

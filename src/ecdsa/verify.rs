@@ -11,8 +11,8 @@ use wasm_bindgen::{throw_str, JsValue};
 impl ECDSA {
     pub(crate) fn verify_digest_impl(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, BSVErrors> {
         let pub_key_bytes = pub_key.to_bytes_impl()?;
-        let point = EncodedPoint::from_bytes(pub_key_bytes)?;
-        let key = VerifyingKey::from_encoded_point(&point)?;
+        // let point = EncodedPoint::from_bytes(pub_key_bytes).map_err(|e| BSVErrors::ECDSAError(e.into()))?;
+        let key = VerifyingKey::from_sec1_bytes(&pub_key_bytes)?;
         let digest = get_hash_digest(hash_algo, message);
         key.verify_digest(digest, &signature.sig)?;
 
