@@ -40,7 +40,7 @@ mod bitcoin_signed_message_tests {
 
             let bsm_sig_hex = signature.to_hex();
 
-            let rehydrated_bsm_sig = Signature::from_hex_der(&bsm_sig_hex, true)?;
+            let rehydrated_bsm_sig = Signature::from_hex_der(&bsm_sig_hex)?;
 
             let verified = BSM::verify_message(message, &rehydrated_bsm_sig, &priv_key.to_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
 
@@ -63,7 +63,7 @@ mod bitcoin_signed_message_tests {
 
             let signature = BSM::sign_message(&priv_key, message)?;
 
-            let bsm_compact = signature.to_compact_bytes();
+            let bsm_compact = signature.to_compact_bytes(None);
 
             let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_compact)?;
 

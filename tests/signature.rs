@@ -9,7 +9,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
-        let sig = Signature::from_der(&hex::decode(sig_hex).unwrap(), false).unwrap();
+        let sig = Signature::from_der(&hex::decode(sig_hex).unwrap()).unwrap();
         assert_eq!(sig.to_hex(), sig_hex)
     }
 
@@ -17,7 +17,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature_string() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
-        let sig = Signature::from_hex_der(sig_hex, false).unwrap();
+        let sig = Signature::from_hex_der(sig_hex).unwrap();
         assert_eq!(sig.to_hex(), sig_hex)
     }
 
@@ -77,10 +77,10 @@ mod tests {
 
         let signature = key.sign_message(message).unwrap();
 
-        let compact_sig = signature.to_compact_bytes();
+        let compact_sig = signature.to_compact_bytes(None);
         let uncompacted_sig = Signature::from_compact_bytes(&compact_sig).unwrap();
 
-        assert_eq!(uncompacted_sig.to_compact_bytes(), signature.to_compact_bytes());
+        assert_eq!(uncompacted_sig.to_compact_bytes(None), signature.to_compact_bytes(None));
         assert_eq!(uncompacted_sig.to_der_bytes(), signature.to_der_bytes());
     }
 }

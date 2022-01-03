@@ -5,8 +5,11 @@ use crate::ECIES;
 use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
 use crate::{Signature, ToHex};
+use elliptic_curve::sec1::ToEncodedPoint;
+use elliptic_curve::AffineXCoordinate;
 use k256::ecdsa::digest::Digest;
 use k256::ecdsa::recoverable;
+use k256::ecdsa::VerifyingKey;
 use k256::{EncodedPoint, SecretKey};
 use rand_core::OsRng;
 #[cfg(target_arch = "wasm32")]
@@ -162,11 +165,9 @@ impl PrivateKey {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPoint))]
     /**
      * Finds the Public Key Point.
-     * Always returns the compressed point.
-     * To get the decompressed point: PublicKey::from_bytes(point).to_decompressed()
      */
     pub fn get_point(&self) -> Vec<u8> {
-        self.secret_key.to_be_bytes().to_vec()
+        self.secret_key.public_key().as_affine().to_encoded_point(self.is_pub_key_compressed).as_bytes().into()
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = compressPublicKey))]

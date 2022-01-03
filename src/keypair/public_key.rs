@@ -30,7 +30,7 @@ impl PublicKey {
     }
 
     pub(crate) fn to_bytes_impl(&self) -> Result<Vec<u8>, BSVErrors> {
-        let point = EncodedPoint::<Secp256k1>::from_bytes(&self.point).map_err(|e| BSVErrors::PublicKeyError(e.to_string()))?;
+        let point = EncodedPoint::<Secp256k1>::from_bytes(&self.point).map_err(|e| BSVErrors::PublicKeyError(format!("to_bytes {}", e.to_string())))?;
         Ok(point.as_bytes().to_vec())
     }
 
