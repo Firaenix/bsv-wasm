@@ -11,6 +11,9 @@ pub enum BSVErrors {
         ecdsa::Error,
     ),
 
+    #[error("ECDSA Error {0}")]
+    CustomECDSAError(String),
+
     #[error("{0}")]
     CurveError(
         #[source]

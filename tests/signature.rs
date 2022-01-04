@@ -21,6 +21,14 @@ mod tests {
         assert_eq!(sig.to_hex(), sig_hex)
     }
 
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn import_signature_with_sighash_string() {
+        let sig_hex = "3045022100ba2e54273dc85e0950810d92b95620b1cf765622f6ec3c18f487f6269f723b5a02201d263ac04d69c05199435f6d58e2b4d1f26b8b028fa66670b38b6f4847384ed6c3";
+
+        assert!(Signature::from_hex_der(sig_hex).is_ok())
+    }
+
     // #[test]
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn der_signature_test_s_r() {

@@ -1,3 +1,4 @@
+use crate::hash::sha256d_digest::Sha256d;
 use crate::BSVErrors;
 use crate::ECDSA;
 use std::convert::TryFrom;
@@ -5,7 +6,9 @@ use std::io::{Cursor, Write};
 
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature, VarInt};
 use byteorder::{LittleEndian, WriteBytesExt};
+use digest::Digest;
 use num_traits::{FromPrimitive, ToPrimitive};
+use sha2::Sha256;
 use strum_macros::EnumString;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -111,6 +114,7 @@ impl Transaction {
      */
     pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
+
         let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, true)?;
 
         Ok(SighashSignature {

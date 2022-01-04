@@ -227,22 +227,22 @@ mod script_template_tests {
     #[test]
     #[cfg(not(target_arch = "wasm32"))]
     fn fully_formed_p2pkh_matches_with_script_template() {
-        let script = Script::from_asm_string("47304402206173a490a5e62036e64f77f8c98db6c57f162a68147cb276bc61da589a114e27022053c19c60dbe7a97ce609631071ee5293c6e6bf4b859094c25a3385490f772c554121 0319a38fb498ff221b6e1b528b911c62f6ff2ac5023405c637859e4d7ff28f265d OP_DUP OP_HASH160 08ed73ac2a3564dd1a431c61f7c2ce6b64e1fe80 OP_EQUALVERIFY OP_CHECKSIG").unwrap();
+        let script = Script::from_asm_string("304402206173a490a5e62036e64f77f8c98db6c57f162a68147cb276bc61da589a114e27022053c19c60dbe7a97ce609631071ee5293c6e6bf4b859094c25a3385490f772c5541 0319a38fb498ff221b6e1b528b911c62f6ff2ac5023405c637859e4d7ff28f265d OP_DUP OP_HASH160 08ed73ac2a3564dd1a431c61f7c2ce6b64e1fe80 OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
         let script_template = ScriptTemplate::from_asm_string("OP_SIG OP_PUBKEY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
         let match_result = script.matches(&script_template);
-        assert_eq!(match_result.is_ok(), true);
+        assert_eq!(match_result.is_ok(), true, "Failed to match script");
 
         let extracted = match_result.unwrap();
         assert_eq!(extracted.len(), 3);
 
         match &extracted[0] {
             (MatchDataTypes::Signature, v) => {
-                assert_eq!(v.len(), 73, "Signature was not 73 bytes long");
+                assert_eq!(v.len(), 71, "Signature was not 71 bytes long");
                 assert_eq!(
                     v,
-                    &hex::decode("47304402206173a490a5e62036e64f77f8c98db6c57f162a68147cb276bc61da589a114e27022053c19c60dbe7a97ce609631071ee5293c6e6bf4b859094c25a3385490f772c554121").unwrap()
+                    &hex::decode("304402206173a490a5e62036e64f77f8c98db6c57f162a68147cb276bc61da589a114e27022053c19c60dbe7a97ce609631071ee5293c6e6bf4b859094c25a3385490f772c5541").unwrap()
                 )
             }
             _ => assert!(false, "Index 0 did not contain Signature"),

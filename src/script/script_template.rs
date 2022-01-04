@@ -13,8 +13,8 @@ use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 #[derive(Debug, Error)]
 pub enum ScriptTemplateErrors {
-    #[error("Script did not match template at index {0}. {2} is not equal to {1:?}")]
-    MatchFailure(usize, MatchToken, ScriptBit),
+    #[error("Script did not match template at index {0}. {2} is not equal to {1:?}. Error: {3:?}")]
+    MatchFailure(usize, MatchToken, ScriptBit, BSVErrors),
 
     #[error("Failed to parse OP_DATA code {0}: {1}")]
     OpDataParse(String, String),
@@ -185,32 +185,35 @@ impl Script {
 
         for (i, (template, script)) in script_template.0.iter().zip(self.0.iter()).enumerate() {
             let is_match = match (template, script) {
-                (MatchToken::OpCode(tmpl_code), ScriptBit::OpCode(op_code)) => tmpl_code == op_code,
-                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => tmpl_data == data,
-                (MatchToken::PushData(tmpl_op, tmpl_data), ScriptBit::PushData(op, data)) => tmpl_op == op && tmpl_data == data,
+                (MatchToken::OpCode(tmpl_code), ScriptBit::OpCode(op_code)) => Ok(tmpl_code == op_code),
+                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(tmpl_data == data),
+                (MatchToken::PushData(tmpl_op, tmpl_data), ScriptBit::PushData(op, data)) => Ok(tmpl_op == op && tmpl_data == data),
 
                 (MatchToken::Data(len, constraint), ScriptBit::PushData(_, data) | ScriptBit::Push(data)) => match constraint {
-                    DataLengthConstraints::Equals => &data.len() == len,
-                    DataLengthConstraints::GreaterThan => &data.len() > len,
-                    DataLengthConstraints::LessThan => &data.len() < len,
-                    DataLengthConstraints::GreaterThanOrEquals => &data.len() >= len,
-                    DataLengthConstraints::LessThanOrEquals => &data.len() <= len,
+                    DataLengthConstraints::Equals => Ok(&data.len() == len),
+                    DataLengthConstraints::GreaterThan => Ok(&data.len() > len),
+                    DataLengthConstraints::LessThan => Ok(&data.len() < len),
+                    DataLengthConstraints::GreaterThanOrEquals => Ok(&data.len() >= len),
+                    DataLengthConstraints::LessThanOrEquals => Ok(&data.len() <= len),
                 },
 
-                (MatchToken::AnyData, ScriptBit::Push(_)) => true,
-                (MatchToken::AnyData, ScriptBit::PushData(_, _)) => true,
+                (MatchToken::AnyData, ScriptBit::Push(_)) => Ok(true),
+                (MatchToken::AnyData, ScriptBit::PushData(_, _)) => Ok(true),
 
-                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_compact_impl(sig_buf).is_ok(),
+                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_der(sig_buf).map(|_| true),
 
-                (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(pubkey_buf).is_ok(),
+                (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(pubkey_buf).map(|_| true),
 
-                (MatchToken::PublicKeyHash, ScriptBit::Push(pubkeyhash_buf)) => pubkeyhash_buf.len() == 20, // OP_HASH160
+                (MatchToken::PublicKeyHash, ScriptBit::Push(pubkeyhash_buf)) => Ok(pubkeyhash_buf.len() == 20), // OP_HASH160
 
-                _ => false,
+                _ => Ok(false),
             };
 
-            if !is_match {
-                return Err(ScriptTemplateErrors::MatchFailure(i, template.clone(), script.clone()));
+            match is_match {
+                Ok(_) => (),
+                Err(e) => {
+                    return Err(ScriptTemplateErrors::MatchFailure(i, template.clone(), script.clone(), e));
+                }
             }
 
             // Now that we know script bit is a match, we can add the data parts to the matches array.

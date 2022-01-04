@@ -16,7 +16,8 @@ mod bitcoin_signed_message_tests {
         let message = b"Hello Bitcoin!";
 
         let msg_sig = priv_key.sign_message(message).unwrap();
-        assert!(msg_sig.verify_message(message, &priv_key.to_public_key().unwrap()), "Normal messages match");
+        let is_std_verified = msg_sig.verify_message(message, &priv_key.to_public_key().unwrap());
+        assert!(is_std_verified, "Normal messages match");
 
         let signature = BSM::sign_message(&priv_key, message).unwrap();
 
@@ -38,9 +39,9 @@ mod bitcoin_signed_message_tests {
 
             let signature = BSM::sign_message(&priv_key, message).unwrap();
 
-            let bsm_sig_hex = signature.to_hex();
+            let bsm_sig_hex = signature.to_compact_bytes(None);
 
-            let rehydrated_bsm_sig = Signature::from_hex_der(&bsm_sig_hex)?;
+            let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_sig_hex)?;
 
             let verified = BSM::verify_message(message, &rehydrated_bsm_sig, &priv_key.to_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
 

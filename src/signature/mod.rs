@@ -1,4 +1,4 @@
-use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigningHash, ECDSA};
+use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigHash, SigningHash, ECDSA};
 use digest::Digest;
 use ecdsa::signature::{DigestVerifier, Signature as SigTrait};
 use elliptic_curve::bigint::UInt;
@@ -10,6 +10,7 @@ use k256::{
     ecdsa::{recoverable, signature::Verifier, VerifyingKey},
     EncodedPoint, FieldBytes, Scalar,
 };
+use num_traits::{FromPrimitive, ToPrimitive};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{convert::OptionIntoWasmAbi, prelude::*, throw_str};
 
@@ -60,7 +61,12 @@ pub struct Signature {
  */
 impl Signature {
     pub(crate) fn from_der_impl(bytes: &[u8]) -> Result<Signature, BSVErrors> {
-        let sig = SecpSignature::from_der(bytes)?;
+        let sighash_stripped_bytes = match bytes.last().and_then(|v| SigHash::from_u8(*v)) {
+            Some(_v) => bytes[0..bytes.len() - 1].to_vec(),
+            _ => bytes.to_vec(),
+        };
+
+        let sig = SecpSignature::from_der(&sighash_stripped_bytes)?;
 
         Ok(Signature { sig, recovery: None })
     }
@@ -101,7 +107,7 @@ impl Signature {
     pub(crate) fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
-        let (recovery, is_compressed) = match compact_bytes[0] - 27 - 4 {
+        let (recovery, is_compressed) = match (compact_bytes[0] - 27) as i8 - 4 {
             x if x < 0 => (x + 4, false),
             x => (x, true),
         };
@@ -118,7 +124,7 @@ impl Signature {
 
         Ok(Signature {
             sig,
-            recovery: Some(RecoveryInfo::from_byte(recovery, is_compressed)),
+            recovery: Some(RecoveryInfo::from_byte(recovery as u8, is_compressed)),
         })
     }
 }
