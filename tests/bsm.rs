@@ -28,7 +28,7 @@ mod bitcoin_signed_message_tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    fn rehydrate_signature_and_verify() -> Result<(), BSVErrors> {
+    fn rehydrate_signature_and_verify() {
         for _ in 0..100 {
             let priv_key = PrivateKey::from_random();
 
@@ -41,19 +41,17 @@ mod bitcoin_signed_message_tests {
 
             let bsm_sig_hex = signature.to_compact_bytes(None);
 
-            let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_sig_hex)?;
+            let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_sig_hex).unwrap();
 
             let verified = BSM::verify_message(message, &rehydrated_bsm_sig, &priv_key.to_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
 
             assert!(verified, "Message is not verified");
         }
-
-        Ok(())
     }
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    fn rehydrate_compact_signature_and_verify() -> Result<(), BSVErrors> {
+    fn rehydrate_compact_signature_and_verify() {
         for _ in 0..100 {
             let priv_key = PrivateKey::from_random();
 
@@ -62,17 +60,15 @@ mod bitcoin_signed_message_tests {
             let msg_sig = priv_key.sign_message(message).unwrap();
             assert!(msg_sig.verify_message(message, &priv_key.to_public_key().unwrap()), "Normal messages match");
 
-            let signature = BSM::sign_message(&priv_key, message)?;
+            let signature = BSM::sign_message(&priv_key, message).unwrap();
 
             let bsm_compact = signature.to_compact_bytes(None);
 
-            let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_compact)?;
+            let rehydrated_bsm_sig = Signature::from_compact_bytes(&bsm_compact).unwrap();
 
-            let verified = BSM::verify_message(message, &rehydrated_bsm_sig, &priv_key.to_public_key()?.to_p2pkh_address()?)?;
+            let verified = BSM::verify_message(message, &rehydrated_bsm_sig, &priv_key.to_public_key().unwrap().to_p2pkh_address().unwrap()).unwrap();
 
             assert!(verified, "Message is not verified");
         }
-
-        Ok(())
     }
 }

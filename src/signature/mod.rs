@@ -95,7 +95,7 @@ impl Signature {
         let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
             Ok(v) => v,
             Err(e) => {
-                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_hex(), recovery), e));
+                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_der_hex(), recovery), e));
             }
         };
 
@@ -131,14 +131,16 @@ impl Signature {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Signature {
+    /// DER representation of signature, does not contain any recovery information, so cannot be used for BSM
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> String {
+    pub fn to_der_hex(&self) -> String {
         let bytes = self.sig.to_der();
 
         hex::encode(bytes)
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toDER))]
+    /// DER representation of signature, does not contain any recovery information, so cannot be used for BSM
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_der_bytes(&self) -> Vec<u8> {
         let bytes = self.sig.to_der();
 
@@ -169,6 +171,12 @@ impl Signature {
         compact_buf.extend_from_slice(s_bytes);
 
         compact_buf
+    }
+
+    /// NOTE: Provide recovery info if the current signature object doesnt contain it.
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
+    pub fn to_compact_hex(&self, recovery_info: Option<RecoveryInfo>) -> String {
+        hex::encode(self.to_compact_bytes(recovery_info))
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verifyMessage))]
