@@ -155,12 +155,12 @@ impl Signature {
             is_y_odd,
             is_x_reduced,
             is_pubkey_compressed,
-        } = recovery_info.or(self.recovery.clone()).unwrap_or(RecoveryInfo::default());
+        } = recovery_info.or_else(|| self.recovery.clone()).unwrap_or(RecoveryInfo::default());
 
         let mut recovery = ((is_x_reduced as u8) << 1 | (is_y_odd as u8)) + 27 + 4;
 
         if !is_pubkey_compressed {
-            recovery = recovery - 4
+            recovery -= 4
         }
 
         let mut compact_buf = vec![recovery];

@@ -28,7 +28,7 @@ use wasm_bindgen::throw_str;
 use wasm_bindgen::JsValue;
 
 impl ECDSA {
-    fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool, hash_algo: SigningHash) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors>
+    fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors>
     where
         D: FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
     {
@@ -43,7 +43,7 @@ impl ECDSA {
 
         let msg_scalar = <Scalar as Reduce<U256>>::from_be_bytes_reduced(final_digest);
         let (signature, recid) = priv_scalar.try_sign_prehashed(**k, msg_scalar)?;
-        let recoverable_id = recid.ok_or_else(|| ecdsa::Error::new())?.try_into()?;
+        let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
         let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;
 
         let id = rec_sig.recovery_id();
@@ -87,7 +87,7 @@ impl ECDSA {
     pub(crate) fn sign_with_deterministic_k_impl(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         let digest = get_hash_digest(hash_algo, preimage);
 
-        let (sig, recovery) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k, hash_algo)?;
+        let (sig, recovery) = ECDSA::sign_preimage_deterministic_k(&private_key.secret_key, digest, reverse_k)?;
 
         Ok(Signature {
             sig,
