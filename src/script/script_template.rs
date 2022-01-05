@@ -200,7 +200,7 @@ impl Script {
                 (MatchToken::AnyData, ScriptBit::Push(_)) => Ok(true),
                 (MatchToken::AnyData, ScriptBit::PushData(_, _)) => Ok(true),
 
-                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_der(sig_buf).map(|_| true),
+                (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_der_impl(sig_buf).map(|_| true),
 
                 (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(pubkey_buf).map(|_| true),
 

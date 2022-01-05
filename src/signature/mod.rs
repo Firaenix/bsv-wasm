@@ -184,13 +184,13 @@ impl Signature {
 #[cfg(target_arch = "wasm32")]
 impl Signature {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromDER))]
-    pub fn from_der(bytes: &[u8], is_recoverable: bool) -> Result<Signature, JsValue> {
-        Signature::from_der_impl(bytes, is_recoverable).map_err(|e| throw_str(&e.to_string()))
+    pub fn from_der(bytes: &[u8]) -> Result<Signature, JsValue> {
+        Signature::from_der_impl(bytes).map_err(|e| throw_str(&e.to_string()))
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHexDER))]
-    pub fn from_hex_der(hex: &str, is_recoverable: bool) -> Result<Signature, JsValue> {
-        match Signature::from_hex_der_impl(hex, is_recoverable) {
+    pub fn from_hex_der(hex: &str) -> Result<Signature, JsValue> {
+        match Signature::from_hex_der_impl(hex) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
