@@ -3,7 +3,8 @@ mod sighash_tests {
     use std::convert::{TryFrom, TryInto};
 
     use bsv_wasm::*;
-    extern crate wasm_bindgen_test;
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]

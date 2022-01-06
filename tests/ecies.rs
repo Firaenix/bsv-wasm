@@ -3,6 +3,7 @@
 mod ecies_tests {
     use bsv_wasm::{ECIESCiphertext, PrivateKey, ECIES};
     use std::io::Read;
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

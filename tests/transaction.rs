@@ -6,6 +6,7 @@ mod transaction_tests {
     use bsv_wasm::TxIn;
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen::JsValue;
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

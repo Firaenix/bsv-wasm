@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod script_tests {
-    extern crate wasm_bindgen_test;
     use bsv_wasm::{Hash, P2PKHAddress, Script};
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     // #[test]

@@ -2,8 +2,8 @@
 #[cfg(test)]
 mod xpriv_tests {
     use bsv_wasm::{hash::Hash, keypair::*};
-    extern crate wasm_bindgen_test;
     use rand_core::OsRng;
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

@@ -1,12 +1,12 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod tests {
-    extern crate wasm_bindgen_test;
     use bsv_wasm::hash::Hash;
     use pbkdf2::{
         password_hash::{Ident, PasswordHasher, Salt, SaltString},
         Params, Pbkdf2,
     };
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
