@@ -179,7 +179,7 @@ impl ExtendedPrivateKey {
 
         let parent_scalar = SecretKey::from_be_bytes(&self.private_key.to_bytes())?.to_nonzero_scalar();
 
-        let il_scalar = *SecretKey::from_be_bytes(private_key_bytes.into())?.to_nonzero_scalar();
+        let il_scalar = *SecretKey::from_be_bytes(private_key_bytes)?.to_nonzero_scalar();
 
         // child_private_key = il + parent_key % n
         let derived_private_key = parent_scalar.add(il_scalar);

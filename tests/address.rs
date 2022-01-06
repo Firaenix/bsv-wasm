@@ -3,7 +3,6 @@ mod tests {
     use bsv_wasm::{address::*, PrivateKey, PublicKey};
     extern crate wasm_bindgen_test;
     use serde::{Deserialize, Serialize};
-    use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]

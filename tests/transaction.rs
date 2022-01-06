@@ -483,7 +483,7 @@ mod transaction_tests {
 
     #[test]
     fn txin_from_outpoint_slice_too_short_should_error() {
-        let txin = TxIn::from_outpoint_bytes(&vec![]);
+        let txin = TxIn::from_outpoint_bytes(&[]);
 
         assert!(txin.is_err(), "An Outpoint must be precisely 36 bytes long")
     }

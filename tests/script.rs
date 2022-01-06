@@ -1,9 +1,7 @@
 #[cfg(test)]
 mod script_tests {
     extern crate wasm_bindgen_test;
-    use bsv_wasm::{Hash, P2PKHAddress, Script, Transaction, TxIn};
-    use serde_json::json;
-    use wasm_bindgen_test::*;
+    use bsv_wasm::{Hash, P2PKHAddress, Script};
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     // #[test]

@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod bitcoin_signed_message_tests {
-
-    use std::fmt::Error;
-
-    use bsv_wasm::{BSVErrors, PrivateKey, Signature, BSM};
-
-    use wasm_bindgen_test::*;
+    use bsv_wasm::{PrivateKey, Signature, BSM};
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]

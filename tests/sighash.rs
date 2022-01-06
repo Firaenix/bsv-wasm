@@ -4,7 +4,6 @@ mod sighash_tests {
 
     use bsv_wasm::*;
     extern crate wasm_bindgen_test;
-    use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]

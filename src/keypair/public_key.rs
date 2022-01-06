@@ -53,7 +53,7 @@ impl PublicKey {
         let decompressed_point: EncodedPoint<Secp256k1> = match point.coordinates() {
             Coordinates::Compressed { x, y_is_odd } => AffinePoint::decompress(x, Choice::from(y_is_odd as u8)).map(|s| s.to_encoded_point(false)).into(),
             Coordinates::Compact { .. } | Coordinates::Identity => None,
-            Coordinates::Uncompressed { .. } => Some(point.clone()),
+            Coordinates::Uncompressed { .. } => Some(point),
         }
         .unwrap();
 

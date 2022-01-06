@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod script_template_tests {
     extern crate wasm_bindgen_test;
-    use bsv_wasm::{MatchDataTypes, OpCodes, Script, ScriptTemplate, ScriptTemplateErrors};
-    use wasm_bindgen_test::*;
+    use bsv_wasm::{MatchDataTypes, OpCodes, Script, ScriptTemplate};
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
@@ -84,8 +83,6 @@ mod script_template_tests {
     #[test]
     #[cfg(not(target_arch = "wasm32"))]
     fn op_data_script_template_matches_hash_puzzle() {
-        use OpCodes::*;
-
         let script =
             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
                 .unwrap();
