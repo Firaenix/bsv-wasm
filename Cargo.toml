@@ -14,8 +14,6 @@ crate-type = ["cdylib", "rlib"]
 k256 = { version = "0.10.0", features = ["ecdsa", "ecdh", "digest", "arithmetic", "sha256"] }
 ecdsa = { version = "0.13.3", features = ["sign"] }
 elliptic-curve = { version = "0.11.6", features = ["dev", "ecdh"] }
-
-
 hex = "^0.4"
 bs58 = "^0.4.0"
 thiserror = "^1.0"
@@ -29,7 +27,6 @@ num-traits = "^0.2"
 num-derive = "^0.3"
 aes = { version = "^0.7.4", features = ["ctr"] }
 block-modes = "^0.8.1"
-
 pbkdf2 = "^0.8.0"
 sha-1 = "^0.9.6"
 sha2 = "^0.9.5"
@@ -53,8 +50,13 @@ features = ["js"]
 wasm-bindgen-test = "^0.3"
 
 [features]
-wasm-bindgen-exports = ['wasm-bindgen-script-template']
-wasm-bindgen-script-template = []
+wasm-bindgen-exports = [
+    'wasm-bindgen-script-template', 
+    'wasm-bindgen-script'
+]
+wasm-bindgen-script-template = ['wasm-bindgen-script']
+wasm-bindgen-script = ['wasm-bindgen-opcodes']
+wasm-bindgen-opcodes = []
 
 [patch.crates-io]
 wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }

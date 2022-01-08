@@ -198,9 +198,9 @@ impl Script {
 /**
  * Shared Functions
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen)]
 impl Script {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         let bytes = self
             .0
@@ -231,16 +231,17 @@ impl Script {
         bytes
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getScriptLength))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = getScriptLength))]
     pub fn get_script_length(&self) -> usize {
         self.to_bytes().len()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }
 
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = removeCodeSeparators))]
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
@@ -261,7 +262,7 @@ impl Script {
 /**
  * Native Specific Functions
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-script")))]
 impl Script {
     pub fn to_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, false)
@@ -293,13 +294,17 @@ impl Script {
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
         Script::get_pushdata_prefix_bytes_impl(length)
     }
+
+    pub fn to_script_bits(&self) -> Vec<ScriptBit> {
+        self.0.clone()
+    }
 }
 
 /**
  * WASM Specific Functions
  */
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script"))]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen)]
 impl Script {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toASMString))]
     pub fn to_asm_string(&self) -> String {
@@ -350,7 +355,15 @@ impl Script {
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, JsValue> {
         match Script::get_pushdata_prefix_bytes_impl(length) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toScriptBits))]
+    pub fn to_script_bits(&self) -> Result<JsValue, JsValue> {
+        match JsValue::from_serde(self) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }
