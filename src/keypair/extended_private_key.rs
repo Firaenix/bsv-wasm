@@ -1,15 +1,13 @@
 use crate::{BSVErrors, HARDENED_KEY_OFFSET, KDF, XPRIV_VERSION_BYTE};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
-use k256::{Scalar, SecretKey};
-use std::borrow::Cow;
+use k256::SecretKey;
 use std::{
     io::{Cursor, Read, Write},
     ops::Add,
     vec,
 };
 
-use elliptic_curve::ops::Reduce;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 

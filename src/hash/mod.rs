@@ -13,7 +13,6 @@ pub use sha256r_digest::*;
 use crate::utils::{from_hex, to_hex};
 use crate::ToHex;
 use digest::Digest;
-use hmac::crypto_mac::Key;
 use hmac::digest::{BlockInput, FixedOutput, Reset, Update};
 use hmac::{Hmac, Mac, NewMac};
 use ripemd160::Ripemd160;
@@ -22,8 +21,6 @@ use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{throw_str, JsValue};
 
 use self::hash160_digest::Hash160;
 use self::sha256d_digest::Sha256d;

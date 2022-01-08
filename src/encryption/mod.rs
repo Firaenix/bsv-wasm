@@ -3,7 +3,7 @@ use aes::{
     cipher::{NewCipher, StreamCipher, StreamCipherSeek},
     Aes128, Aes128Ctr, Aes256, Aes256Ctr,
 };
-use block_modes::{block_padding::Pkcs7, BlockMode, Cbc, Cfb, Ige, Pcbc};
+use block_modes::{block_padding::Pkcs7, BlockMode, Cbc};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 

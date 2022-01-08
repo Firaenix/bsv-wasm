@@ -1,6 +1,6 @@
 use digest::{
     consts::{U32, U64},
-    BlockInput, Digest, FixedOutput, FixedOutputDirty, Reset, Update,
+    BlockInput, Digest, FixedOutput, Reset, Update,
 };
 
 use sha2::Sha256;

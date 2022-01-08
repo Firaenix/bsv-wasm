@@ -1,8 +1,6 @@
-use crate::{BSVErrors, Hash, PrivateKey, PublicKey, AES, ECDH};
+use crate::{BSVErrors, Hash, PrivateKey, PublicKey, AES};
 use elliptic_curve::sec1::ToEncodedPoint;
-use k256::ecdh::{self, *};
-use k256::{ProjectivePoint, PublicKey as K256PublicKey, SecretKey};
-use rand_core::OsRng;
+use k256::PublicKey as K256PublicKey;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]

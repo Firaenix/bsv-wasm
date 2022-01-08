@@ -1,17 +1,12 @@
-use crate::hash::sha256d_digest::Sha256d;
 use crate::BSVErrors;
 use crate::ECDSA;
 use std::convert::TryFrom;
-use std::io::{Cursor, Write};
+use std::io::Write;
 
-use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature, VarInt};
+use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
-use digest::Digest;
 use num_traits::{FromPrimitive, ToPrimitive};
-use sha2::Sha256;
 use strum_macros::EnumString;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 

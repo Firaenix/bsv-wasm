@@ -1,6 +1,6 @@
-use digest::{consts::U32, Digest};
+use digest::Digest;
 
-use crate::{ReversibleDigest, Sha256r, SigningHash};
+use crate::{Sha256r, SigningHash};
 
 // Reenable this when trait aliases become stable
 // pub trait Digest32 = digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest;

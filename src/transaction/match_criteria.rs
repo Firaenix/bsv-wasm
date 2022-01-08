@@ -1,4 +1,4 @@
-use crate::{Script, ScriptTemplate, Transaction, TxIn, TxOut};
+use crate::{ScriptTemplate, Transaction, TxIn, TxOut};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

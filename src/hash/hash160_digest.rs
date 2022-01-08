@@ -1,9 +1,6 @@
 use crate::reverse_digest::ReversibleDigest;
 use digest::consts::U20;
-use digest::{
-    consts::{U32, U64},
-    BlockInput, Digest, FixedOutputDirty, Reset, Update,
-};
+use digest::{consts::U64, BlockInput, Digest, FixedOutputDirty, Reset, Update};
 
 use ripemd160::Ripemd160;
 use sha2::Sha256;

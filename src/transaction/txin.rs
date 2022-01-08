@@ -7,14 +7,13 @@ use std::io::Write;
 
 use crate::{
     utils::{from_reverse_hex, to_reverse_hex},
-    Script, VarInt,
+    Script,
 };
 use serde::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 use byteorder::*;
-use thiserror::*;
 
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

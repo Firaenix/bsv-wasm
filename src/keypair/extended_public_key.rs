@@ -1,5 +1,5 @@
 use elliptic_curve::sec1::ToEncodedPoint;
-use k256::{ProjectivePoint, PublicKey as K256PublicKey, Scalar, SecretKey};
+use k256::{ProjectivePoint, PublicKey as K256PublicKey, SecretKey};
 
 use crate::{HARDENED_KEY_OFFSET, XPUB_VERSION_BYTE};
 use std::io::{Cursor, Read, Write};

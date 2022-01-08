@@ -1,7 +1,7 @@
 use crate::hash::FixedOutput;
 use digest::{
     consts::{U32, U64},
-    BlockInput, FixedOutputDirty, Reset, Update,
+    BlockInput, Reset, Update,
 };
 use sha2::Sha256;
 

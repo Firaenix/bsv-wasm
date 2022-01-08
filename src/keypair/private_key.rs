@@ -1,16 +1,11 @@
-use crate::get_hash_digest;
 use crate::BSVErrors;
 use crate::ECIESCiphertext;
+use crate::ECDSA;
 use crate::ECIES;
-use crate::{sha256r_digest::Sha256r, ECDSA};
 use crate::{Hash, PublicKey, SigningHash};
 use crate::{Signature, ToHex};
 use elliptic_curve::sec1::ToEncodedPoint;
-use elliptic_curve::AffineXCoordinate;
-use k256::ecdsa::digest::Digest;
-use k256::ecdsa::recoverable;
-use k256::ecdsa::VerifyingKey;
-use k256::{EncodedPoint, SecretKey};
+use k256::SecretKey;
 use rand_core::OsRng;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

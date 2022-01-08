@@ -1,18 +1,8 @@
-use crate::{get_hash_digest, BSVErrors, PublicKey, Sha256r, SigHash, SigningHash, ECDSA};
-use digest::Digest;
-use ecdsa::signature::{DigestVerifier, Signature as SigTrait};
-use elliptic_curve::bigint::UInt;
-use elliptic_curve::sec1::*;
-use elliptic_curve::{bigint::ByteArray, ops::Reduce};
-use k256::Secp256k1;
-use k256::{
-    ecdsa::Signature as SecpSignature,
-    ecdsa::{recoverable, signature::Verifier, VerifyingKey},
-    EncodedPoint, FieldBytes, Scalar,
-};
-use num_traits::{FromPrimitive, ToPrimitive};
+use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
+use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
+use num_traits::FromPrimitive;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{convert::OptionIntoWasmAbi, prelude::*, throw_str};
+use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]

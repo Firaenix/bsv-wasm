@@ -1,16 +1,11 @@
 use crate::{hash::Hash, KDF};
 use hmac::Hmac;
-use pbkdf2::{
-    password_hash::{Ident, PasswordHasher, Salt, SaltString},
-    pbkdf2, Params, Pbkdf2,
-};
+use pbkdf2::{password_hash::SaltString, pbkdf2};
 use rand_core::OsRng;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{throw_str, JsValue};
 
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 #[derive(Debug, Clone, Copy)]

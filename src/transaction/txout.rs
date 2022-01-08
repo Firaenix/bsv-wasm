@@ -1,19 +1,13 @@
 use crate::{BSVErrors, Script, VarIntReader, VarIntWriter};
+use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
-
-use crate::{
-    utils::{from_hex, to_hex},
-    VarInt,
-};
-use serde::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 
 use byteorder::*;
-use thiserror::*;
 
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

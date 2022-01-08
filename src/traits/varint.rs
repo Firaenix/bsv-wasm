@@ -3,7 +3,6 @@ use byteorder::ReadBytesExt;
 use byteorder::WriteBytesExt;
 use std::io::Cursor;
 use std::io::Result;
-use thiserror::*;
 
 use crate::OpCodes;
 

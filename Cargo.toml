@@ -53,8 +53,18 @@ wasm-bindgen-test = "^0.3"
 wasm-bindgen-exports = [
     'wasm-bindgen-script-template', 
     'wasm-bindgen-script',
+    'wasm-bindgen-opcodes',
     'wasm-bindgen-transaction',
+    'wasm-bindgen-ecdh',
+    'wasm-bindgen-ecdsa',
+    'wasm-bindgen-bsm',
+    'wasm-bindgen-ecies',
+    'wasm-bindgen-keypair',
+    'wasm-bindgen-address',
     'wasm-bindgen-signature',
+    'wasm-bindgen-kdf',
+    'wasm-bindgen-hash',
+    'wasm-bindgen-encryption'
 ]
 wasm-bindgen-script-template = ['wasm-bindgen-script']
 wasm-bindgen-script = ['wasm-bindgen-opcodes']

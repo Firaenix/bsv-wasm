@@ -1,7 +1,5 @@
 pub mod op_codes;
 use crate::OpCodes::OP_0;
-use crate::OpCodes::OP_1;
-use crate::VarIntReader;
 pub use op_codes::*;
 use strum_macros::Display;
 

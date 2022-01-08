@@ -1,10 +1,8 @@
 use crate::BSVErrors;
-use crate::Hash;
 use crate::VarIntWriter;
 use std::io::Write;
 
-use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, VarInt, ECDSA};
-use thiserror::*;
+use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, ECDSA};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]

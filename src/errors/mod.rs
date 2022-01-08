@@ -1,4 +1,4 @@
-use std::{array::TryFromSliceError, fmt::Display, num::ParseIntError};
+use std::{array::TryFromSliceError, num::ParseIntError};
 
 use thiserror::*;
 

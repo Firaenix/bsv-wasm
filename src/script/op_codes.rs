@@ -1,4 +1,3 @@
-use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use strum_macros::EnumString;

@@ -1,6 +1,5 @@
-use crate::{from_base58, to_base58};
 use crate::{BSVErrors, Hash, Script, SighashSignature, BSM};
-use crate::{PrivateKey, PublicKey, Signature};
+use crate::{PublicKey, Signature};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(target_arch = "wasm32")]

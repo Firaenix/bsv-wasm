@@ -1,8 +1,5 @@
-use std::io::{Cursor, Read};
-
 use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
-use byteorder::ReadBytesExt;
-use elliptic_curve::{sec1::*, subtle::Choice, Curve, DecompactPoint, DecompressPoint};
+use elliptic_curve::{sec1::*, subtle::Choice};
 use k256::{AffinePoint, Secp256k1};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};

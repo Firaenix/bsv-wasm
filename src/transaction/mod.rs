@@ -1,15 +1,12 @@
 use std::io::Cursor;
-use std::io::Read;
 use std::io::Write;
 
 use crate::BSVErrors;
-use crate::Script;
+use crate::Hash;
 use crate::VarIntReader;
 use crate::VarIntWriter;
-use crate::{Hash, VarInt};
 use byteorder::*;
 use serde::{Deserialize, Serialize};
-use thiserror::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
