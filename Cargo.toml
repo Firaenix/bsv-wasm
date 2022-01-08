@@ -52,11 +52,13 @@ wasm-bindgen-test = "^0.3"
 [features]
 wasm-bindgen-exports = [
     'wasm-bindgen-script-template', 
-    'wasm-bindgen-script'
+    'wasm-bindgen-script',
+    'wasm-bindgen-transaction'
 ]
 wasm-bindgen-script-template = ['wasm-bindgen-script']
 wasm-bindgen-script = ['wasm-bindgen-opcodes']
 wasm-bindgen-opcodes = []
+wasm-bindgen-transaction = []
 
 [patch.crates-io]
 wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }

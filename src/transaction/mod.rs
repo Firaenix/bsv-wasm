@@ -23,7 +23,7 @@ pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Transaction {
     pub(super) version: u32,
@@ -226,39 +226,39 @@ impl Transaction {
  * Platform Agnostic Functions
  * ie. Don't need Result<T, E>
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getVersion))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getVersion))]
     pub fn get_version(&self) -> u32 {
         self.version
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInputsCount))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInputsCount))]
     pub fn get_ninputs(&self) -> usize {
         self.inputs.len()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutputsCount))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutputsCount))]
     pub fn get_noutputs(&self) -> usize {
         self.outputs.len()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getInput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInput))]
     pub fn get_input(&self, index: usize) -> Option<TxIn> {
         self.inputs.get(index).cloned()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutput))]
     pub fn get_output(&self, index: usize) -> Option<TxOut> {
         self.outputs.get(index).cloned()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getNLocktime))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktime))]
     pub fn get_n_locktime(&self) -> u32 {
         self.n_locktime
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getNLocktimeAsBytes))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktimeAsBytes))]
     pub fn get_n_locktime_as_bytes(&self) -> Vec<u8> {
         self.n_locktime.to_be_bytes().to_vec()
     }
@@ -267,29 +267,29 @@ impl Transaction {
      * Creates a new empty transaction where you need to add inputs and outputs
      * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)
      */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(constructor))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(version: u32, n_locktime: u32) -> Transaction {
         Transaction::new_impl(version, vec![], vec![], n_locktime)
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
     pub fn default() -> Transaction {
         Transaction::new_impl(2, vec![], vec![], 0)
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setVersion))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVersion))]
     pub fn set_version(&mut self, version: u32) -> Transaction {
         self.version = version;
         self.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setNLocktime))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setNLocktime))]
     pub fn set_nlocktime(&mut self, n_locktime: u32) -> Transaction {
         self.n_locktime = n_locktime;
         self.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addInput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addInput))]
     pub fn add_input(&mut self, input: &TxIn) {
         self.inputs.push(input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -297,7 +297,7 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = prependInput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependInput))]
     pub fn prepend_input(&mut self, input: &TxIn) {
         self.inputs.insert(0, input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -305,7 +305,7 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = insertInput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertInput))]
     pub fn insert_input(&mut self, index: usize, input: &TxIn) {
         self.inputs.insert(index, input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -313,33 +313,33 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addOutput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addOutput))]
     pub fn add_output(&mut self, output: &TxOut) {
         self.outputs.push(output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = prependOutput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependOutput))]
     pub fn prepend_output(&mut self, output: &TxOut) {
         self.outputs.insert(0, output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = insertOutput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertOutput))]
     pub fn insert_output(&mut self, index: usize, output: &TxOut) {
         self.outputs.insert(index, output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setInput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setInput))]
     pub fn set_input(&mut self, index: usize, input: &TxIn) {
         self.inputs[index] = input.clone();
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = setOutput))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setOutput))]
     pub fn set_output(&mut self, index: usize, output: &TxOut) {
         self.outputs[index] = output.clone();
     }
@@ -349,7 +349,7 @@ impl Transaction {
      * Returns the combined sum of all input satoshis.
      * If any of the inputs dont have satoshis defined, this returns None or null
      */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = satoshisIn))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisIn))]
     pub fn satoshis_in(&self) -> Option<u64> {
         self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
             if a == None || b == None {
@@ -363,7 +363,7 @@ impl Transaction {
     /**
      * Returns the combined sum of all output satoshis.
      */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = satoshisOut))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisOut))]
     pub fn satoshis_out(&self) -> u64 {
         self.outputs.iter().map(|x| x.value).sum()
     }
@@ -372,8 +372,8 @@ impl Transaction {
 /**
  * WASM Specific Functions
  */
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
@@ -558,7 +558,7 @@ impl Transaction {
 /**
  * Native Specific Functions
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction")))]
 impl Transaction {
     /**
      * Gets the ID of the current transaction as a hex string.
@@ -581,62 +581,51 @@ impl Transaction {
         self.get_size_impl()
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex(hex_str: &str) -> Result<Transaction, BSVErrors> {
         Transaction::from_hex_impl(hex_str)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, BSVErrors> {
         Transaction::from_bytes_impl(tx_bytes)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         Transaction::to_json_string_impl(self)
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
     pub fn from_json_string(json_string: &str) -> Result<Transaction, BSVErrors> {
         Transaction::from_json_string_impl(json_string)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
         let json = serde_json::to_value(self)?;
         Ok(json)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         Transaction::to_bytes_impl(self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         Transaction::to_hex_impl(self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_compact_hex(&self) -> Result<String, BSVErrors> {
         Transaction::to_compact_hex_impl(self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn add_inputs(&mut self, tx_ins: Vec<TxIn>) {
         for txin in tx_ins {
             self.add_input(&txin);
         }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn add_outputs(&mut self, tx_outs: Vec<TxOut>) {
         for txout in tx_outs {
             self.add_output(&txout);
         }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn get_outpoints(&mut self) -> Vec<Vec<u8>> {
         self.get_outpoints_impl()
     }

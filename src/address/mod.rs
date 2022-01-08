@@ -148,8 +148,8 @@ impl P2PKHAddress {
 /**
  * WASM Exported Methods
  */
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl P2PKHAddress {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromPubKeyHash))]
     pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, JsValue> {
