@@ -7,7 +7,7 @@ use serde::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KDF {
     hash: Hash,
@@ -15,14 +15,14 @@ pub struct KDF {
     salt: Vec<u8>,
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 impl KDF {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getHash))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen(js_name = getHash))]
     pub fn get_hash(&self) -> Hash {
         self.hash.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSalt))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen(js_name = getSalt))]
     pub fn get_salt(&self) -> Vec<u8> {
         self.salt.clone()
     }

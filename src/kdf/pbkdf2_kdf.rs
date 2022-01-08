@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{throw_str, JsValue};
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 #[derive(Debug, Clone, Copy)]
 pub enum PBKDF2Hashes {
     SHA1,
@@ -45,7 +45,7 @@ impl KDF {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 impl KDF {
     /**
      * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated

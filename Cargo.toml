@@ -67,6 +67,9 @@ wasm-bindgen-ecies = ['wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
 wasm-bindgen-keypair = ['wasm-bindgen-address', 'wasm-bindgen-ecies']
 wasm-bindgen-address = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
 wasm-bindgen-signature = ['wasm-bindgen-keypair']
+wasm-bindgen-kdf = ['wasm-bindgen-hash']
+wasm-bindgen-hash = []
+wasm-bindgen-encryption = []
 
 [patch.crates-io]
 wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }
