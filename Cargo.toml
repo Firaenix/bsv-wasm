@@ -53,12 +53,20 @@ wasm-bindgen-test = "^0.3"
 wasm-bindgen-exports = [
     'wasm-bindgen-script-template', 
     'wasm-bindgen-script',
-    'wasm-bindgen-transaction'
+    'wasm-bindgen-transaction',
+    'wasm-bindgen-signature',
 ]
 wasm-bindgen-script-template = ['wasm-bindgen-script']
 wasm-bindgen-script = ['wasm-bindgen-opcodes']
 wasm-bindgen-opcodes = []
-wasm-bindgen-transaction = []
+wasm-bindgen-transaction = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
+wasm-bindgen-ecdh = ['wasm-bindgen-ecdsa', 'wasm-bindgen-keypair']
+wasm-bindgen-ecdsa = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
+wasm-bindgen-bsm = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
+wasm-bindgen-ecies = ['wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
+wasm-bindgen-keypair = ['wasm-bindgen-address', 'wasm-bindgen-ecies']
+wasm-bindgen-address = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
+wasm-bindgen-signature = ['wasm-bindgen-keypair']
 
 [patch.crates-io]
 wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }

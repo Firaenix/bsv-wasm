@@ -4,7 +4,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::BSVErrors;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 pub struct ECIESCiphertext {
     pub(crate) public_key_bytes: Option<Vec<u8>>,
     pub(crate) ciphertext_bytes: Vec<u8>,
@@ -46,24 +46,24 @@ impl ECIESCiphertext {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 impl ECIESCiphertext {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getCiphertext))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = getCiphertext))]
     pub fn get_ciphertext(&self) -> Vec<u8> {
         self.ciphertext_bytes.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getHMAC))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = getHMAC))]
     pub fn get_hmac(&self) -> Vec<u8> {
         self.hmac_bytes.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getCipherKeys))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = getCipherKeys))]
     pub fn get_cipher_keys(&self) -> Option<CipherKeys> {
         self.keys.clone()
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut buffer = vec![];
         buffer.extend_from_slice(b"BIE1");
@@ -78,14 +78,14 @@ impl ECIESCiphertext {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 impl ECIESCiphertext {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = extractPublicKey))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = extractPublicKey))]
     pub fn extract_public_key(&self) -> Result<PublicKey, JsValue> {
         self.extract_public_key_impl().map_err(|e| throw_str(&e.to_string()))
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(buffer: &[u8], has_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
         ECIESCiphertext::from_bytes_impl(buffer, has_pub_key).map_err(|e| throw_str(&e.to_string()))
     }

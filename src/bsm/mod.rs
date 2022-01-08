@@ -13,7 +13,7 @@ use wasm_bindgen::{throw_str, JsValue};
 /**
  * Bitcoin Signed Message
  */
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen)]
 pub struct BSM {}
 
 const MAGIC_BYTES: &[u8] = b"Bitcoin Signed Message:\n";
@@ -60,7 +60,7 @@ impl BSM {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen)]
 impl BSM {
     /**
      * Sign a message with the intention of verifying with this same Address.
@@ -68,16 +68,16 @@ impl BSM {
      *
      * Returns boolean
      */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isValidMessage))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = isValidMessage))]
     pub fn is_valid_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> bool {
         BSM::verify_message_impl(message, signature, address).is_ok()
     }
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen)]
 impl BSM {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verifyMessage))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, JsValue> {
         match BSM::verify_message_impl(message, signature, address) {
             Ok(v) => Ok(v),
@@ -85,7 +85,7 @@ impl BSM {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signMessage))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessage))]
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, JsValue> {
         match BSM::sign_impl(priv_key, message) {
             Ok(v) => Ok(v),

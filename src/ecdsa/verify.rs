@@ -20,9 +20,9 @@ impl ECDSA {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = verify))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = verify))]
     pub fn verify_digest(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, JsValue> {
         match ECDSA::verify_digest_impl(message, pub_key, signature, hash_algo) {
             Ok(v) => Ok(v),

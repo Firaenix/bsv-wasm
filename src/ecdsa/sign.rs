@@ -113,9 +113,9 @@ impl ECDSA {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signWithRandomK))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithRandomK))]
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
@@ -123,7 +123,7 @@ impl ECDSA {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = sign))]
     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
