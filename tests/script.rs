@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod script_tests {
-    use bsv_wasm::{Hash, P2PKHAddress, Script};
+    use bsv_wasm::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
@@ -237,5 +237,158 @@ mod script_tests {
             actual.to_asm_string(),
             "OP_HASH160 b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6 OP_EQUALVERIFY OP_DUP OP_HASH160 14a8036c8b3d910a7e24d46067048d8761274b55 OP_EQUALVERIFY OP_CHECKSIG OP_RETURN 7b227469746c65223a22547572626f20466f7820233633222c226465736372697074696f6e223a225765206c696b652074686520666f78222c226e756d626572223a36332c22736572696573223a36392c22696d616765223a22623a2f2f33376136636339636639613461613662356632316534333331363935666666613466323039363335366239633636336436393636333962336363303765376531222c2261747472696275746573223a5b7b2274726169745f74797065223a22436f6c6f72222c2276616c7565223a22426c61636b227d2c7b2274726169745f74797065223a22446975726e616c697479222c2276616c7565223a22446179227d5d7d"
         );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn if_statement_script() {
+        let script = Script::from_asm_string(
+            r#"21e8
+            OP_IF 
+                OP_1 OP_RETURN 
+            OP_ELSE 
+                OP_0 OP_RETURN 
+            OP_ENDIF"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::Push(hex::decode("21e8").unwrap()),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                }
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn double_nested_if_statement_script() {
+        let script = Script::from_asm_string(
+            r#"
+            21e8 
+            OP_IF 
+                OP_1
+                OP_IF 
+                    OP_2 OP_RETURN 
+                OP_ELSE 
+                    OP_0 OP_RETURN 
+                OP_ENDIF
+            OP_ELSE 
+                OP_1
+                OP_IF 
+                    OP_3 OP_RETURN 
+                OP_ELSE 
+                    OP_0 OP_RETURN 
+                OP_ENDIF
+            OP_ENDIF"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::Push(hex::decode("21e8").unwrap()),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![
+                        ScriptBit::OpCode(OpCodes::OP_1),
+                        ScriptBit::If {
+                            code: OpCodes::OP_IF,
+                            pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                        }
+                    ],
+                    fail: vec![
+                        ScriptBit::OpCode(OpCodes::OP_1),
+                        ScriptBit::If {
+                            code: OpCodes::OP_IF,
+                            pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                        }
+                    ],
+                }
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn double_nested_verif_statement_script() {
+        let script = Script::from_asm_string(
+            r#"
+            21e8 
+            OP_IF 
+                OP_1
+                OP_VERIF 
+                    OP_2 OP_RETURN 
+                OP_ELSE 
+                    OP_0 OP_RETURN 
+                OP_ENDIF
+            OP_ELSE 
+                OP_1
+                OP_VERIF 
+                    OP_3 OP_RETURN 
+                OP_ELSE 
+                    OP_0 OP_RETURN 
+                OP_ENDIF
+            OP_ENDIF"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::Push(hex::decode("21e8").unwrap()),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![
+                        ScriptBit::OpCode(OpCodes::OP_1),
+                        ScriptBit::If {
+                            code: OpCodes::OP_VERIF,
+                            pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                        }
+                    ],
+                    fail: vec![
+                        ScriptBit::OpCode(OpCodes::OP_1),
+                        ScriptBit::If {
+                            code: OpCodes::OP_VERIF,
+                            pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                        }
+                    ],
+                }
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn unterminated_else_if_statement_fails() {
+        let script = Script::from_asm_string(
+            r#"21e8
+            OP_IF"#,
+        );
+
+        assert!(script.is_err())
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn unterminated_endif_if_statement_fails() {
+        let script = Script::from_asm_string(
+            r#"21e8
+            OP_IF 
+                OP_1 OP_RETURN 
+            OP_ELSE 
+                OP_0 OP_RETURN"#,
+        );
+
+        assert!(script.is_err())
     }
 }
