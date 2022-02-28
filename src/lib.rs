@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate num_derive;
 
+pub mod chainparams;
 pub mod keypair;
 
 pub use keypair::*;

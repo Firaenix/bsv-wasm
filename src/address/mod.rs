@@ -1,3 +1,4 @@
+use crate::chainparams::ChainParams;
 use crate::{BSVErrors, Hash, Script, SighashSignature, BSM};
 use crate::{PublicKey, Signature};
 
@@ -9,7 +10,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct P2PKHAddress([u8; 20], [u8; 4]);
+pub struct P2PKHAddress(u8, [u8; 20], [u8; 4]);
 
 impl Serialize for P2PKHAddress {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -42,6 +43,7 @@ impl P2PKHAddress {
         let checksum_bytes = &shad_bytes[0..4];
 
         Ok(P2PKHAddress(
+            0x00,
             hash_bytes.try_into().map_err(BSVErrors::P2PKHAddressFromSlice)?,
             checksum_bytes.try_into().map_err(BSVErrors::P2PKHAddressFromSlice)?,
         ))
@@ -54,10 +56,18 @@ impl P2PKHAddress {
         P2PKHAddress::from_pubkey_hash_impl(&pub_key_hash.to_bytes())
     }
 
-    pub(crate) fn to_address_string_impl(&self) -> Result<String, BSVErrors> {
-        let mut pub_key_hash_bytes = self.0.to_vec();
+    pub fn set_chain_params_impl(&self, chain: &ChainParams) -> Result<P2PKHAddress, BSVErrors> {
+        let mut addr_bytes = vec![chain.p2pkh];
+        addr_bytes.extend_from_slice(&self.1);
+        let checksum = Hash::sha_256d(&addr_bytes).to_bytes()[0..4].to_vec();
+        let checksum_bytes = [checksum[0], checksum[1], checksum[2], checksum[3]];
+        Ok(P2PKHAddress(chain.p2pkh, self.1, checksum_bytes))
+    }
 
-        let mut address_bytes: Vec<u8> = vec![00];
+    pub(crate) fn to_address_string_impl(&self) -> Result<String, BSVErrors> {
+        let mut pub_key_hash_bytes = self.1.to_vec();
+
+        let mut address_bytes: Vec<u8> = vec![self.0];
         address_bytes.append(&mut pub_key_hash_bytes);
 
         let shad_bytes = Hash::sha_256d(&address_bytes).to_bytes();
@@ -85,10 +95,11 @@ impl P2PKHAddress {
         }
 
         // // Remove 0x00 from the front and the 4 byte checksum off the end
+        let chain_byte = decoded_bytes[0];
         let pub_key_hash = decoded_bytes[1..decoded_bytes.len() - 4].try_into().map_err(BSVErrors::P2PKHAddressFromSlice)?;
         let checksum = decoded_bytes[decoded_bytes.len() - 4..].try_into().map_err(BSVErrors::P2PKHAddressFromSlice)?;
 
-        Ok(P2PKHAddress(pub_key_hash, checksum))
+        Ok(P2PKHAddress(chain_byte, pub_key_hash, checksum))
     }
 
     /**
@@ -125,12 +136,12 @@ impl P2PKHAddress {
 impl P2PKHAddress {
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toPubKeyHashBytes))]
     pub fn to_pubkey_hash(&self) -> Vec<u8> {
-        self.0.to_vec()
+        self.1.to_vec()
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toPubKeyHashHex))]
     pub fn to_pubkey_hash_hex(&self) -> String {
-        hex::encode(self.0)
+        hex::encode(self.1)
     }
 
     /**
@@ -164,6 +175,15 @@ impl P2PKHAddress {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = setChainParams))]
+    pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, JsValue> {
+        match P2PKHAddress::set_chain_params_impl(&self, chain_params) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
+
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toString))]
     pub fn to_address_string(&self) -> Result<String, JsValue> {
         match P2PKHAddress::to_address_string_impl(&self) {
@@ -223,9 +243,15 @@ impl P2PKHAddress {
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
+
     #[cfg(not(target_arch = "wasm32"))]
     pub fn to_address_string(&self) -> Result<String, BSVErrors> {
         P2PKHAddress::to_address_string_impl(self)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, BSVErrors> {
+        self.set_chain_params_impl(chain_params)
     }
 
     pub fn from_string(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {

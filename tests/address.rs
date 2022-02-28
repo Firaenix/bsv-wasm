@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use bsv_wasm::{address::*, PrivateKey, PublicKey};
+    use bsv_wasm::{address::*, chainparams::ChainParams, PrivateKey, PublicKey};
     use serde::{Deserialize, Serialize};
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
@@ -84,6 +84,25 @@ mod tests {
 
         let decoded_address = P2PKHAddress::from_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem").unwrap();
 
+        assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn from_testnet_address_string_to_testnet_address_string() {
+        let address_string = "moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC".to_string();
+        let decoded_address = P2PKHAddress::from_string("moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC").unwrap();
+        assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn from_mainnet_address_string_to_testnet_address_string() {
+        let address_string = "moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC".to_string();
+        let decoded_address = P2PKHAddress::from_string("18irYdwarX2sxFbcYXG47B1iMnM5rWxsem")
+            .unwrap()
+            .set_chain_params(&ChainParams::testnet())
+            .unwrap();
         assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
     }
 
