@@ -116,7 +116,7 @@ impl ECDSA {
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -124,7 +124,7 @@ impl ECDSA {
     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, JsValue> {
         match ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

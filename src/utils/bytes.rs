@@ -51,7 +51,7 @@ impl Bytes {
     pub fn from_hex(hex_str: &str) -> Result<Bytes, JsValue> {
         match Bytes::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

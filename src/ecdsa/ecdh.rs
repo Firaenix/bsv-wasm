@@ -28,7 +28,7 @@ impl ECDH {
     pub fn derive_shared_key(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
         match ECDH::derive_shared_key_impl(priv_key, pub_key) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

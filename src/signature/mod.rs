@@ -190,7 +190,7 @@ impl Signature {
     pub fn from_hex_der(hex: &str) -> Result<Signature, JsValue> {
         match Signature::from_hex_der_impl(hex) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -198,7 +198,7 @@ impl Signature {
     pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, JsValue> {
         match Signature::from_compact_impl(compact_bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -206,7 +206,7 @@ impl Signature {
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, JsValue> {
         match Signature::get_public_key(&self, &message, hash_algo) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

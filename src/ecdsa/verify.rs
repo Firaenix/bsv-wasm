@@ -26,7 +26,7 @@ impl ECDSA {
     pub fn verify_digest(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, JsValue> {
         match ECDSA::verify_digest_impl(message, pub_key, signature, hash_algo) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

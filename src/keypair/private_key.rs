@@ -183,7 +183,7 @@ impl PrivateKey {
     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, JsValue> {
         match PrivateKey::from_wif_impl(wif_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -191,7 +191,7 @@ impl PrivateKey {
     pub fn from_hex(hex_str: &str) -> Result<PrivateKey, JsValue> {
         match PrivateKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -202,7 +202,7 @@ impl PrivateKey {
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, JsValue> {
         match PrivateKey::sign_message_impl(&self, msg) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -210,7 +210,7 @@ impl PrivateKey {
     pub fn to_wif(&self) -> Result<String, JsValue> {
         match PrivateKey::to_wif_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -218,7 +218,7 @@ impl PrivateKey {
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, JsValue> {
         match Self::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -226,7 +226,7 @@ impl PrivateKey {
     pub fn to_public_key(&self) -> Result<PublicKey, JsValue> {
         match self.to_public_key_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -237,7 +237,7 @@ impl PrivateKey {
     pub fn encrypt_message(&self, message: &[u8]) -> Result<ECIESCiphertext, JsValue> {
         match self.encrypt_message_impl(message) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -248,7 +248,7 @@ impl PrivateKey {
     pub fn decrypt_message(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, JsValue> {
         match self.decrypt_message_impl(ciphertext, sender_pub_key) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

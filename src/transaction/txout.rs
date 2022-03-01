@@ -119,7 +119,7 @@ impl TxOut {
     pub fn from_hex(hex_str: &str) -> Result<TxOut, JsValue> {
         match TxOut::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -127,7 +127,7 @@ impl TxOut {
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match TxOut::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -135,7 +135,7 @@ impl TxOut {
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match TxOut::to_hex_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -143,7 +143,7 @@ impl TxOut {
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -151,7 +151,7 @@ impl TxOut {
     pub fn to_json_string(&self) -> Result<String, JsValue> {
         match TxOut::to_json_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

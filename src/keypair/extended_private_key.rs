@@ -278,7 +278,7 @@ impl ExtendedPrivateKey {
     pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::derive_impl(&self, index) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -286,7 +286,7 @@ impl ExtendedPrivateKey {
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::derive_from_path_impl(&self, path) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -294,7 +294,7 @@ impl ExtendedPrivateKey {
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_seed_impl(seed) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -302,7 +302,7 @@ impl ExtendedPrivateKey {
     pub fn from_random() -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_random_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -310,7 +310,7 @@ impl ExtendedPrivateKey {
     pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_string_impl(xprv_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -318,7 +318,7 @@ impl ExtendedPrivateKey {
     pub fn to_string(&self) -> Result<String, JsValue> {
         match Self::to_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -326,7 +326,7 @@ impl ExtendedPrivateKey {
     pub fn from_mnemonic(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, JsValue> {
         match Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

@@ -109,7 +109,7 @@ impl PublicKey {
     pub fn from_hex(hex_str: &str) -> Result<PublicKey, JsValue> {
         match PublicKey::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -117,7 +117,7 @@ impl PublicKey {
     pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey, JsValue> {
         match PublicKey::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -125,7 +125,7 @@ impl PublicKey {
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match PublicKey::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -133,7 +133,7 @@ impl PublicKey {
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match PublicKey::to_hex_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -146,7 +146,7 @@ impl PublicKey {
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, JsValue> {
         match self.verify_message_impl(message, signature) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -154,7 +154,7 @@ impl PublicKey {
     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, JsValue> {
         match self.to_p2pkh_address_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -162,7 +162,7 @@ impl PublicKey {
     pub fn to_compressed(&self) -> Result<PublicKey, JsValue> {
         match self.to_compressed_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -170,7 +170,7 @@ impl PublicKey {
     pub fn to_decompressed(&self) -> Result<PublicKey, JsValue> {
         match self.to_decompressed_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -178,7 +178,7 @@ impl PublicKey {
     pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, JsValue> {
         match self.encrypt_message_impl(message, sender_private_key) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

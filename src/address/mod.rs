@@ -154,21 +154,21 @@ impl P2PKHAddress {
     pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, JsValue> {
         match P2PKHAddress::from_pubkey_hash_impl(hash_bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = fromPubKey))]
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, JsValue> {
         match P2PKHAddress::from_pubkey_impl(pub_key) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toString))]
     pub fn to_address_string(&self) -> Result<String, JsValue> {
         match P2PKHAddress::to_address_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -176,7 +176,7 @@ impl P2PKHAddress {
     pub fn from_string(address_string: &str) -> Result<P2PKHAddress, JsValue> {
         match P2PKHAddress::from_string_impl(address_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -184,7 +184,7 @@ impl P2PKHAddress {
     pub fn get_locking_script(&self) -> Result<Script, JsValue> {
         match self.to_locking_script_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -192,7 +192,7 @@ impl P2PKHAddress {
     pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, JsValue> {
         match self.to_unlocking_script_impl(pub_key, sig) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -205,7 +205,7 @@ impl P2PKHAddress {
     pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, JsValue> {
         match BSM::verify_message_impl(message, signature, self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

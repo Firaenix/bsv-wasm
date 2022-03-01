@@ -33,10 +33,10 @@ sha2 = "^0.9.5"
 hmac = "^0.11.0"
 ripemd160 = "^0.9.1"
 digest = "^0.9.0"
+console_error_panic_hook = { version = "^0.1" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
-console_error_panic_hook = { version = "^0.1", optional = true }
 
 [dependencies.rand_core]
 version = "^0.6"

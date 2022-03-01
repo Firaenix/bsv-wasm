@@ -376,7 +376,7 @@ impl Transaction {
     pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
         return match Transaction::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         };
     }
 
@@ -384,7 +384,7 @@ impl Transaction {
     pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, JsValue> {
         return match Transaction::from_bytes_impl(tx_bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         };
     }
 
@@ -392,7 +392,7 @@ impl Transaction {
     pub fn to_json_string(&self) -> Result<String, JsValue> {
         match Transaction::to_json_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -400,7 +400,7 @@ impl Transaction {
     pub fn from_json_string(json_string: &str) -> Result<Transaction, JsValue> {
         match Transaction::from_json_string_impl(json_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -408,7 +408,7 @@ impl Transaction {
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -416,7 +416,7 @@ impl Transaction {
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match Transaction::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -424,7 +424,7 @@ impl Transaction {
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match Transaction::to_hex_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -435,7 +435,7 @@ impl Transaction {
     pub fn get_size(&self) -> Result<usize, JsValue> {
         match Transaction::get_size_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -464,7 +464,7 @@ impl Transaction {
         let outpoints = self.get_outpoints_impl();
         match JsValue::from_serde(&outpoints) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -490,7 +490,7 @@ impl Transaction {
     pub fn get_id_hex(&self) -> Result<String, JsValue> {
         match self.get_id_impl() {
             Ok(v) => Ok(v.to_hex()),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -501,7 +501,7 @@ impl Transaction {
     pub fn get_id_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.get_id_impl() {
             Ok(v) => Ok(v.to_bytes()),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -512,7 +512,7 @@ impl Transaction {
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_compact_bytes_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -520,7 +520,7 @@ impl Transaction {
     pub fn to_compact_hex(&self) -> Result<String, JsValue> {
         match Transaction::to_compact_hex_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -531,7 +531,7 @@ impl Transaction {
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, JsValue> {
         match Transaction::from_compact_bytes_impl(compact_buffer) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -542,12 +542,12 @@ impl Transaction {
     pub fn from_compact_hex(compact_hex: String) -> Result<Transaction, JsValue> {
         let compact_buffer = match hex::decode(compact_hex) {
             Ok(v) => v,
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => return Err(JsValue::from_str(&e.to_string())),
         };
 
         match Transaction::from_compact_bytes_impl(&compact_buffer) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }
