@@ -183,7 +183,7 @@ impl Signature {
 impl Signature {
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromDER))]
     pub fn from_der(bytes: &[u8]) -> Result<Signature, JsValue> {
-        Signature::from_der_impl(bytes).map_err(|e| throw_str(&e.to_string()))
+        Signature::from_der_impl(bytes).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromHexDER))]

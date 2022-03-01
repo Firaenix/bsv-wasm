@@ -180,7 +180,7 @@ impl P2PKHAddress {
     pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, JsValue> {
         match P2PKHAddress::set_chain_params_impl(&self, chain_params) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
