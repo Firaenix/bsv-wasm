@@ -203,7 +203,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(bits_iter)?,
                     // Read until OP_ENDIF
@@ -222,7 +222,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(bits_iter)?,
                     // Read until OP_ENDIF
@@ -246,7 +246,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(&mut bits_iter)?,
                     // Read until OP_ENDIF

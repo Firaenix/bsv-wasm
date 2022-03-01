@@ -138,7 +138,7 @@ impl ExtendedPublicKey {
 
         // Pass child_public_key_bytes to secretkey because both Private + Public use same scalar, just need to multiply by it and add the new point
         let il_scalar = *SecretKey::from_be_bytes(child_public_key_bytes)?.to_nonzero_scalar();
-        let child_pub_key_point = parent_pub_key_point + (ProjectivePoint::generator() * il_scalar);
+        let child_pub_key_point = parent_pub_key_point + (ProjectivePoint::GENERATOR * il_scalar);
 
         let internal_pub_key: K256PublicKey = K256PublicKey::from_affine(child_pub_key_point.to_affine())?;
         let child_pub_key = PublicKey::from_bytes_impl(internal_pub_key.to_encoded_point(true).as_bytes())?;
