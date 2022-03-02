@@ -4,12 +4,12 @@
 extern crate num_derive;
 
 pub mod chainparams;
-pub mod keypair;
+pub use chainparams::*;
 
+pub mod keypair;
 pub use keypair::*;
 
 pub mod signature;
-
 pub use signature::*;
 
 pub mod traits;

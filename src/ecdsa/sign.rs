@@ -77,6 +77,21 @@ impl ECDSA {
     }
 
     /**
+     * Signs a message digest with a specific K value and a private key. I hope you know what you're doing!
+     */
+
+    fn sign_with_k_impl(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, BSVErrors> {
+        let priv_scalar = private_key.secret_key.to_nonzero_scalar();
+        let k = Scalar::from_uint_reduced(U256::from_le_slice(k_value));
+        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest));
+        let (sig, recovery) = priv_scalar.try_sign_prehashed(k, msg_scalar)?;
+        Ok(Signature {
+            sig,
+            recovery: recovery.map(|x| RecoveryInfo::new(x.is_y_odd(), x.is_x_reduced(), private_key.is_pub_key_compressed)),
+        })
+    }
+
+    /**
      * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
@@ -127,6 +142,14 @@ impl ECDSA {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithK))]
+    pub fn sign_with_k(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, JsValue> {
+        match ECDSA::sign_with_k_impl(private_key, digest, k_value) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -137,5 +160,9 @@ impl ECDSA {
 
     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)
+    }
+
+    pub fn sign_with_k(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, BSVErrors> {
+        ECDSA::sign_with_k_impl(private_key, digest, k_value)
     }
 }
