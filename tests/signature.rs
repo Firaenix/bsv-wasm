@@ -91,4 +91,18 @@ mod tests {
         assert_eq!(uncompacted_sig.to_compact_bytes(None), signature.to_compact_bytes(None));
         assert_eq!(uncompacted_sig.to_der_bytes(), signature.to_der_bytes());
     }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn sign_with_k_test() {
+        let private_key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
+        let ephemeral_key = PrivateKey::from_wif("5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf").unwrap();
+
+        let message = b"Hello";
+
+        let signature = ECDSA::sign_with_k(&private_key, &ephemeral_key, message, SigningHash::Sha256d).unwrap();
+        // println!("{:?}", signature.to_);
+        println!("{}", signature.to_der_hex());
+        // assert_eq!(1, 1);
+    }
 }

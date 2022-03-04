@@ -120,6 +120,29 @@ impl Transaction {
     }
 
     /**
+     * Calculates the SIGHASH buffer and then signs it with a specific ephemeral key. I hope you know what you're doing!
+     */
+    pub(crate) fn sign_with_k_impl(
+        &mut self,
+        priv_key: &PrivateKey,
+        ephemeral_key: &PrivateKey,
+        sighash: SigHash,
+        n_tx_in: usize,
+        unsigned_script: &Script,
+        value: u64,
+    ) -> Result<SighashSignature, BSVErrors> {
+        let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
+
+        let signature = ECDSA::sign_with_k_impl(priv_key, ephemeral_key, &buffer, crate::SigningHash::Sha256d)?;
+
+        Ok(SighashSignature {
+            signature,
+            sighash_type: sighash,
+            sighash_buffer: buffer,
+        })
+    }
+
+    /**
      * Calculates the SIGHASH Buffer to be signed
      */
     pub(crate) fn sighash_preimage_impl(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {

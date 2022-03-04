@@ -77,19 +77,47 @@ impl ECDSA {
     }
 
     /**
-     * Signs a message digest with a specific K value and a private key. I hope you know what you're doing!
+     * Signs a message digest with a specific private and ephemeral key. I hope you know what you're doing!
      */
-
-    fn sign_with_k_impl(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, BSVErrors> {
-        let priv_scalar = private_key.secret_key.to_nonzero_scalar();
-        let k = Scalar::from_uint_reduced(U256::from_le_slice(k_value));
-        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest));
-        let (sig, recovery) = priv_scalar.try_sign_prehashed(k, msg_scalar)?;
+    pub(crate) fn sign_with_k_impl(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, BSVErrors> {
+        let priv_scalar = *private_key.secret_key.to_nonzero_scalar();
+        let k = *ephemeral_key.secret_key.to_nonzero_scalar();
+        let digest = get_hash_digest(hash_algo, preimage);
+        let digest_finalised = digest.finalize_fixed();
+        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest_finalised.as_slice()));
+        let (signature, recid) = priv_scalar.try_sign_prehashed(k, msg_scalar)?;
+        let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
+        let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;
+        let recovery: Option<RecoveryId> = Some(rec_sig.recovery_id().into());
+        let sig = SecpSignature::from(rec_sig);
         Ok(Signature {
             sig,
             recovery: recovery.map(|x| RecoveryInfo::new(x.is_y_odd(), x.is_x_reduced(), private_key.is_pub_key_compressed)),
         })
     }
+
+    /**
+     * Recovers a Private Key from a signature with a known message digest and K value.
+     *
+     * P = r^-1(N) * ((k * s) -m) % N
+     *
+     */
+
+    // fn priv_from_k_impl(signature: &Signature, digest: &[u8], k_value: &[u8]) -> Result<PrivateKey, BSVErrors> {
+    //     let k = NonZeroScalar::from_uint_reduced(U256::from_le_slice(k_value));
+    //     let m = Scalar::from_uint_reduced(U256::from_le_slice(digest));
+    //     let r = signature.sig.r();
+    //     let s = signature.sig.s();
+    //     let k_s = k * s;
+    //     let k_s_m: Scalar = k_s.sub(&m);
+    //     let inv_r = r.invert();
+    //     if inv_r.is_none().into() || r.is_zero().into() {
+    //         return Err(BSVErrors::CustomECDSAError("Invalid R value".to_string()));
+    //     }
+    //     let r_inverse = inv_r.unwrap();
+    //     let p = r_inverse.mul(k_s_m).to_bytes();
+    //     PrivateKey::from_bytes(&p)
+    // }
 
     /**
      * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
@@ -144,8 +172,8 @@ impl ECDSA {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithK))]
-    pub fn sign_with_k(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, JsValue> {
-        match ECDSA::sign_with_k_impl(private_key, digest, k_value) {
+    pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, JsValue> {
+        match ECDSA::sign_with_k_impl(private_key, ephemeral_key, preimage, hash_algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),
         }
@@ -162,7 +190,7 @@ impl ECDSA {
         ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)
     }
 
-    pub fn sign_with_k(private_key: &PrivateKey, digest: &[u8], k_value: &[u8]) -> Result<Signature, BSVErrors> {
-        ECDSA::sign_with_k_impl(private_key, digest, k_value)
+    pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, BSVErrors> {
+        ECDSA::sign_with_k_impl(private_key, ephemeral_key, preimage, hash_algo)
     }
 }

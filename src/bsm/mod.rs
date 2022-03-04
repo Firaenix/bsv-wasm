@@ -38,6 +38,15 @@ impl BSM {
         ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)
     }
 
+    /**
+     * Sign a Bitcoin Signed Message with a specific K value. I hope you know what you're doing!
+     */
+    pub(crate) fn sign_with_k_impl(priv_key: &PrivateKey, ephemeral_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
+        let magic_message = BSM::prepend_magic_bytes(message)?;
+        // let magic_message = message;
+        ECDSA::sign_with_k_impl(priv_key, ephemeral_key, &magic_message, SigningHash::Sha256d)
+    }
+
     pub(crate) fn verify_message_impl(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
@@ -90,6 +99,14 @@ impl BSM {
             Err(e) => throw_str(&e.to_string()),
         }
     }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessageWithK))]
+    pub fn sign_message_with_k(priv_key: &PrivateKey, ephemeral_key: &PrivateKey, message: &[u8]) -> Result<Signature, JsValue> {
+        match BSM::sign_with_k_impl(priv_key, ephemeral_key, message) {
+            Ok(v) => Ok(v),
+            Err(e) => throw_str(&e.to_string()),
+        }
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -100,5 +117,9 @@ impl BSM {
 
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
         BSM::sign_impl(priv_key, message)
+    }
+
+    pub fn sign_message_with_k(priv_key: &PrivateKey, ephemeral_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
+        BSM::sign_with_k_impl(priv_key, ephemeral_key, message)
     }
 }
