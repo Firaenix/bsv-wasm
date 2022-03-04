@@ -350,7 +350,7 @@ impl Transaction {
     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, JsValue> {
         match Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -358,7 +358,7 @@ impl Transaction {
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, JsValue> {
         match Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }
@@ -417,7 +417,7 @@ impl SighashSignature {
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match self.to_hex_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -425,7 +425,7 @@ impl SighashSignature {
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_bytes_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

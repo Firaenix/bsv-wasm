@@ -203,7 +203,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(bits_iter)?,
                     // Read until OP_ENDIF
@@ -222,7 +222,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(bits_iter)?,
                     // Read until OP_ENDIF
@@ -246,7 +246,7 @@ impl Script {
         while let Some(thing) = bits_iter.next() {
             match thing {
                 ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
+                    code: *v,
                     // Read until OP_ELSE
                     pass: Script::read_pass(&mut bits_iter)?,
                     // Read until OP_ENDIF
@@ -407,7 +407,7 @@ impl Script {
     pub fn from_hex(hex: &str) -> Result<Script, JsValue> {
         match Script::from_hex_impl(hex) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -415,7 +415,7 @@ impl Script {
     pub fn from_bytes(bytes: &[u8]) -> Result<Script, JsValue> {
         match Script::from_bytes_impl(bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -423,7 +423,7 @@ impl Script {
     pub fn from_asm_string(asm_string: &str) -> Result<Script, JsValue> {
         match Script::from_asm_string_impl(asm_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -431,7 +431,7 @@ impl Script {
     pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
         match Script::encode_pushdata_impl(data_bytes) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 

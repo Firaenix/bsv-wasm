@@ -88,7 +88,7 @@ impl BSM {
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, JsValue> {
         match BSM::verify_message_impl(message, signature, address) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -96,7 +96,7 @@ impl BSM {
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, JsValue> {
         match BSM::sign_impl(priv_key, message) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 

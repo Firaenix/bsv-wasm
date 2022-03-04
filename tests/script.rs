@@ -2,6 +2,8 @@
 mod script_tests {
     use bsv_wasm::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
     #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen::JsValue;
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
@@ -240,7 +242,7 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[cfg(not(target_arch = "wasm32"))]
     fn if_statement_script() {
         let script = Script::from_asm_string(
             r#"21e8
@@ -265,8 +267,39 @@ mod script_tests {
         );
     }
 
-    #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[cfg(target_arch = "wasm32")]
+    fn if_statement_script() {
+        let script = Script::from_asm_string(
+            r#"21e8
+            OP_IF 
+                OP_1 OP_RETURN 
+            OP_ELSE 
+                OP_0 OP_RETURN 
+            OP_ENDIF"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            format!("{:?}", &script.to_script_bits().unwrap()),
+            format!(
+                "{:?}",
+                &JsValue::from_serde(&[
+                    ScriptBit::Push(hex::decode("21e8").unwrap()),
+                    ScriptBit::If {
+                        code: OpCodes::OP_IF,
+                        pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                        fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    }
+                ])
+                .unwrap()
+            )
+        );
+    }
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn double_nested_if_statement_script() {
         let script = Script::from_asm_string(
             r#"
@@ -317,7 +350,8 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[cfg(not(target_arch = "wasm32"))]
+    // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn double_nested_verif_statement_script() {
         let script = Script::from_asm_string(
             r#"

@@ -160,14 +160,14 @@ impl ScriptTemplate {
     pub fn from_script(script: &Script) -> Result<ScriptTemplate, JsValue> {
         match ScriptTemplate::from_script_impl(script) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
     pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, JsValue> {
         match ScriptTemplate::from_asm_string_impl(asm) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }
@@ -286,12 +286,12 @@ impl Script {
     pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, JsValue> {
         let matches = match self.match_impl(script_template) {
             Ok(v) => v,
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => return Err(JsValue::from_str(&e.to_string())),
         };
 
         match JsValue::from_serde(&matches) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 

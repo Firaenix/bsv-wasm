@@ -333,7 +333,7 @@ impl TxIn {
     pub fn from_hex(hex_str: &str) -> Result<TxIn, JsValue> {
         match TxIn::from_hex_impl(hex_str) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -341,7 +341,7 @@ impl TxIn {
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
         match JsValue::from_serde(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -349,7 +349,7 @@ impl TxIn {
     pub fn to_json_string(&self) -> Result<String, JsValue> {
         match TxIn::to_json_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -357,7 +357,7 @@ impl TxIn {
     pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match TxIn::to_bytes_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -365,7 +365,7 @@ impl TxIn {
     pub fn to_hex(&self) -> Result<String, JsValue> {
         match TxIn::to_hex_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -373,7 +373,7 @@ impl TxIn {
     pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, JsValue> {
         match TxIn::from_outpoint_bytes_impl(outpoint) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -384,7 +384,7 @@ impl TxIn {
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
         match self.to_compact_bytes_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -392,7 +392,7 @@ impl TxIn {
     pub fn to_compact_hex(&self) -> Result<String, JsValue> {
         match self.to_compact_bytes_impl() {
             Ok(v) => Ok(hex::encode(v)),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -403,7 +403,7 @@ impl TxIn {
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<TxIn, JsValue> {
         match TxIn::from_compact_bytes_impl(compact_buffer) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -414,12 +414,12 @@ impl TxIn {
     pub fn from_compact_hex(compact_hex: String) -> Result<TxIn, JsValue> {
         let compact_buffer = match hex::decode(compact_hex) {
             Ok(v) => v,
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => return Err(JsValue::from_str(&e.to_string())),
         };
 
         match TxIn::from_compact_bytes_impl(&compact_buffer) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -428,7 +428,7 @@ impl TxIn {
     pub fn get_finalised_script(&self) -> Result<Script, JsValue> {
         match self.get_finalised_script_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

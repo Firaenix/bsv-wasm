@@ -24,7 +24,7 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature_with_sighash_string() {
-        let sig_hex = "3045022100ba2e54273dc85e0950810d92b95620b1cf765622f6ec3c18f487f6269f723b5a02201d263ac04d69c05199435f6d58e2b4d1f26b8b028fa66670b38b6f4847384ed6c3";
+        let sig_hex = "304402205ebadbf09cf9b9be17ee6f588e93f490a2db9ac5966f938255282cca9ca75fa602206c37c1842e1b48a177c195e34579be84826b7ad919cda6d803a5fc1d77551580c3";
 
         assert!(Signature::from_hex_der(sig_hex).is_ok())
     }

@@ -1,5 +1,14 @@
 #![cfg_attr(not(target_arch = "wasm32"), allow(dead_code, unused_imports))]
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn init() {
+    console_error_panic_hook::set_once();
+}
+
 #[macro_use]
 extern crate num_derive;
 

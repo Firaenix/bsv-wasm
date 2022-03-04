@@ -242,7 +242,7 @@ impl ExtendedPublicKey {
     pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, JsValue> {
         match Self::derive_impl(&self, index) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -250,7 +250,7 @@ impl ExtendedPublicKey {
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, JsValue> {
         match Self::derive_from_path_impl(&self, path) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -258,7 +258,7 @@ impl ExtendedPublicKey {
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, JsValue> {
         match Self::from_seed_impl(seed) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -266,7 +266,7 @@ impl ExtendedPublicKey {
     pub fn from_random() -> Result<ExtendedPublicKey, JsValue> {
         match Self::from_random_impl() {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -274,7 +274,7 @@ impl ExtendedPublicKey {
     pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey, JsValue> {
         match Self::from_string_impl(xpub_string) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 
@@ -282,7 +282,7 @@ impl ExtendedPublicKey {
     pub fn to_string(&self) -> Result<String, JsValue> {
         match Self::to_string_impl(&self) {
             Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
 }

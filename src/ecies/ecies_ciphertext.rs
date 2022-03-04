@@ -82,12 +82,12 @@ impl ECIESCiphertext {
 impl ECIESCiphertext {
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = extractPublicKey))]
     pub fn extract_public_key(&self) -> Result<PublicKey, JsValue> {
-        self.extract_public_key_impl().map_err(|e| throw_str(&e.to_string()))
+        self.extract_public_key_impl().map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(buffer: &[u8], has_pub_key: bool) -> Result<ECIESCiphertext, JsValue> {
-        ECIESCiphertext::from_bytes_impl(buffer, has_pub_key).map_err(|e| throw_str(&e.to_string()))
+        ECIESCiphertext::from_bytes_impl(buffer, has_pub_key).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 }
 
