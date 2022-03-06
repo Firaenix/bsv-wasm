@@ -4,7 +4,7 @@ import { PrivateKey, PublicKey, P2PKHAddress, SigningHash, BSM, Signature  } fro
 import { assert, util } from 'chai';
 
 describe("Bitcoin Signed Messages", function() {
-      this.timeout(10000);
+      this.timeout(30000);
 
       it('signed message matches BSV.JS', () => {
         for (let index = 0; index < 100; index++) {

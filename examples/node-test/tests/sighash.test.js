@@ -1,4 +1,4 @@
-import {Transaction, SigHash, PrivateKey, Script, Hash} from '../../../pkg/node/bsv_wasm';
+import {Transaction, SigHash, PrivateKey, Script, ECDSA, Hash, SigningHash, PublicKey} from '../../../pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 import { Tx, PrivKey, Script as JSScript, KeyPair, Sig, Bn, Ecdsa, Hash as JSHash, Point } from "bsv";
 
@@ -31,6 +31,15 @@ describe("SigHash Tests", function() {
     let wasm_sig = wasm_tx.sign(wasm_private_key, SigHash.SINGLE | SigHash.FORKID, 0, wasm_script, BigInt(0));
   
     assert.equal(wasm_sig.toHex(), js_sig.toHex(), "Signed sighash buffers dont match")
+
+  });
+
+  it('Tests signing with a custom K and key recovery', () => {
+    const msg = Buffer.from("Hello");
+    const wasm_private_key = PrivateKey.fromWIF("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx");
+    let recovery_sig = ECDSA.signWithK(wasm_private_key, wasm_private_key, msg, SigningHash.Sha256d);
+    let recovered_priv_key = ECDSA.privateKeyFromSignatureK(recovery_sig, PublicKey.fromPrivateKey(wasm_private_key), wasm_private_key, msg, SigningHash.Sha256d);
+    assert.equal(recovered_priv_key.toWIF(), wasm_private_key.toWIF());
   });
 
   it('SIGHASH_ALL Signed Tx matches BSV.JS', () => {
