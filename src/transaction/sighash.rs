@@ -338,6 +338,10 @@ impl Transaction {
         Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)
     }
 
+    pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_with_k_impl(self, priv_key, ephemeral_key, sighash, n_tx_in, unsigned_script, value)
+    }
+
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
         Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value)
     }
@@ -349,6 +353,14 @@ impl Transaction {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, JsValue> {
         match Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(JsValue::from_str(&e.to_string())),
+        }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signWithK))]
+    pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, JsValue> {
+        match Transaction::sign_with_k_impl(self, priv_key, ephemeral_key, sighash, n_tx_in, unsigned_script, value) {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }

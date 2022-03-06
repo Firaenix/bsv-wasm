@@ -1,6 +1,10 @@
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
+use rayon::prelude::*;
+#[cfg(test)]
 mod tests {
     use bsv_wasm::*;
+    use rayon::iter::{IntoParallelIterator, ParallelIterator};
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
@@ -93,16 +97,31 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn sign_with_k_test_par() {
+        (0..2180i32).into_par_iter().for_each(|_i| {
+            let private_key = PrivateKey::from_random();
+            let public_key = PublicKey::from_private_key(&private_key);
+            let ephemeral_key = PrivateKey::from_random();
+            let message = PrivateKey::from_random().to_bytes();
+            let signature = ECDSA::sign_with_k(&private_key, &ephemeral_key, &message, SigningHash::Sha256d).unwrap();
+            let private_key_recovered = ECDSA::private_key_from_signature_k(&signature, &public_key, &ephemeral_key, &message, SigningHash::Sha256d).unwrap();
+            assert!(private_key_recovered.to_bytes() == private_key.to_bytes());
+            if _i % 10000 == 0 {
+                println!("{}", _i);
+            }
+        });
+    }
+
+    #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_with_k_test() {
-        let private_key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
-        let ephemeral_key = PrivateKey::from_wif("5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf").unwrap();
-
+        let private_key = PrivateKey::from_random();
+        let public_key = PublicKey::from_private_key(&private_key);
+        let ephemeral_key = PrivateKey::from_random();
         let message = b"Hello";
-
         let signature = ECDSA::sign_with_k(&private_key, &ephemeral_key, message, SigningHash::Sha256d).unwrap();
-        // println!("{:?}", signature.to_);
-        println!("{}", signature.to_der_hex());
-        // assert_eq!(1, 1);
+        let private_key_recovered = ECDSA::private_key_from_signature_k(&signature, &public_key, &ephemeral_key, message, SigningHash::Sha256d).unwrap();
+        assert!(private_key_recovered.to_bytes() == private_key.to_bytes());
     }
 }

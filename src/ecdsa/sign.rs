@@ -97,29 +97,6 @@ impl ECDSA {
     }
 
     /**
-     * Recovers a Private Key from a signature with a known message digest and K value.
-     *
-     * P = r^-1(N) * ((k * s) -m) % N
-     *
-     */
-
-    // fn priv_from_k_impl(signature: &Signature, digest: &[u8], k_value: &[u8]) -> Result<PrivateKey, BSVErrors> {
-    //     let k = NonZeroScalar::from_uint_reduced(U256::from_le_slice(k_value));
-    //     let m = Scalar::from_uint_reduced(U256::from_le_slice(digest));
-    //     let r = signature.sig.r();
-    //     let s = signature.sig.s();
-    //     let k_s = k * s;
-    //     let k_s_m: Scalar = k_s.sub(&m);
-    //     let inv_r = r.invert();
-    //     if inv_r.is_none().into() || r.is_zero().into() {
-    //         return Err(BSVErrors::CustomECDSAError("Invalid R value".to_string()));
-    //     }
-    //     let r_inverse = inv_r.unwrap();
-    //     let p = r_inverse.mul(k_s_m).to_bytes();
-    //     PrivateKey::from_bytes(&p)
-    // }
-
-    /**
      * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.

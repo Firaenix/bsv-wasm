@@ -48,6 +48,7 @@ features = ["js"]
 
 [dev-dependencies]
 wasm-bindgen-test = "^0.3"
+rayon = "1.5"
 
 [features]
 wasm-bindgen-exports = [

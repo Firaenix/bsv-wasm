@@ -1,4 +1,5 @@
 pub mod ecdh;
+pub mod recover;
 pub mod sign;
 pub mod verify;
 
