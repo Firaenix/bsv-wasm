@@ -126,7 +126,7 @@ impl Script {
             if (0x01..=0x4b).contains(&byte) {
                 let mut data = vec![0; byte as usize];
                 if let Err(e) = cursor.read(&mut data) {
-                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e.to_string())));
+                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e)));
                 }
 
                 bit_accumulator.push(ScriptBit::Push(data));
@@ -143,7 +143,7 @@ impl Script {
 
                     let mut data = vec![0; data_length];
                     if let Err(e) = cursor.read(&mut data) {
-                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e.to_string())));
+                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e)));
                     }
 
                     ScriptBit::PushData(v, data)

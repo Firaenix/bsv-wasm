@@ -26,8 +26,8 @@ impl ECDSA {
             .secret_key
             .to_nonzero_scalar()
             .to_bytes()
-            .to_vec()
-            .into_iter()
+            .iter()
+            .copied()
             .enumerate()
             .for_each(|(i, x)| k_final[i + 96] = x);
         let k = U1024::from_be_slice(&k_final);
