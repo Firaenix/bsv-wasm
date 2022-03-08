@@ -84,7 +84,7 @@ impl ECDSA {
         let k = *ephemeral_key.secret_key.to_nonzero_scalar();
         let digest = get_hash_digest(hash_algo, preimage);
         let digest_finalised = digest.finalize_fixed();
-        let msg_scalar = Scalar::from_uint_reduced(U256::from_le_slice(digest_finalised.as_slice()));
+        let msg_scalar = <Scalar as Reduce<U256>>::from_be_bytes_reduced(digest_finalised);
         let (signature, recid) = priv_scalar.try_sign_prehashed(k, msg_scalar)?;
         let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
         let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;

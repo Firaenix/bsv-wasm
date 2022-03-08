@@ -250,12 +250,11 @@ impl Transaction {
      * Checks the hash cache to see if there already are hashed sequence, otherwise calculates the hash and adds it to the cache
      */
     fn hash_sequence(&mut self, sighash: SigHash) -> Vec<u8> {
-        if let Some(x) = &self.hash_cache.hash_sequence {
-            return x.to_bytes();
-        }
-
         match sighash {
             SigHash::ALL | SigHash::InputsOutputs => {
+                if let Some(x) = &self.hash_cache.hash_sequence {
+                    return x.to_bytes();
+                }
                 let input_sequences: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_sequence_as_bytes()).collect();
                 let hash = Hash::sha_256d(&input_sequences);
                 self.hash_cache.hash_sequence = Some(hash.clone());
@@ -269,10 +268,6 @@ impl Transaction {
      * Checks the hash cache to see if there already are hashed outputs, otherwise calculates the hash and adds it to the cache
      */
     fn hash_outputs(&mut self, sighash: SigHash, n_tx_in: usize) -> Result<Vec<u8>, BSVErrors> {
-        if let Some(x) = &self.hash_cache.hash_outputs {
-            return Ok(x.to_bytes());
-        }
-
         match sighash {
             // Only sign the output at the same index as the given txin
             SigHash::SINGLE | SigHash::InputOutput | SigHash::Legacy_InputOutput | SigHash::InputsOutput => {
@@ -286,6 +281,9 @@ impl Transaction {
             }
             // Sign all outputs
             SigHash::ALL | SigHash::InputOutputs | SigHash::Legacy_InputOutputs | SigHash::InputsOutputs => {
+                if let Some(x) = &self.hash_cache.hash_outputs {
+                    return Ok(x.to_bytes());
+                }
                 let mut txout_bytes = Vec::new();
                 for output in &self.outputs {
                     txout_bytes.write_all(&output.to_bytes_impl()?)?;
@@ -307,13 +305,12 @@ impl Transaction {
      * - Else 32 bytes of zeroes
      */
     pub fn hash_inputs(&mut self, sighash: SigHash) -> Vec<u8> {
-        if let Some(x) = &self.hash_cache.hash_inputs {
-            return x.to_bytes();
-        }
-
         match sighash {
             SigHash::ANYONECANPAY | SigHash::Input | SigHash::InputOutput | SigHash::Legacy_Input | SigHash::Legacy_InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
             _ => {
+                if let Some(x) = &self.hash_cache.hash_inputs {
+                    return x.to_bytes();
+                }
                 let input_bytes: Vec<u8> = self.inputs.iter().flat_map(|txin| txin.get_outpoint_bytes(Some(true))).collect();
 
                 let hash = Hash::sha_256d(&input_bytes);

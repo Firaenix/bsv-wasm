@@ -52,6 +52,28 @@ mod sighash_tests {
 
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn sighash_none_anyonecanpay_fork_id() {
+        let signing_script = Script::from_asm_string("OP_CHECKSIG").unwrap();
+        let mut tx = Transaction::new(1, 0);
+        tx.add_input(&TxIn::new(
+            &[1u8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            0,
+            &signing_script,
+            None,
+        ));
+        // This is used to set the hashcache and make sure it clears properly on alternative signing types
+        let _sighash_buffer_all = tx.sighash_preimage(SigHash::InputsOutputs, 0, &signing_script, 1337).unwrap();
+
+        let sighash_buffer = tx.sighash_preimage(SigHash::Input, 0, &signing_script, 1337).unwrap();
+
+        assert_eq!(
+            sighash_buffer.to_hex(),
+            "010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010101010101010101010101010101010101010101010101010000000001ac3905000000000000ffffffff000000000000000000000000000000000000000000000000000000000000000000000000c2000000"
+        );
+    }
+
+    #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::NONE;
