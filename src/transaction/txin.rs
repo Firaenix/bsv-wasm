@@ -1,4 +1,5 @@
 use crate::BSVErrors;
+use crate::VarInt;
 use crate::VarIntReader;
 use crate::VarIntWriter;
 use std::io::Cursor;
@@ -60,6 +61,10 @@ impl TxIn {
         TxIn::read_in(&mut cursor)
     }
 
+    pub(crate) fn is_coinbase(prev_tx_id: &Vec<u8>, vout: &u32) -> bool {
+        prev_tx_id == &vec![0u8; 32] && vout == &0xFFFFFFFF
+    }
+
     pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
         // PrevTxId - 32 bytes
         let mut prev_tx_id = vec![0; 32];
@@ -94,9 +99,12 @@ impl TxIn {
         };
 
         Ok(TxIn {
+            script_sig: match TxIn::is_coinbase(&prev_tx_id, &vout) {
+                true => Script::from_coinbase_bytes_impl(&script_sig)?,
+                false => Script::from_bytes_impl(&script_sig)?,
+            },
             prev_tx_id,
             vout,
-            script_sig: Script::from_bytes_impl(&script_sig)?,
             sequence,
             satoshis: None,
             unlocking_script: None,

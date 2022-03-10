@@ -61,6 +61,7 @@ impl Script {
                         OpCodes::OP_ENDIF
                     )
                 }
+                ScriptBit::Coinbase(bytes) => hex::encode(bytes),
             })
             .collect::<Vec<String>>()
             .join(" ")
@@ -98,6 +99,7 @@ impl Script {
 
                     bytes
                 }
+                ScriptBit::Coinbase(bytes) => bytes.to_vec(),
             })
             .flatten()
             .collect();
@@ -158,6 +160,10 @@ impl Script {
         let nested_bits = Script::if_statement_pass(&bit_accumulator)?;
 
         Ok(Script(nested_bits))
+    }
+
+    pub(crate) fn from_coinbase_bytes_impl(bytes: &[u8]) -> Result<Script, BSVErrors> {
+        Ok(Script(vec![ScriptBit::Coinbase(bytes.to_vec())]))
     }
 
     fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
