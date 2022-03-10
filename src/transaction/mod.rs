@@ -341,6 +341,13 @@ impl Transaction {
         self.outputs[index] = output.clone();
     }
 
+    pub fn is_coinbase_impl(&self) -> bool {
+        match (self.get_ninputs(), self.get_input(0)) {
+            (1, Some(x)) => x.is_coinbase_impl(),
+            _ => false,
+        }
+    }
+
     /**
      * XT Method:
      * Returns the combined sum of all input satoshis.
@@ -550,6 +557,11 @@ impl Transaction {
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isCoinbase))]
+    pub fn is_coinbase(&self) -> bool {
+        self.is_coinbase_impl()
+    }
 }
 
 /**
@@ -643,5 +655,9 @@ impl Transaction {
 
     pub fn from_compact_hex(compact_hex: &str) -> Result<Self, BSVErrors> {
         Transaction::from_compact_bytes_impl(&hex::decode(compact_hex)?)
+    }
+
+    pub fn is_coinbase(&self) -> bool {
+        self.is_coinbase_impl()
     }
 }

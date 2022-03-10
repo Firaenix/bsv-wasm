@@ -61,8 +61,12 @@ impl TxIn {
         TxIn::read_in(&mut cursor)
     }
 
-    pub(crate) fn is_coinbase(prev_tx_id: &Vec<u8>, vout: &u32) -> bool {
+    pub(crate) fn is_coinbase_outpoint_impl(prev_tx_id: &Vec<u8>, vout: &u32) -> bool {
         prev_tx_id == &vec![0u8; 32] && vout == &0xFFFFFFFF
+    }
+
+    pub(crate) fn is_coinbase_impl(&self) -> bool {
+        TxIn::is_coinbase_outpoint_impl(&self.prev_tx_id, &self.vout)
     }
 
     pub(crate) fn read_in(cursor: &mut Cursor<Vec<u8>>) -> Result<TxIn, BSVErrors> {
@@ -99,7 +103,7 @@ impl TxIn {
         };
 
         Ok(TxIn {
-            script_sig: match TxIn::is_coinbase(&prev_tx_id, &vout) {
+            script_sig: match TxIn::is_coinbase_outpoint_impl(&prev_tx_id, &vout) {
                 true => Script::from_coinbase_bytes_impl(&script_sig)?,
                 false => Script::from_bytes_impl(&script_sig)?,
             },
@@ -439,6 +443,12 @@ impl TxIn {
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
     }
+
+    // Checks if input is a coinbase
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = isCoinbase))]
+    pub fn is_coinbase(&self) -> bool {
+        self.is_coinbase_impl()
+    }
 }
 
 /**
@@ -505,5 +515,11 @@ impl TxIn {
 
     pub fn get_finalised_script(&self) -> Result<Script, BSVErrors> {
         self.get_finalised_script_impl()
+    }
+
+    // Checks if input is a coinbase
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn is_coinbase(&self) -> bool {
+        self.is_coinbase_impl()
     }
 }
