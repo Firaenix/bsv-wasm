@@ -30,7 +30,7 @@ impl VarInt {
     }
 
     pub fn get_pushdata_opcode(length: u64) -> Option<OpCodes> {
-        if length <= 252 {
+        if length <= 0x4b {
             None
         } else if length <= 0xff {
             Some(OpCodes::OP_PUSHDATA1)
