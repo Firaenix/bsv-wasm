@@ -70,7 +70,7 @@ impl Script {
     fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
         let bytes = codes
             .iter()
-            .map(|x| match x {
+            .flat_map(|x| match x {
                 ScriptBit::OpCode(code) => vec![*code as u8],
                 ScriptBit::Push(bytes) => {
                     let mut pushbytes = bytes.clone();
@@ -101,7 +101,6 @@ impl Script {
                 }
                 ScriptBit::Coinbase(bytes) => bytes.to_vec(),
             })
-            .flatten()
             .collect();
 
         bytes

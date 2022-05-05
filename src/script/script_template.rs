@@ -104,19 +104,19 @@ impl ScriptTemplate {
             }
 
             // Match on =
-            if let Some((_, length_str)) = code.split_once("=") {
+            if let Some((_, length_str)) = code.split_once('=') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::Equals));
             }
 
             // Match on >
-            if let Some((_, length_str)) = code.split_once(">") {
+            if let Some((_, length_str)) = code.split_once('>') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::GreaterThan));
             }
 
             // Match on <
-            if let Some((_, length_str)) = code.split_once("<") {
+            if let Some((_, length_str)) = code.split_once('<') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::LessThan));
             }

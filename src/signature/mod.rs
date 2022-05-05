@@ -89,7 +89,7 @@ impl Signature {
             }
         };
 
-        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec())?;
+        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes())?;
 
         Ok(pub_key)
     }
