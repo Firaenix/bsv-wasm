@@ -8,11 +8,15 @@ build-bundler:
 	wasm-pack build --release --out-dir ./pkg/bundler --target bundler -- --features wasm-bindgen-exports
 
 build-nodejs:
-	wasm-pack build --release --out-dir ./pkg/node --target nodejs -- --features wasm-bindgen-exports
+	wasm-pack build --release --out-dir ./pkg/node --target nodejs -- --features wasm-bindgen-exports # Generate package.json, etc.
+	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
+	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/node --target nodejs --weak-refs
+	wasm-opt -O3 --dce ./pkg/node/bsv_wasm_bg.wasm -o ./pkg/node/bsv_wasm_bg.wasm
 
 build-deno:
-	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports
-	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/deno --target web --reference-types --weak-refs
+	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
+	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/deno --target web --weak-refs
+	wasm-opt -O3 --dce ./pkg/node/bsv_wasm_bg.wasm -o ./pkg/node/bsv_wasm_bg.wasm
 
 build-wasm:
 	make build-web ; make build-bundler ; make build-nodejs
