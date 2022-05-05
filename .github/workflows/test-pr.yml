@@ -43,6 +43,10 @@ jobs:
 
       steps:
       - uses: actions/checkout@v2
+
+      - name: Install wasm-opt
+        run: apt install -y binaryen
+
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
