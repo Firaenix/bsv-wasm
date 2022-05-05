@@ -35,15 +35,15 @@ await init();
 - ECDSA (Private Key, Public Key, Signatures)
 - Transaction (Building, Serialising, Deserialising)
 - Script (Serialising, Deserialising)
+- Script Matching (ScriptTemplate)
 - Addresses (P2PKH)
 - Sighash Support
 - Extended Private Keys and Child Derivation (BIP32, BIP42)
+- Testnet support
 
 ## TODO:
-- [ ] Script Builder
 - [ ] Isomorphic Package for JS
 - [ ] Write documentation (Inline on functions and structs)
-- [ ] Testnet Support
 
 ## Will not do:
 - Mnemonics
