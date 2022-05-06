@@ -54,7 +54,7 @@ jobs:
           cache-on-failure: true
 
       - name: Install wasm-opt
-        run: apt-get install -y binaryen
+        run: sudo apt-get install -y binaryen
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -81,7 +81,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install wasm-opt
-      run: apt-get install -y binaryen
+      run: sudo apt-get install -y binaryen
       
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
