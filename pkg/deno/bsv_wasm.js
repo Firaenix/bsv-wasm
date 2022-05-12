@@ -174,11 +174,19 @@ function debugString(val) {
     return className;
 }
 
+function getArrayU8FromWasm0(ptr, len) {
+    return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+
 function passArray8ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 1);
     getUint8Memory0().set(arg, ptr / 1);
     WASM_VECTOR_LEN = arg.length;
     return ptr;
+}
+
+function isLikeNone(x) {
+    return x === undefined || x === null;
 }
 
 function _assertClass(instance, klass) {
@@ -188,19 +196,11 @@ function _assertClass(instance, klass) {
     return instance.ptr;
 }
 
-function getArrayU8FromWasm0(ptr, len) {
-    return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
-}
-
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
-
 const u32CvtShim = new Uint32Array(2);
 /**
 */
-export function init() {
-    wasm.init();
+export function configureStacktrace() {
+    wasm.configureStacktrace();
 }
 
 let cachegetUint32Memory0 = null;
@@ -1297,21 +1297,6 @@ export class ECDSA {
         wasm.__wbg_ecdsa_free(ptr);
     }
     /**
-    * @param {Uint8Array} message
-    * @param {PublicKey} pub_key
-    * @param {Signature} signature
-    * @param {number} hash_algo
-    * @returns {boolean}
-    */
-    static verify(message, pub_key, signature, hash_algo) {
-        var ptr0 = passArray8ToWasm0(message, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        _assertClass(pub_key, PublicKey);
-        _assertClass(signature, Signature);
-        var ret = wasm.ecdsa_verify(ptr0, len0, pub_key.ptr, signature.ptr, hash_algo);
-        return ret !== 0;
-    }
-    /**
     * @param {PrivateKey} private_key
     * @param {Uint8Array} preimage
     * @param {number} hash_algo
@@ -1370,6 +1355,21 @@ export class ECDSA {
         var len0 = WASM_VECTOR_LEN;
         var ret = wasm.ecdsa_privateKeyFromSignatureK(signature.ptr, public_key.ptr, ephemeral_key.ptr, ptr0, len0, hash_algo);
         return PrivateKey.__wrap(ret);
+    }
+    /**
+    * @param {Uint8Array} message
+    * @param {PublicKey} pub_key
+    * @param {Signature} signature
+    * @param {number} hash_algo
+    * @returns {boolean}
+    */
+    static verify(message, pub_key, signature, hash_algo) {
+        var ptr0 = passArray8ToWasm0(message, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        _assertClass(pub_key, PublicKey);
+        _assertClass(signature, Signature);
+        var ret = wasm.ecdsa_verify(ptr0, len0, pub_key.ptr, signature.ptr, hash_algo);
+        return ret !== 0;
     }
 }
 
@@ -2111,7 +2111,7 @@ export class KDF {
     getSalt() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.cipherkeys_get_ke(retptr, this.ptr);
+            wasm.kdf_getSalt(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayU8FromWasm0(r0, r1).slice();
@@ -4524,13 +4524,13 @@ async function init(input) {
             wasm.__wbindgen_free(arg0, arg1);
         }
     };
-    imports.wbg.__wbg_randomFillSync_64cc7d048f228ca8 = function() { return handleError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbg_randomFillSync_654a7797990fb8db = function() { return handleError(function (arg0, arg1, arg2) {
         getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
     }, arguments) };
-    imports.wbg.__wbg_getRandomValues_98117e9a7e993920 = function() { return handleError(function (arg0, arg1) {
+    imports.wbg.__wbg_getRandomValues_fb6b088efb6bead2 = function() { return handleError(function (arg0, arg1) {
         getObject(arg0).getRandomValues(getObject(arg1));
     }, arguments) };
-    imports.wbg.__wbg_process_2f24d6544ea7b200 = function(arg0) {
+    imports.wbg.__wbg_process_70251ed1291754d5 = function(arg0) {
         var ret = getObject(arg0).process;
         return addHeapObject(ret);
     };
@@ -4539,11 +4539,11 @@ async function init(input) {
         var ret = typeof(val) === 'object' && val !== null;
         return ret;
     };
-    imports.wbg.__wbg_versions_6164651e75405d4a = function(arg0) {
+    imports.wbg.__wbg_versions_b23f2588cdb2ddbb = function(arg0) {
         var ret = getObject(arg0).versions;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_node_4b517d861cbcb3bc = function(arg0) {
+    imports.wbg.__wbg_node_61b8c9a82499895d = function(arg0) {
         var ret = getObject(arg0).node;
         return addHeapObject(ret);
     };
@@ -4551,15 +4551,19 @@ async function init(input) {
         var ret = typeof(getObject(arg0)) === 'string';
         return ret;
     };
-    imports.wbg.__wbg_modulerequire_3440a4bcf44437db = function() { return handleError(function (arg0, arg1) {
-        var ret = module.require(getStringFromWasm0(arg0, arg1));
+    imports.wbg.__wbg_static_accessor_NODE_MODULE_33b45247c55045b0 = function() {
+        var ret = module;
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_require_2a93bc09fee45aca = function() { return handleError(function (arg0, arg1, arg2) {
+        var ret = getObject(arg0).require(getStringFromWasm0(arg1, arg2));
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbg_crypto_98fc271021c7d2ad = function(arg0) {
+    imports.wbg.__wbg_crypto_2f56257a38275dbd = function(arg0) {
         var ret = getObject(arg0).crypto;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_msCrypto_a2cdb043d2bfe57f = function(arg0) {
+    imports.wbg.__wbg_msCrypto_d07655bf62361f21 = function(arg0) {
         var ret = getObject(arg0).msCrypto;
         return addHeapObject(ret);
     };
