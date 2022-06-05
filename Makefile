@@ -16,7 +16,7 @@ build-nodejs:
 build-deno:
 	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
 	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/deno --target web --weak-refs
-	wasm-opt -O4 --dce ./pkg/node/bsv_wasm_bg.wasm -o ./pkg/node/bsv_wasm_bg.wasm
+	wasm-opt -O4 --dce ./pkg/deno/bsv_wasm_bg.wasm -o ./pkg/deno/bsv_wasm_bg.wasm
 
 build-wasm:
 	make build-web ; make build-bundler ; make build-nodejs
@@ -29,11 +29,11 @@ wasm-tests:
 
 publish-node:
 	# make sure not to call make build-* because wasm-pack doesnt allow you to specify subdirectories.
-	wasm-pack build --release --out-dir ./pkg/node --target nodejs -- --features wasm-bindgen-exports # Generate package.json, etc.
+	wasm-pack build --release --out-dir ./pkg --target nodejs -- --features wasm-bindgen-exports # Generate package.json, etc.
 	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
-	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/node --target nodejs --weak-refs
-	wasm-opt -O4 --dce ./pkg/node/bsv_wasm_bg.wasm -o ./pkg/node/bsv_wasm_bg.wasm
-	wasm-pack publish ./pkg
+	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/ --target nodejs --weak-refs
+	wasm-opt -O4 --dce ./pkg/bsv_wasm_bg.wasm -o ./pkg/bsv_wasm_bg.wasm
+	wasm-pack publish ./pkg/
 
 publish-web:
 	wasm-pack build --release --target web -- --features wasm-bindgen-exports

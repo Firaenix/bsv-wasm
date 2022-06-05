@@ -759,6 +759,14 @@ export class ECDH {
 export class ECDSA {
   free(): void;
 /**
+* @param {Uint8Array} message
+* @param {PublicKey} pub_key
+* @param {Signature} signature
+* @param {number} hash_algo
+* @returns {boolean}
+*/
+  static verify(message: Uint8Array, pub_key: PublicKey, signature: Signature, hash_algo: number): boolean;
+/**
 * @param {PrivateKey} private_key
 * @param {Uint8Array} preimage
 * @param {number} hash_algo
@@ -791,14 +799,6 @@ export class ECDSA {
 * @returns {PrivateKey}
 */
   static privateKeyFromSignatureK(signature: Signature, public_key: PublicKey, ephemeral_key: PrivateKey, preimage: Uint8Array, hash_algo: number): PrivateKey;
-/**
-* @param {Uint8Array} message
-* @param {PublicKey} pub_key
-* @param {Signature} signature
-* @param {number} hash_algo
-* @returns {boolean}
-*/
-  static verify(message: Uint8Array, pub_key: PublicKey, signature: Signature, hash_algo: number): boolean;
 }
 /**
 *
@@ -2021,6 +2021,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly ecdsa_verify: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly __wbg_eciesciphertext_free: (a: number) => void;
   readonly eciesciphertext_getCiphertext: (a: number, b: number) => void;
   readonly eciesciphertext_getHMAC: (a: number, b: number) => void;
@@ -2272,9 +2273,20 @@ export interface InitOutput {
   readonly script_encodePushData: (a: number, b: number, c: number) => void;
   readonly script_getPushDataBytes: (a: number, b: number) => void;
   readonly script_toScriptBits: (a: number) => number;
+  readonly __wbg_publickey_free: (a: number) => void;
+  readonly publickey_isValidMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly publickey_isCompressed: (a: number) => number;
+  readonly publickey_fromHex: (a: number, b: number) => number;
+  readonly publickey_fromBytes: (a: number, b: number) => number;
+  readonly publickey_toHex: (a: number, b: number) => void;
+  readonly publickey_fromPrivateKey: (a: number) => number;
+  readonly publickey_verifyMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly publickey_toAddress: (a: number) => number;
+  readonly publickey_toCompressed: (a: number) => number;
+  readonly publickey_toDecompressed: (a: number) => number;
+  readonly publickey_encryptMessage: (a: number, b: number, c: number, d: number) => number;
   readonly __wbg_kdf_free: (a: number) => void;
   readonly kdf_getHash: (a: number) => number;
-  readonly kdf_getSalt: (a: number, b: number) => void;
   readonly __wbg_cipherkeys_free: (a: number) => void;
   readonly cipherkeys_get_iv: (a: number, b: number) => void;
   readonly cipherkeys_get_ke: (a: number, b: number) => void;
@@ -2283,23 +2295,11 @@ export interface InitOutput {
   readonly ecies_encryptWithEphemeralKey: (a: number, b: number, c: number) => number;
   readonly ecies_decrypt: (a: number, b: number, c: number, d: number) => void;
   readonly ecies_deriveCipherKeys: (a: number, b: number) => number;
-  readonly __wbg_ecies_free: (a: number) => void;
-  readonly __wbg_publickey_free: (a: number) => void;
-  readonly publickey_isValidMessage: (a: number, b: number, c: number, d: number) => number;
-  readonly publickey_isCompressed: (a: number) => number;
-  readonly publickey_fromHex: (a: number, b: number) => number;
-  readonly publickey_fromBytes: (a: number, b: number) => number;
   readonly publickey_toBytes: (a: number, b: number) => void;
-  readonly publickey_toHex: (a: number, b: number) => void;
-  readonly publickey_fromPrivateKey: (a: number) => number;
-  readonly publickey_verifyMessage: (a: number, b: number, c: number, d: number) => number;
-  readonly publickey_toAddress: (a: number) => number;
-  readonly publickey_toCompressed: (a: number) => number;
-  readonly publickey_toDecompressed: (a: number) => number;
-  readonly publickey_encryptMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly kdf_getSalt: (a: number, b: number) => void;
+  readonly __wbg_ecies_free: (a: number) => void;
   readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly ecdsa_verify: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly __wbg_aes_free: (a: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
