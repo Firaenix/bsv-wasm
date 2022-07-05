@@ -116,9 +116,9 @@ mod tests {
     #[test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_with_k_test() {
-        let private_key = PrivateKey::from_random();
+        let private_key = PrivateKey::from_wif("5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf").unwrap();
         let public_key = PublicKey::from_private_key(&private_key);
-        let ephemeral_key = PrivateKey::from_random();
+        let ephemeral_key = PrivateKey::from_wif("5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf").unwrap();
         let message = b"Hello";
         let signature = ECDSA::sign_with_k(&private_key, &ephemeral_key, message, SigningHash::Sha256d).unwrap();
         let private_key_recovered = ECDSA::private_key_from_signature_k(&signature, &public_key, &ephemeral_key, message, SigningHash::Sha256d).unwrap();

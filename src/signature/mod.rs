@@ -163,6 +163,26 @@ impl Signature {
         compact_buf
     }
 
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = r))]
+    pub fn r(&self) -> Vec<u8> {
+        self.sig.r().to_bytes().to_vec()
+    }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = rHex))]
+    pub fn r_hex(&self) -> String {
+        hex::encode(self.r())
+    }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = s))]
+    pub fn s(&self) -> Vec<u8> {
+        self.sig.s().to_bytes().to_vec()
+    }
+
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = sHex))]
+    pub fn s_hex(&self) -> String {
+        hex::encode(self.s())
+    }
+
     /// NOTE: Provide recovery info if the current signature object doesnt contain it.
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toCompactHex))]
     pub fn to_compact_hex(&self, recovery_info: Option<RecoveryInfo>) -> String {
