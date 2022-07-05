@@ -302,6 +302,7 @@ impl ECDSA {
             return Err(BSVErrors::CustomECDSAError("Invalid modInvR value".to_string()));
         }
         let rinv_final = inv_r.unwrap().to_bytes().to_vec();
+
         let r_inverse = U1024::from_be_slice(&[
             0x00u8,
             0x00,
@@ -444,21 +445,25 @@ impl ECDSA {
         // The formula to reverse a private key is P = r^-1(N) * ((k * s) -H(m)) % N
         // however as Bitcoin signatures must use a low S value due to Bip 62, we
         // must account for both high and low S values in our equation.
-        let k_s = r_inverse.wrapping_mul(&k.wrapping_mul(&s).wrapping_sub(&m)).wrapping_rem(&n);
-
-        let priv_p = PrivateKey::from_bytes_impl(&k_s.to_be_bytes()[96..])?;
-        let pub_p = PublicKey::from_private_key_impl(&priv_p).to_bytes_impl()?;
+        let mut k_s = r_inverse.wrapping_mul(&k.wrapping_mul(&s).wrapping_sub(&m)).wrapping_rem(&n);
+        let mut priv_p = PrivateKey::from_bytes_impl(&k_s.to_be_bytes()[96..])?;
+        let mut pub_p = PublicKey::from_private_key_impl(&priv_p).to_bytes_impl()?;
+        // Handle edge case for high S
+        if pub_p != public_key.to_bytes_impl()? {
+            k_s = r_inverse.wrapping_mul(&k.wrapping_mul(&n.wrapping_sub(&s)).wrapping_sub(&m)).wrapping_rem(&n);
+            priv_p = PrivateKey::from_bytes_impl(&k_s.to_be_bytes()[96..])?;
+            pub_p = PublicKey::from_private_key_impl(&priv_p).to_bytes_impl()?;
+        }
+        // Handle edge case for extremely low private key
+        if pub_p != public_key.to_bytes_impl()? {
+            k_s = r_inverse.wrapping_mul(&k.wrapping_mul(&n.wrapping_sub(&s)).wrapping_sub(&m.wrapping_add(&n))).wrapping_rem(&n);
+            priv_p = PrivateKey::from_bytes_impl(&k_s.to_be_bytes()[96..])?;
+            pub_p = PublicKey::from_private_key_impl(&priv_p).to_bytes_impl()?;
+        }
         if pub_p == public_key.to_bytes_impl()? {
             Ok(priv_p)
         } else {
-            let k_low_s = r_inverse.wrapping_mul(&k.wrapping_mul(&n.wrapping_sub(&s)).wrapping_sub(&m)).wrapping_rem(&n);
-            let priv_low_p = PrivateKey::from_bytes_impl(&k_low_s.to_be_bytes()[96..])?;
-            let pub_low_p = PublicKey::from_private_key_impl(&priv_low_p).to_bytes_impl()?;
-            if pub_low_p == public_key.to_bytes_impl()? {
-                Ok(priv_low_p)
-            } else {
-                Err(BSVErrors::CustomECDSAError("Unable to recover private key.".to_string()))
-            }
+            Err(BSVErrors::CustomECDSAError("Unable to recover private key.".to_string()))
         }
     }
 }
