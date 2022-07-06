@@ -339,17 +339,17 @@ impl Script {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = fromScriptBits))]
-    fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
+    pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
         Script(bits)
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = push))]
-    fn push(&mut self, code: ScriptBit) {
+    pub fn push(&mut self, code: ScriptBit) {
         self.0.push(code);
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = pushArray))]
-    fn push_array(&mut self, code: &[ScriptBit]) {
+    pub fn push_array(&mut self, code: &[ScriptBit]) {
         self.0.extend_from_slice(code);
     }
 }
