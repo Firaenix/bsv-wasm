@@ -400,8 +400,8 @@ impl SighashSignature {
             return Err(BSVErrors::SignatureError("Could not create SighashSignature, provided bytes length != 71"));
         }
 
-        let signature = Signature::from_der_impl(&bytes[0..71])?;
-        let sighash_type: SigHash = bytes[71].try_into()?;
+        let signature = Signature::from_der_impl(&bytes[0..70])?;
+        let sighash_type: SigHash = bytes[70].try_into()?;
         Ok(Self {
             sighash_type,
             signature,
