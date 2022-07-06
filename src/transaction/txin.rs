@@ -294,8 +294,8 @@ impl TxIn {
         hex::encode(self.get_outpoint_bytes(little_endian))
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setScript))]
-    pub fn set_script(&mut self, script: &Script) {
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setUnlockingScript))]
+    pub fn set_unlocking_script(&mut self, script: &Script) {
         self.unlocking_script = script.clone();
     }
 
