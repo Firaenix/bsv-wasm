@@ -162,10 +162,10 @@ impl Transaction {
         script.remove_codeseparators();
 
         // Empty scripts
-        tx.inputs.iter_mut().for_each(|txin| txin.set_script(&Script::default()));
+        tx.inputs.iter_mut().for_each(|txin| txin.set_unlocking_script(&Script::default()));
 
         let mut prev_txin = tx.get_input(n_tx_in).ok_or_else(|| BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
-        prev_txin.set_script(&script);
+        prev_txin.set_unlocking_script(&script);
         tx.set_input(n_tx_in, &prev_txin);
 
         match sighash {
@@ -393,6 +393,20 @@ impl SighashSignature {
 
         sig_bytes.push(sighash_u8);
         Ok(sig_bytes)
+    }
+
+    pub(crate) fn from_bytes_impl(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        if bytes.len() != 71 {
+            return Err(BSVErrors::SignatureError("Could not create SighashSignature, provided bytes length != 71"));
+        }
+
+        let signature = Signature::from_der_impl(&bytes[0..71])?;
+        let sighash_type: SigHash = bytes[71].try_into()?;
+        Ok(Self {
+            sighash_type,
+            signature,
+            sighash_buffer: sighash_buffer.to_vec(),
+        })
     }
 }
 
