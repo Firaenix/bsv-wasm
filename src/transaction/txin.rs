@@ -22,15 +22,20 @@ pub struct TxIn {
     #[serde(serialize_with = "to_reverse_hex", deserialize_with = "from_reverse_hex")]
     pub(crate) prev_tx_id: Vec<u8>,
     pub(crate) vout: u32,
-    pub(crate) script_sig: Script,
+    /**
+     * The script to unlock a UTXO at an outpoint.
+     * AKA ScriptSig
+     */
+    pub(crate) unlocking_script: Script,
     pub(crate) sequence: u32,
 
     /**
      * Part of the extended transaction serialisation format.
-     * TODO: Rename this to locking script (it is the representation of this TxIn's past life as a UTXO)
+     * The representation of this TxIn's past life as a UTXO (The TxOut's
+     * ScriptPubKey/LockingScript)
      */
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) unlocking_script: Option<Script>,
+    pub(crate) locking_script: Option<Script>,
     /**
      * Part of the extended transaction serialisation format.
      */
@@ -40,16 +45,16 @@ pub struct TxIn {
 
 impl TxIn {
     pub(crate) fn get_finalised_script_impl(&self) -> Result<Script, BSVErrors> {
-        match self.unlocking_script.as_ref() {
+        match self.locking_script.as_ref() {
             // If there is a specified unlocking script, prepend it to the locking script
-            Some(unlock_script) => {
-                let mut script_sig_bytes = self.script_sig.to_bytes();
-                let unlock_script_bytes = unlock_script.to_bytes();
+            Some(locking_script) => {
+                let mut unlocking_script_bytes = self.unlocking_script.to_bytes();
+                let locking_script_bytes = locking_script.to_bytes();
 
-                script_sig_bytes.extend_from_slice(&unlock_script_bytes);
-                Script::from_bytes_impl(&script_sig_bytes)
+                unlocking_script_bytes.extend_from_slice(&locking_script_bytes);
+                Script::from_bytes_impl(&unlocking_script_bytes)
             }
-            None => Ok(self.script_sig.clone()),
+            None => Ok(self.unlocking_script.clone()),
         }
     }
 
@@ -85,15 +90,15 @@ impl TxIn {
         };
 
         // Script Sig Size - VarInt
-        let script_sig_size = match cursor.read_varint() {
+        let unlocking_script_size = match cursor.read_varint() {
             Ok(v) => v,
-            Err(e) => return Err(BSVErrors::DeserialiseTxIn("script_sig_size".to_string(), e)),
+            Err(e) => return Err(BSVErrors::DeserialiseTxIn("unlocking_script_size".to_string(), e)),
         };
 
         // Script Sig
-        let mut script_sig = vec![0; script_sig_size as usize];
-        if let Err(e) = cursor.read(&mut script_sig) {
-            return Err(BSVErrors::DeserialiseTxIn("script_sig".to_string(), e));
+        let mut unlocking_script = vec![0; unlocking_script_size as usize];
+        if let Err(e) = cursor.read(&mut unlocking_script) {
+            return Err(BSVErrors::DeserialiseTxIn("unlocking_script".to_string(), e));
         }
 
         // Sequence - 4 bytes
@@ -103,15 +108,15 @@ impl TxIn {
         };
 
         Ok(TxIn {
-            script_sig: match TxIn::is_coinbase_outpoint_impl(&prev_tx_id, &vout) {
-                true => Script::from_coinbase_bytes_impl(&script_sig)?,
-                false => Script::from_bytes_impl(&script_sig)?,
+            unlocking_script: match TxIn::is_coinbase_outpoint_impl(&prev_tx_id, &vout) {
+                true => Script::from_coinbase_bytes_impl(&unlocking_script)?,
+                false => Script::from_bytes_impl(&unlocking_script)?,
             },
             prev_tx_id,
             vout,
             sequence,
             satoshis: None,
-            unlocking_script: None,
+            locking_script: None,
         })
     }
 
@@ -131,16 +136,16 @@ impl TxIn {
             return Err(BSVErrors::SerialiseTxIn("vout".to_string(), e));
         }
 
-        let finalised_script = self.script_sig.clone();
+        let finalised_script = self.unlocking_script.clone();
 
         // Script Sig Size
         if let Err(e) = buffer.write_varint(finalised_script.get_script_length() as u64) {
-            return Err(BSVErrors::SerialiseTxIn("script_sig_size".to_string(), e));
+            return Err(BSVErrors::SerialiseTxIn("unlocking_script_size".to_string(), e));
         }
 
         // Script Sig
         if let Err(e) = buffer.write(&finalised_script.to_bytes()) {
-            return Err(BSVErrors::SerialiseTxIn("script_sig".to_string(), e));
+            return Err(BSVErrors::SerialiseTxIn("unlocking_script".to_string(), e));
         }
 
         // Sequence
@@ -204,17 +209,17 @@ impl TxIn {
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxIn {
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
-    pub fn new(prev_tx_id: &[u8], vout: u32, script_sig: &Script, sequence: Option<u32>) -> TxIn {
+    pub fn new(prev_tx_id: &[u8], vout: u32, unlocking_script: &Script, sequence: Option<u32>) -> TxIn {
         TxIn {
             prev_tx_id: prev_tx_id.to_vec(),
             vout,
-            script_sig: script_sig.clone(),
+            unlocking_script: unlocking_script.clone(),
             sequence: match sequence {
                 Some(v) => v,
                 None => u32::MAX,
             },
             satoshis: None,
-            unlocking_script: None,
+            locking_script: None,
         }
     }
 
@@ -223,9 +228,9 @@ impl TxIn {
         TxIn {
             prev_tx_id: vec![],
             satoshis: None,
-            script_sig: Script::default(),
+            unlocking_script: Script::default(),
             sequence: u32::MAX,
-            unlocking_script: None,
+            locking_script: None,
             vout: 0,
         }
     }
@@ -253,18 +258,18 @@ impl TxIn {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSigSize))]
-    pub fn get_script_sig_size(&self) -> u64 {
-        self.script_sig.get_script_length() as u64
+    pub fn get_unlocking_script_size(&self) -> u64 {
+        self.unlocking_script.get_script_length() as u64
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSig))]
-    pub fn get_script_sig(&self) -> Script {
-        self.script_sig.clone()
+    pub fn get_unlocking_script(&self) -> Script {
+        self.unlocking_script.clone()
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSigHex))]
-    pub fn get_script_sig_hex(&self) -> String {
-        hex::encode(self.script_sig.to_bytes())
+    pub fn get_unlocking_script_hex(&self) -> String {
+        hex::encode(self.unlocking_script.to_bytes())
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSequence))]
@@ -291,7 +296,7 @@ impl TxIn {
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setScript))]
     pub fn set_script(&mut self, script: &Script) {
-        self.script_sig = script.clone();
+        self.unlocking_script = script.clone();
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setPrevTxId))]
@@ -320,18 +325,18 @@ impl TxIn {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setUnlockingScript))]
-    pub fn set_unlocking_script(&mut self, unlocking_script: &Script) {
-        self.unlocking_script = Some(unlocking_script.clone());
+    pub fn set_locking_script(&mut self, locking_script: &Script) {
+        self.locking_script = Some(locking_script.clone());
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScript))]
-    pub fn get_unlocking_script(&self) -> Option<Script> {
-        self.unlocking_script.clone()
+    pub fn get_locking_script(&self) -> Option<Script> {
+        self.locking_script.clone()
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScriptBytes))]
-    pub fn get_unlocking_script_bytes(&self) -> Option<Vec<u8>> {
-        self.unlocking_script.as_ref().map(|v| v.to_bytes())
+    pub fn get_locking_script_bytes(&self) -> Option<Vec<u8>> {
+        self.locking_script.as_ref().map(|v| v.to_bytes())
     }
 }
 
