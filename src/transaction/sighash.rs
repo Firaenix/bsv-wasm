@@ -431,6 +431,10 @@ impl SighashSignature {
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         self.to_bytes_impl()
     }
+
+    pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        Self::from_bytes_impl(bytes, sighash_buffer)
+    }
 }
 
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
@@ -450,5 +454,10 @@ impl SighashSignature {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
+    pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, JsValue> {
+        Self::from_bytes_impl(bytes, sighash_buffer).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 }
