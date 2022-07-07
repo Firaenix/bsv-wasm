@@ -396,12 +396,12 @@ impl SighashSignature {
     }
 
     pub(crate) fn from_bytes_impl(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
-        if bytes.len() != 71 {
-            return Err(BSVErrors::SignatureError("Could not create SighashSignature, provided bytes length != 71"));
-        }
-
-        let signature = Signature::from_der_impl(&bytes[0..70])?;
-        let sighash_type: SigHash = bytes[70].try_into()?;
+        let signature = Signature::from_der_impl(&bytes[..bytes.len() - 1])?;
+        let sighash_type: SigHash = bytes
+            .last()
+            .cloned()
+            .ok_or_else(|| BSVErrors::ToSighash("Could not convert last byte of signature to Sighash flag".into()))?
+            .try_into()?;
         Ok(Self {
             sighash_type,
             signature,
