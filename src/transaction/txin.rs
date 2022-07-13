@@ -324,7 +324,7 @@ impl TxIn {
         self.satoshis
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setUnlockingScript))]
+    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setLockingScript))]
     pub fn set_locking_script(&mut self, locking_script: &Script) {
         self.locking_script = Some(locking_script.clone());
     }
