@@ -289,7 +289,7 @@ impl Script {
             Err(e) => return Err(JsValue::from_str(&e.to_string())),
         };
 
-        match JsValue::from_serde(&matches) {
+        match serde_wasm_bindgen::to_value(&matches) {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }

@@ -12,7 +12,7 @@ use crate::{
 };
 use serde::*;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str, JsValue};
+use wasm_bindgen::{prelude::*, throw_str, JsValue, JsError};
 
 use byteorder::*;
 
@@ -355,11 +355,8 @@ impl TxIn {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
-    pub fn to_json(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn to_json(&self) -> Result<JsValue, JsError> {
+        Ok(serde_wasm_bindgen::to_value(&self)?)    
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
@@ -442,11 +439,8 @@ impl TxIn {
 
     /// Concatenates ScriptSig and UnlockingScript into a single script.
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getFinalisedScript))]
-    pub fn get_finalised_script(&self) -> Result<Script, JsValue> {
-        match self.get_finalised_script_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn get_finalised_script(&self) -> Result<Script, JsError> {
+        Ok(self.get_finalised_script_impl()?)
     }
 
     // Checks if input is a coinbase

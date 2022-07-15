@@ -338,20 +338,6 @@ impl Script {
         self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = fromScriptBits))]
-    pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
-        Script(bits)
-    }
-
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = push))]
-    pub fn push(&mut self, code: ScriptBit) {
-        self.0.push(code);
-    }
-
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = pushArray))]
-    pub fn push_array(&mut self, code: &[ScriptBit]) {
-        self.0.extend_from_slice(code);
-    }
 }
 
 /**
@@ -363,6 +349,18 @@ impl Script {
      */
     pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Script, BSVErrors> {
         Script::from_bytes_impl(&chunks.into_iter().flatten().collect::<Vec<u8>>())
+    }
+
+    pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
+        Script(bits)
+    }
+
+    pub fn push(&mut self, code: ScriptBit) {
+        self.0.push(code);
+    }
+    
+    pub fn push_array(&mut self, code: &[ScriptBit]) {
+        self.0.extend_from_slice(code);
     }
 }
 
@@ -468,7 +466,7 @@ impl Script {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toScriptBits))]
     pub fn to_script_bits(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(self) {
+        match serde_wasm_bindgen::to_value(self) {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }

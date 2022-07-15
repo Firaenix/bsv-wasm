@@ -413,7 +413,7 @@ impl Transaction {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(&self) {
+        match serde_wasm_bindgen::to_value(&self) {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
@@ -455,7 +455,7 @@ impl Transaction {
         let js_value = &*tx_ins.to_vec();
 
         for elem in js_value {
-            let input = elem.into_serde().unwrap();
+            let input = serde_wasm_bindgen::from_value(elem.clone()).unwrap();
 
             self.add_input(&input);
         }
@@ -469,7 +469,7 @@ impl Transaction {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutpoints))]
     pub fn get_outpoints(&mut self) -> Result<JsValue, JsValue> {
         let outpoints = self.get_outpoints_impl();
-        match JsValue::from_serde(&outpoints) {
+        match serde_wasm_bindgen::to_value(&outpoints) {
             Ok(v) => Ok(v),
             Err(e) => Err(JsValue::from_str(&e.to_string())),
         }
@@ -484,7 +484,7 @@ impl Transaction {
         let js_value = &*tx_outs.to_vec();
 
         for elem in js_value {
-            let output = elem.into_serde().unwrap();
+            let output = serde_wasm_bindgen::from_value(elem.clone()).unwrap();
 
             self.add_output(&output);
         }

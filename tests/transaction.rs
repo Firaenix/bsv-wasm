@@ -467,7 +467,7 @@ mod transaction_tests {
 
         let outpoints = tx.get_outpoints().unwrap();
 
-        let outpoint_slice: Vec<Vec<u8>> = outpoints.into_serde().unwrap();
+        let outpoint_slice: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(outpoints).unwrap();
 
         assert_eq!(&outpoint_slice[0].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f00000000");
         assert_eq!(&outpoint_slice[1].to_hex(), "9a7e28ee25633db9a939eab350bee2eb047476b1ad0d7be42fbc6977f912e54f01000000");

@@ -298,7 +298,7 @@ mod script_tests {
             format!("{:?}", &script.to_script_bits().unwrap()),
             format!(
                 "{:?}",
-                &JsValue::from_serde(&[
+                &serde_wasm_bindgen::to_value(&[
                     ScriptBit::Push(hex::decode("21e8").unwrap()),
                     ScriptBit::If {
                         code: OpCodes::OP_IF,

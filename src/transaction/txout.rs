@@ -3,7 +3,7 @@ use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsError};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
 
@@ -140,11 +140,8 @@ impl TxOut {
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
-    pub fn to_json(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn to_json(&self) -> Result<JsValue, JsError> {
+        Ok(serde_wasm_bindgen::to_value(&self)?)
     }
 
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]

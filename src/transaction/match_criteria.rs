@@ -105,7 +105,7 @@ impl Transaction {
 
     fn is_matching_input(txin: &TxIn, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
-        if matches!(&criteria.script_template, Some(crit_script) if !txin.get_finalised_script().unwrap().is_match(crit_script)) {
+        if matches!(&criteria.script_template, Some(crit_script) if !txin.get_finalised_script_impl().unwrap().is_match(crit_script)) {
             return false;
         }
 

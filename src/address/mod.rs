@@ -162,11 +162,8 @@ impl P2PKHAddress {
 #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl P2PKHAddress {
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = fromPubKeyHash))]
-    pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, JsValue> {
-        match P2PKHAddress::from_pubkey_hash_impl(hash_bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, JsError> {
+        Ok(P2PKHAddress::from_pubkey_hash_impl(hash_bytes)?)
     }
     #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-address"), wasm_bindgen(js_name = fromPubKey))]
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, JsValue> {
