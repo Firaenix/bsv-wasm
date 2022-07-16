@@ -30,7 +30,7 @@ pub enum ScriptTemplateErrors {
     ),
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone, Display)]
 pub enum DataLengthConstraints {
     Equals,
@@ -55,7 +55,7 @@ pub enum MatchToken {
     PublicKeyHash,
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone, Display, Serialize, Deserialize)]
 pub enum MatchDataTypes {
     Data,
@@ -64,7 +64,7 @@ pub enum MatchDataTypes {
     PublicKeyHash,
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 #[derive(Debug, Clone)]
 pub struct ScriptTemplate(Vec<MatchToken>);
 
@@ -286,7 +286,7 @@ impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///
     /// Returns `true` if the Script matches the ScriptTemplate.
-    /// #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
     pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
         self.test_impl(script_template)
     }

@@ -26,7 +26,7 @@ use wasm_bindgen::{prelude::*, throw_str};
 mod script_template;
 pub use script_template::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(feature = "wasm-bindgen-script", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(pub(crate) Vec<ScriptBit>);
 
