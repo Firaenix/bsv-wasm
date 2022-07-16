@@ -4,7 +4,7 @@ mod private_key_tests {
     use bsv_wasm::keypair::*;
     use core::time;
     use std::time::{SystemTime, UNIX_EPOCH};
-    #[cfg(target_arch = "wasm32")]
+    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

@@ -1,8 +1,8 @@
 use crate::{BSVErrors, PrivateKey, PublicKey};
 use elliptic_curve::ecdh::diffie_hellman;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{throw_str, JsValue};
 
 #[cfg_attr(all(feature = "wasm-bindgen-ecdh"), wasm_bindgen)]
@@ -21,7 +21,7 @@ impl ECDH {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecdh"), wasm_bindgen)]
 impl ECDH {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdh"), wasm_bindgen(js_name = deriveSharedKey))]
@@ -30,7 +30,7 @@ impl ECDH {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-ecdh"))]
 impl ECDH {
     pub fn derive_shared_key(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<Vec<u8>, BSVErrors> {
         ECDH::derive_shared_key_impl(priv_key, pub_key)

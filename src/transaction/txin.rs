@@ -11,7 +11,7 @@ use crate::{
     Script,
 };
 use serde::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str, JsError, JsValue};
 
 use byteorder::*;
@@ -343,7 +343,7 @@ impl TxIn {
 /**
  * WASM Specific Functions
  */
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxIn {
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]

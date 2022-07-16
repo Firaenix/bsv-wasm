@@ -3,9 +3,9 @@ use crate::VarIntWriter;
 use std::io::Write;
 
 use crate::{P2PKHAddress, PrivateKey, Signature, SigningHash, ECDSA};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{throw_str, JsValue};
 
 /**
@@ -81,20 +81,20 @@ impl BSM {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen)]
+
+#[cfg_attr(feature = "wasm-bindgen-bsm", wasm_bindgen)]
 impl BSM {
-    #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = verifyMessage))]
+    #[wasm_bindgen(js_name = verifyMessage)]
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, wasm_bindgen::JsError> {
         Ok(BSM::verify_message_impl(message, signature, address)?)
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessage))]
+    #[wasm_bindgen(js_name = signMessage)]
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
         Ok(BSM::sign_impl(priv_key, message)?)
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessageWithK))]
+    #[wasm_bindgen(js_name = signMessageWithK)]
     pub fn sign_message_with_k(priv_key: &PrivateKey, ephemeral_key: &PrivateKey, message: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
         match BSM::sign_with_k_impl(priv_key, ephemeral_key, message) {
             Ok(v) => Ok(v),
@@ -103,7 +103,7 @@ impl BSM {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-bsm"))]
 impl BSM {
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {
         BSM::verify_message_impl(message, signature, address)

@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use bsv_wasm::{address::*, PrivateKey, PublicKey};
-    #[cfg(target_arch = "wasm32")]
+    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

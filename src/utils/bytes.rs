@@ -1,9 +1,9 @@
 use crate::utils::{from_hex, to_hex};
 use hex::FromHexError;
 use serde::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{throw_str, JsValue};
 
 /**
@@ -44,7 +44,7 @@ impl Bytes {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl Bytes {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]

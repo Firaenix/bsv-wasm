@@ -5,7 +5,7 @@ mod aes_tests {
 
     use bsv_wasm::{encryption::AESAlgorithms, hash::Hash, AES};
     use rand_core::{OsRng, RngCore};
-    #[cfg(target_arch = "wasm32")]
+    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

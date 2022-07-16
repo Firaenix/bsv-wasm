@@ -1,5 +1,5 @@
 use crate::{CipherKeys, PublicKey};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::BSVErrors;
@@ -77,7 +77,7 @@ impl ECIESCiphertext {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 impl ECIESCiphertext {
     #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = extractPublicKey))]

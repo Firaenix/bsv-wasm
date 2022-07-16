@@ -20,7 +20,7 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 
 use serde::{Deserialize, Serialize};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 mod script_template;

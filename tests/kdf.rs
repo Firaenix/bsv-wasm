@@ -7,7 +7,7 @@ mod kdf_tests {
         Params, Pbkdf2,
     };
     use std::str::from_utf8;
-    #[cfg(target_arch = "wasm32")]
+    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

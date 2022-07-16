@@ -7,9 +7,9 @@ use crate::{Signature, ToHex};
 use elliptic_curve::sec1::ToEncodedPoint;
 use k256::SecretKey;
 use rand_core::OsRng;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::throw_str;
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
@@ -176,7 +176,7 @@ impl PrivateKey {
 /**
  * WASM Exported Methods
  */
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl PrivateKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromWIF))]

@@ -17,11 +17,11 @@ use k256::{ecdsa::Signature as SecpSignature, Scalar, SecretKey};
 use rand_core::OsRng;
 use rand_core::RngCore;
 use sha2::Sha256;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::throw_str;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::JsValue;
 
 impl ECDSA {
@@ -129,7 +129,7 @@ impl ECDSA {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithRandomK))]

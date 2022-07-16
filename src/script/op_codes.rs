@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use strum_macros::EnumString;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
 
 /**

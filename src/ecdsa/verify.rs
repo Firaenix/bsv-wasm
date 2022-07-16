@@ -3,9 +3,9 @@ use crate::Signature;
 use crate::{get_hash_digest, PublicKey, SigningHash, ECDSA};
 use ecdsa::signature::DigestVerifier;
 use k256::{ecdsa::VerifyingKey, EncodedPoint};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{throw_str, JsValue};
 
 impl ECDSA {
@@ -19,7 +19,7 @@ impl ECDSA {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = verify))]

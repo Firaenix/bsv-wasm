@@ -51,7 +51,7 @@ impl AES {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen)]
 impl AES {
     #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen(js_name = encrypt))]

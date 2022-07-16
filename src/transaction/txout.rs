@@ -2,9 +2,9 @@ use crate::{BSVErrors, Script, VarIntReader, VarIntWriter};
 use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::throw_str;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, JsError};
 
 use byteorder::*;
@@ -112,7 +112,7 @@ impl TxOut {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxOut {
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]

@@ -7,7 +7,7 @@ use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use strum_macros::EnumString;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::throw_str;
 
 #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]

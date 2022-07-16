@@ -8,11 +8,11 @@ use crate::ECDSA;
 use digest::FixedOutput;
 use elliptic_curve::bigint::Encoding;
 use elliptic_curve::bigint::U1024;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::throw_str;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::JsValue;
 
 impl ECDSA {
@@ -468,7 +468,7 @@ impl ECDSA {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = privateKeyFromSignatureK))]
@@ -486,7 +486,7 @@ impl ECDSA {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-ecdsa"))]
 impl ECDSA {
     pub fn private_key_from_signature_k(signature: &Signature, public_key: &PublicKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<PrivateKey, BSVErrors> {
         ECDSA::private_key_from_signature_k_impl(signature, public_key, ephemeral_key, preimage, hash_algo)

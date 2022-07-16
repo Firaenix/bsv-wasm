@@ -1,9 +1,9 @@
 use crate::{BSVErrors, Hash, PrivateKey, PublicKey, AES};
 use elliptic_curve::sec1::ToEncodedPoint;
 use k256::PublicKey as K256PublicKey;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{throw_str, JsValue};
 
 pub mod ecies_ciphertext;
@@ -116,7 +116,7 @@ impl ECIES {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 impl ECIES {
     pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {

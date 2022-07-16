@@ -7,7 +7,7 @@ use std::io::{Cursor, Read, Write};
 use crate::{hash::Hash, BSVErrors, ExtendedPrivateKey, PublicKey};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
@@ -235,7 +235,7 @@ impl ExtendedPublicKey {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl ExtendedPublicKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]

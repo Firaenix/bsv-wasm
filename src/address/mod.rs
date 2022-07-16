@@ -3,9 +3,9 @@ use crate::{BSVErrors, Hash, Script, SighashSignature, BSM};
 use crate::{PublicKey, Signature};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::JsValue;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen)]
@@ -209,23 +209,20 @@ impl P2PKHAddress {
 /**
  * Native Exported Methods
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-address"))]
 impl P2PKHAddress {
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
-    #[cfg(not(target_arch = "wasm32"))]
+    
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_address_string(&self) -> Result<String, BSVErrors> {
         P2PKHAddress::to_address_string_impl(self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, BSVErrors> {
         self.set_chain_params_impl(chain_params)
     }

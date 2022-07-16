@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use thiserror::Error;
 
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 #[derive(Debug, Error)]

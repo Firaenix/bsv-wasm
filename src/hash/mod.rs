@@ -19,7 +19,7 @@ use ripemd160::Ripemd160;
 use serde::*;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
 
 use self::hash160_digest::Hash160;

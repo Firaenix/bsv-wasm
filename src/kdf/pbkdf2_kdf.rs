@@ -4,7 +4,7 @@ use pbkdf2::{password_hash::SaltString, pbkdf2};
 use rand_core::OsRng;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(all(feature = "wasm-bindgen-kdf"), wasm_bindgen)]

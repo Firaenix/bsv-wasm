@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod bitcoin_signed_message_tests {
     use bsv_wasm::{PrivateKey, Signature, BSM};
-    #[cfg(target_arch = "wasm32")]
+    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 

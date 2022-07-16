@@ -1,7 +1,7 @@
 use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen)]
@@ -199,7 +199,7 @@ impl Signature {
  * WASM Exported Methods
  */
 #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
+
 impl Signature {
     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromDER))]
     pub fn from_der(bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {

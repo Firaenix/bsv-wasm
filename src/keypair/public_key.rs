@@ -1,7 +1,6 @@
 use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 use elliptic_curve::{sec1::*, subtle::Choice};
 use k256::{AffinePoint, Secp256k1};
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::PrivateKey;
@@ -102,7 +101,7 @@ impl PublicKey {
 /**
  * WASM Exported Methods
  */
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl PublicKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromHex))]
@@ -159,7 +158,7 @@ impl PublicKey {
 /**
  * Native Exported Methods
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-keypair"))]
 impl PublicKey {
     pub fn from_hex(hex_str: &str) -> Result<PublicKey, BSVErrors> {
         PublicKey::from_hex_impl(hex_str)

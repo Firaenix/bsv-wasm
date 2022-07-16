@@ -1,4 +1,4 @@
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen)]

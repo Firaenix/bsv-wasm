@@ -1,6 +1,6 @@
 use crate::{ScriptTemplate, Transaction, TxIn, TxOut};
 
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]

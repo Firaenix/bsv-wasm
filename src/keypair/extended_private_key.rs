@@ -8,7 +8,7 @@ use std::{
     vec,
 };
 
-#[cfg(target_arch = "wasm32")]
+
 use wasm_bindgen::{prelude::*, throw_str};
 
 use crate::{hash::Hash, PrivateKey, PublicKey};
@@ -271,7 +271,7 @@ impl ExtendedPrivateKey {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl ExtendedPrivateKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
