@@ -178,6 +178,7 @@ impl PrivateKey {
  */
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-keypair")]
 impl PrivateKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromWIF))]
     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, wasm_bindgen::JsError> {
@@ -232,7 +233,7 @@ impl PrivateKey {
 /**
  * Native Exported Methods
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-keypair"))]
 impl PrivateKey {
     pub fn to_wif(&self) -> Result<String, BSVErrors> {
         PrivateKey::to_wif_impl(self)

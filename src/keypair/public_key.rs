@@ -103,6 +103,7 @@ impl PublicKey {
  */
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-keypair")]
 impl PublicKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<PublicKey, wasm_bindgen::JsError> {

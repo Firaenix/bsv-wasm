@@ -470,6 +470,7 @@ impl ECDSA {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-ecdsa")]
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = privateKeyFromSignatureK))]
     pub fn private_key_from_signature_k(

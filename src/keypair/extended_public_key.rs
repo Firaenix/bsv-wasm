@@ -237,6 +237,7 @@ impl ExtendedPublicKey {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-keypair")]
 impl ExtendedPublicKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
     pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
@@ -269,7 +270,7 @@ impl ExtendedPublicKey {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-keypair"))]
 impl ExtendedPublicKey {
     pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, BSVErrors> {
         Self::derive_impl(self, index)

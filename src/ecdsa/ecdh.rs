@@ -23,8 +23,9 @@ impl ECDH {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-ecdh"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-ecdh")]
 impl ECDH {
-    #[cfg_attr(all(feature = "wasm-bindgen-ecdh"), wasm_bindgen(js_name = deriveSharedKey))]
+    #[wasm_bindgen(js_name = deriveSharedKey)]
     pub fn derive_shared_key(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<Vec<u8>, wasm_bindgen::JsError> {
         Ok(ECDH::derive_shared_key_impl(priv_key, pub_key)?)
     }

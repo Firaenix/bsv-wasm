@@ -83,6 +83,7 @@ impl BSM {
 
 
 #[cfg_attr(feature = "wasm-bindgen-bsm", wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-bsm")]
 impl BSM {
     #[wasm_bindgen(js_name = verifyMessage)]
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, wasm_bindgen::JsError> {

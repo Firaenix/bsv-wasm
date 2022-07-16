@@ -345,6 +345,7 @@ impl TxIn {
  */
 
 #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-transaction")]
 impl TxIn {
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<TxIn, wasm_bindgen::JsError> {
@@ -423,7 +424,7 @@ impl TxIn {
 /**
  * Native Specific Functions
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-transaction"))]
 impl TxIn {
     pub fn from_hex(hex_str: &str) -> Result<TxIn, BSVErrors> {
         TxIn::from_hex_impl(hex_str)

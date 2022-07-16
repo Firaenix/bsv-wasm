@@ -1,6 +1,3 @@
-pub mod bytes;
-pub use bytes::*;
-
 use serde::{Deserialize, Deserializer, Serializer};
 
 pub fn to_hex<S>(vec: &[u8], serializer: S) -> Result<S::Ok, S::Error>

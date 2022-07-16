@@ -53,6 +53,7 @@ impl AES {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-encryption")]
 impl AES {
     #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen(js_name = encrypt))]
     pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, wasm_bindgen::JsError> {
@@ -65,7 +66,7 @@ impl AES {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-encryption"))]
 impl AES {
     pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         AES::encrypt_impl(key, iv, message, algo)

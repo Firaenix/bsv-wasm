@@ -199,7 +199,7 @@ impl Signature {
  * WASM Exported Methods
  */
 #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen)]
-
+#[cfg(feature = "wasm-bindgen-signature")]
 impl Signature {
     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromDER))]
     pub fn from_der(bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
@@ -225,14 +225,12 @@ impl Signature {
 /**
  * Native Exported Methods
  */
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-signature"))]
 impl Signature {
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_der(bytes: &[u8]) -> Result<Signature, BSVErrors> {
         Signature::from_der_impl(bytes)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex_der(hex: &str) -> Result<Signature, BSVErrors> {
         Signature::from_hex_der_impl(hex)
     }
@@ -241,7 +239,6 @@ impl Signature {
         Signature::from_compact_impl(compact_bytes)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         Signature::get_public_key(self, message, hash_algo)
     }

@@ -273,6 +273,7 @@ impl ExtendedPrivateKey {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-keypair")]
 impl ExtendedPrivateKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
     pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
@@ -310,7 +311,7 @@ impl ExtendedPrivateKey {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-keypair"))]
 impl ExtendedPrivateKey {
     pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, BSVErrors> {
         Self::derive_impl(self, index)

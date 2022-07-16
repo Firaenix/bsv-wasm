@@ -79,6 +79,7 @@ impl ECIESCiphertext {
 
 
 #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen)]
+#[cfg(feature = "wasm-bindgen-ecies")]
 impl ECIESCiphertext {
     #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = extractPublicKey))]
     pub fn extract_public_key(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
@@ -91,7 +92,7 @@ impl ECIESCiphertext {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm-bindgen-ecies"))]
 impl ECIESCiphertext {
     pub fn extract_public_key(&self) -> Result<PublicKey, BSVErrors> {
         self.extract_public_key_impl()
