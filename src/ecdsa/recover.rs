@@ -469,10 +469,10 @@ impl ECDSA {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
 impl ECDSA {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = privateKeyFromSignatureK))]
-    pub fn private_key_from_signature_k(signature: &Signature, public_key: &PublicKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<PrivateKey, JsValue> {
+    #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = privateKeyFromSignatureK))]
+    pub fn private_key_from_signature_k(signature: &Signature, public_key: &PublicKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<PrivateKey, wasm_bindgen::JsError> {
         match ECDSA::private_key_from_signature_k_impl(signature, public_key, ephemeral_key, preimage, hash_algo) {
             Ok(v) => Ok(v),
             Err(e) => throw_str(&e.to_string()),

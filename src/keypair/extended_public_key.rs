@@ -10,7 +10,7 @@ use getrandom::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, throw_str};
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 pub struct ExtendedPublicKey {
     public_key: PublicKey,
     chain_code: Vec<u8>,
@@ -196,14 +196,14 @@ impl ExtendedPublicKey {
     }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl ExtendedPublicKey {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getPublicKey))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getPublicKey))]
     pub fn get_public_key(&self) -> PublicKey {
         self.public_key.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromXPriv))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromXPriv))]
     pub fn from_xpriv(xpriv: &ExtendedPrivateKey) -> Self {
         Self {
             public_key: xpriv.get_public_key(),
@@ -214,76 +214,58 @@ impl ExtendedPublicKey {
         }
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getChainCode))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getChainCode))]
     pub fn get_chain_code(&self) -> Vec<u8> {
         self.chain_code.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getDepth))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getDepth))]
     pub fn get_depth(&self) -> u8 {
         self.depth
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getParentFingerprint))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getParentFingerprint))]
     pub fn get_parent_fingerprint(&self) -> Vec<u8> {
         self.parent_fingerprint.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getIndex))]
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getIndex))]
     pub fn get_index(&self) -> u32 {
         self.index
     }
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 impl ExtendedPublicKey {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
-    pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, JsValue> {
-        match Self::derive_impl(&self, index) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
+    pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
+       Ok(Self::derive_impl(&self, index)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = derive))]
-    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, JsValue> {
-        match Self::derive_from_path_impl(&self, path) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = derive))]
+    pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
+       Ok(Self::derive_from_path_impl(&self, path)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromSeed))]
-    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, JsValue> {
-        match Self::from_seed_impl(seed) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromSeed))]
+    pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
+       Ok(Self::from_seed_impl(seed)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromRandom))]
-    pub fn from_random() -> Result<ExtendedPublicKey, JsValue> {
-        match Self::from_random_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromRandom))]
+    pub fn from_random() -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
+       Ok(Self::from_random_impl()?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromString))]
-    pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey, JsValue> {
-        match Self::from_string_impl(xpub_string) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromString))]
+    pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
+       Ok(Self::from_string_impl(xpub_string)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toString))]
-    pub fn to_string(&self) -> Result<String, JsValue> {
-        match Self::to_string_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toString))]
+    pub fn to_string(&self) -> Result<String, wasm_bindgen::JsError> {
+       Ok(Self::to_string_impl(&self)?)
     }
 }
 

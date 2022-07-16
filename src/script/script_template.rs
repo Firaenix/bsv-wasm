@@ -154,21 +154,15 @@ impl ScriptTemplate {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+#[cfg(all(feature = "wasm-bindgen-script-template"))]
+#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 impl ScriptTemplate {
-    pub fn from_script(script: &Script) -> Result<ScriptTemplate, JsValue> {
-        match ScriptTemplate::from_script_impl(script) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn from_script(script: &Script) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
+       Ok(ScriptTemplate::from_script_impl(script)?)
     }
 
-    pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, JsValue> {
-        match ScriptTemplate::from_asm_string_impl(asm) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
+       Ok(ScriptTemplate::from_asm_string_impl(asm)?)
     }
 }
 
@@ -276,23 +270,17 @@ impl Script {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+#[cfg(all(feature = "wasm-bindgen-script-template"))]
+#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///
     /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
     /// @returns {[string, Uint8Array][]}
-    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, JsValue> {
-        let matches = match self.match_impl(script_template) {
-            Ok(v) => v,
-            Err(e) => return Err(JsValue::from_str(&e.to_string())),
-        };
+    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, wasm_bindgen::JsError> {
+        let matches = self.match_impl(script_template)?;
 
-        match serde_wasm_bindgen::to_value(&matches) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+       Ok(serde_wasm_bindgen::to_value(&matches)?)
     }
 
     /// Matches the Script against the provided ScriptTemplate.

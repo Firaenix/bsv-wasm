@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 // Constants
 // --------------------------------------------------------------------------------------------
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-opcodes"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-opcodes"), wasm_bindgen)]
 #[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, EnumString, PartialEq, Eq, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum OpCodes {

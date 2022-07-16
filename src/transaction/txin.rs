@@ -16,7 +16,7 @@ use wasm_bindgen::{prelude::*, throw_str, JsValue, JsError};
 
 use byteorder::*;
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxIn {
     #[serde(serialize_with = "to_reverse_hex", deserialize_with = "from_reverse_hex")]
@@ -206,9 +206,9 @@ impl TxIn {
  * Platform Agnostic Functions
  * ie. Don't need Result<T, E>
  */
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxIn {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(prev_tx_id: &[u8], vout: u32, unlocking_script: &Script, sequence: Option<u32>) -> TxIn {
         TxIn {
             prev_tx_id: prev_tx_id.to_vec(),
@@ -223,7 +223,7 @@ impl TxIn {
         }
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
     pub fn default() -> TxIn {
         TxIn {
             prev_tx_id: vec![],
@@ -235,7 +235,7 @@ impl TxIn {
         }
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getPrevTxId))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getPrevTxId))]
     pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {
         match little_endian {
             Some(true) => {
@@ -247,94 +247,94 @@ impl TxIn {
         }
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getPrevTxIdHex))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getPrevTxIdHex))]
     pub fn get_prev_tx_id_hex(&self, little_endian: Option<bool>) -> String {
         hex::encode(self.get_prev_tx_id(little_endian))
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getVOut))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getVOut))]
     pub fn get_vout(&self) -> u32 {
         self.vout
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSigSize))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScriptSize))]
     pub fn get_unlocking_script_size(&self) -> u64 {
         self.unlocking_script.get_script_length() as u64
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSig))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScript))]
     pub fn get_unlocking_script(&self) -> Script {
         self.unlocking_script.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptSigHex))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScriptHex))]
     pub fn get_unlocking_script_hex(&self) -> String {
         hex::encode(self.unlocking_script.to_bytes())
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSequence))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSequence))]
     pub fn get_sequence(&self) -> u32 {
         self.sequence
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSequenceAsBytes))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSequenceAsBytes))]
     pub fn get_sequence_as_bytes(&self) -> Vec<u8> {
         self.sequence.to_be_bytes().to_vec()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutpointBytes))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutpointBytes))]
     pub fn get_outpoint_bytes(&self, little_endian: Option<bool>) -> Vec<u8> {
         let mut outpoint_bytes = self.get_prev_tx_id(little_endian);
         outpoint_bytes.extend_from_slice(&self.vout.to_le_bytes());
         outpoint_bytes
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutpointHex))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutpointHex))]
     pub fn get_outpoint_hex(&self, little_endian: Option<bool>) -> String {
         hex::encode(self.get_outpoint_bytes(little_endian))
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setUnlockingScript))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setUnlockingScript))]
     pub fn set_unlocking_script(&mut self, script: &Script) {
         self.unlocking_script = script.clone();
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setPrevTxId))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setPrevTxId))]
     pub fn set_prev_tx_id(&mut self, txid: &[u8]) {
         self.prev_tx_id = txid.to_vec();
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVOut))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVOut))]
     pub fn set_vout(&mut self, vout: u32) {
         self.vout = vout;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setSequence))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setSequence))]
     pub fn set_sequence(&mut self, sequence: u32) {
         self.sequence = sequence;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setSatoshis))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setSatoshis))]
     pub fn set_satoshis(&mut self, satoshis: u64) {
         self.satoshis = Some(satoshis);
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshis))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshis))]
     pub fn get_satoshis(&self) -> Option<u64> {
         self.satoshis
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setLockingScript))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setLockingScript))]
     pub fn set_locking_script(&mut self, locking_script: &Script) {
         self.locking_script = Some(locking_script.clone());
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScript))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getLockingScript))]
     pub fn get_locking_script(&self) -> Option<Script> {
         self.locking_script.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getUnlockingScriptBytes))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getLockingScriptBytes))]
     pub fn get_locking_script_bytes(&self) -> Option<Vec<u8>> {
         self.locking_script.as_ref().map(|v| v.to_bytes())
     }
@@ -344,107 +344,77 @@ impl TxIn {
  * WASM Specific Functions
  */
 #[cfg(target_arch = "wasm32")]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxIn {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex_str: &str) -> Result<TxIn, JsValue> {
-        match TxIn::from_hex_impl(hex_str) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
+    pub fn from_hex(hex_str: &str) -> Result<TxIn, wasm_bindgen::JsError> {
+       Ok(TxIn::from_hex_impl(hex_str)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsError> {
         Ok(serde_wasm_bindgen::to_value(&self)?)    
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
-    pub fn to_json_string(&self) -> Result<String, JsValue> {
-        match TxIn::to_json_string_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
+    pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
+       Ok(TxIn::to_json_string_impl(&self)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match TxIn::to_bytes_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
+    pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+       Ok(TxIn::to_bytes_impl(&self)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> Result<String, JsValue> {
-        match TxIn::to_hex_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
+    pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
+       Ok(TxIn::to_hex_impl(&self)?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromOutpointBytes))]
-    pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, JsValue> {
-        match TxIn::from_outpoint_bytes_impl(outpoint) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromOutpointBytes))]
+    pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, wasm_bindgen::JsError> {
+       Ok(TxIn::from_outpoint_bytes_impl(outpoint)?)
     }
 
     /**
      * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactBytes))]
-    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match self.to_compact_bytes_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactBytes))]
+    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+       Ok(self.to_compact_bytes_impl()?)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactHex))]
-    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
-        match self.to_compact_bytes_impl() {
-            Ok(v) => Ok(hex::encode(v)),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactHex))]
+    pub fn to_compact_hex(&self) -> Result<String, wasm_bindgen::JsError> {
+        Ok(hex::encode(self.to_compact_bytes_impl()?))
     }
 
     /**
      * Deserialises the provided CBOR buffer to the TX+ format
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromCompactBytes))]
-    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<TxIn, JsValue> {
-        match TxIn::from_compact_bytes_impl(compact_buffer) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromCompactBytes))]
+    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<TxIn, wasm_bindgen::JsError> {
+       Ok(TxIn::from_compact_bytes_impl(compact_buffer)?)
     }
 
     /**
      * Deserialises the provided CBOR buffer to the TX+ format
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromCompactHex))]
-    pub fn from_compact_hex(compact_hex: String) -> Result<TxIn, JsValue> {
-        let compact_buffer = match hex::decode(compact_hex) {
-            Ok(v) => v,
-            Err(e) => return Err(JsValue::from_str(&e.to_string())),
-        };
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromCompactHex))]
+    pub fn from_compact_hex(compact_hex: String) -> Result<TxIn, wasm_bindgen::JsError> {
+        let compact_buffer = hex::decode(compact_hex)?;
 
-        match TxIn::from_compact_bytes_impl(&compact_buffer) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
+       Ok(TxIn::from_compact_bytes_impl(&compact_buffer)?)
     }
 
     /// Concatenates ScriptSig and UnlockingScript into a single script.
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getFinalisedScript))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getFinalisedScript))]
     pub fn get_finalised_script(&self) -> Result<Script, JsError> {
         Ok(self.get_finalised_script_impl()?)
     }
 
     // Checks if input is a coinbase
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = isCoinbase))]
+    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = isCoinbase))]
     pub fn is_coinbase(&self) -> bool {
         self.is_coinbase_impl()
     }
