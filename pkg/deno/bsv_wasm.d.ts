@@ -559,6 +559,13 @@ export enum SigningHash {
 }
 /**
 */
+export enum PBKDF2Hashes {
+  SHA1,
+  SHA256,
+  SHA512,
+}
+/**
+*/
 export enum DataLengthConstraints {
   Equals,
   GreaterThan,
@@ -573,13 +580,6 @@ export enum MatchDataTypes {
   Signature,
   PublicKey,
   PublicKeyHash,
-}
-/**
-*/
-export enum PBKDF2Hashes {
-  SHA1,
-  SHA256,
-  SHA512,
 }
 /**
 */
@@ -767,15 +767,6 @@ export class ECDSA {
 */
   static verify(message: Uint8Array, pub_key: PublicKey, signature: Signature, hash_algo: number): boolean;
 /**
-* @param {Signature} signature
-* @param {PublicKey} public_key
-* @param {PrivateKey} ephemeral_key
-* @param {Uint8Array} preimage
-* @param {number} hash_algo
-* @returns {PrivateKey}
-*/
-  static privateKeyFromSignatureK(signature: Signature, public_key: PublicKey, ephemeral_key: PrivateKey, preimage: Uint8Array, hash_algo: number): PrivateKey;
-/**
 * @param {PrivateKey} private_key
 * @param {Uint8Array} preimage
 * @param {number} hash_algo
@@ -799,6 +790,15 @@ export class ECDSA {
 * @returns {Signature}
 */
   static signWithK(private_key: PrivateKey, ephemeral_key: PrivateKey, preimage: Uint8Array, hash_algo: number): Signature;
+/**
+* @param {Signature} signature
+* @param {PublicKey} public_key
+* @param {PrivateKey} ephemeral_key
+* @param {Uint8Array} preimage
+* @param {number} hash_algo
+* @returns {PrivateKey}
+*/
+  static privateKeyFromSignatureK(signature: Signature, public_key: PublicKey, ephemeral_key: PrivateKey, preimage: Uint8Array, hash_algo: number): PrivateKey;
 }
 /**
 *
@@ -1861,15 +1861,15 @@ export class TxIn {
 /**
 * @returns {bigint}
 */
-  getScriptSigSize(): bigint;
+  getUnlockingScriptSize(): bigint;
 /**
 * @returns {Script}
 */
-  getScriptSig(): Script;
+  getUnlockingScript(): Script;
 /**
 * @returns {string}
 */
-  getScriptSigHex(): string;
+  getUnlockingScriptHex(): string;
 /**
 * @returns {number}
 */
@@ -1919,11 +1919,11 @@ export class TxIn {
 /**
 * @returns {Script | undefined}
 */
-  getUnlockingScript(): Script | undefined;
+  getLockingScript(): Script | undefined;
 /**
 * @returns {Uint8Array | undefined}
 */
-  getUnlockingScriptBytes(): Uint8Array | undefined;
+  getLockingScriptBytes(): Uint8Array | undefined;
 /**
 * @param {string} hex_str
 * @returns {TxIn}
@@ -2058,8 +2058,27 @@ export interface InitOutput {
   readonly hash_sha1Hmac: (a: number, b: number, c: number, d: number) => number;
   readonly hash_ripemd160Hmac: (a: number, b: number, c: number, d: number) => number;
   readonly hash_hash160Hmac: (a: number, b: number, c: number, d: number) => number;
+  readonly ecdh_deriveSharedKey: (a: number, b: number, c: number) => void;
+  readonly __wbg_ecdh_free: (a: number) => void;
   readonly __wbg_kdf_free: (a: number) => void;
   readonly kdf_getHash: (a: number) => number;
+  readonly __wbg_eciesciphertext_free: (a: number) => void;
+  readonly eciesciphertext_getCiphertext: (a: number, b: number) => void;
+  readonly eciesciphertext_getHMAC: (a: number, b: number) => void;
+  readonly eciesciphertext_getCipherKeys: (a: number) => number;
+  readonly eciesciphertext_toBytes: (a: number, b: number) => void;
+  readonly eciesciphertext_extractPublicKey: (a: number, b: number) => void;
+  readonly eciesciphertext_fromBytes: (a: number, b: number, c: number, d: number) => void;
+  readonly kdf_getSalt: (a: number, b: number) => void;
+  readonly transaction_verify: (a: number, b: number, c: number) => number;
+  readonly transaction_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly transaction_signWithK: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
+  readonly transaction_sighashPreimage: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly __wbg_sighashsignature_free: (a: number) => void;
+  readonly sighashsignature_new: (a: number, b: number, c: number, d: number) => number;
+  readonly sighashsignature_toHex: (a: number, b: number) => void;
+  readonly sighashsignature_toBytes: (a: number, b: number) => void;
+  readonly sighashsignature_fromBytes: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_cipherkeys_free: (a: number) => void;
   readonly cipherkeys_get_iv: (a: number, b: number) => void;
   readonly cipherkeys_get_ke: (a: number, b: number) => void;
@@ -2068,7 +2087,6 @@ export interface InitOutput {
   readonly ecies_encryptWithEphemeralKey: (a: number, b: number, c: number, d: number) => void;
   readonly ecies_decrypt: (a: number, b: number, c: number, d: number) => void;
   readonly ecies_deriveCipherKeys: (a: number, b: number, c: number) => void;
-  readonly kdf_getSalt: (a: number, b: number) => void;
   readonly __wbg_ecies_free: (a: number) => void;
   readonly __wbg_publickey_free: (a: number) => void;
   readonly publickey_isValidMessage: (a: number, b: number, c: number, d: number) => number;
@@ -2083,25 +2101,9 @@ export interface InitOutput {
   readonly publickey_toCompressed: (a: number, b: number) => void;
   readonly publickey_toDecompressed: (a: number, b: number) => void;
   readonly publickey_encryptMessage: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly transaction_verify: (a: number, b: number, c: number) => number;
-  readonly transaction_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly transaction_signWithK: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
-  readonly transaction_sighashPreimage: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wbg_sighashsignature_free: (a: number) => void;
-  readonly sighashsignature_new: (a: number, b: number, c: number, d: number) => number;
-  readonly sighashsignature_toHex: (a: number, b: number) => void;
-  readonly sighashsignature_toBytes: (a: number, b: number) => void;
-  readonly sighashsignature_fromBytes: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly ecdsa_verify: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly __wbg_eciesciphertext_free: (a: number) => void;
-  readonly eciesciphertext_getCiphertext: (a: number, b: number) => void;
-  readonly eciesciphertext_getHMAC: (a: number, b: number) => void;
-  readonly eciesciphertext_getCipherKeys: (a: number) => number;
-  readonly eciesciphertext_toBytes: (a: number, b: number) => void;
-  readonly eciesciphertext_extractPublicKey: (a: number, b: number) => void;
-  readonly eciesciphertext_fromBytes: (a: number, b: number, c: number, d: number) => void;
   readonly __wbg_aes_free: (a: number) => void;
   readonly __wbg_ecdsa_free: (a: number) => void;
   readonly __wbg_extendedprivatekey_free: (a: number) => void;
@@ -2137,9 +2139,9 @@ export interface InitOutput {
   readonly txin_getPrevTxId: (a: number, b: number, c: number) => void;
   readonly txin_getPrevTxIdHex: (a: number, b: number, c: number) => void;
   readonly txin_getVOut: (a: number) => number;
-  readonly txin_getScriptSigSize: (a: number, b: number) => void;
-  readonly txin_getScriptSig: (a: number) => number;
-  readonly txin_getScriptSigHex: (a: number, b: number) => void;
+  readonly txin_getUnlockingScriptSize: (a: number, b: number) => void;
+  readonly txin_getUnlockingScript: (a: number) => number;
+  readonly txin_getUnlockingScriptHex: (a: number, b: number) => void;
   readonly txin_getSequence: (a: number) => number;
   readonly txin_getSequenceAsBytes: (a: number, b: number) => void;
   readonly txin_getOutpointBytes: (a: number, b: number, c: number) => void;
@@ -2151,8 +2153,8 @@ export interface InitOutput {
   readonly txin_setSatoshis: (a: number, b: number, c: number) => void;
   readonly txin_getSatoshis: (a: number, b: number) => void;
   readonly txin_setLockingScript: (a: number, b: number) => void;
-  readonly txin_getUnlockingScript: (a: number) => number;
-  readonly txin_getUnlockingScriptBytes: (a: number, b: number) => void;
+  readonly txin_getLockingScript: (a: number) => number;
+  readonly txin_getLockingScriptBytes: (a: number, b: number) => void;
   readonly txin_fromHex: (a: number, b: number, c: number) => void;
   readonly txin_toJSON: (a: number, b: number) => void;
   readonly txin_toString: (a: number, b: number) => void;
@@ -2165,8 +2167,6 @@ export interface InitOutput {
   readonly txin_fromCompactHex: (a: number, b: number, c: number) => void;
   readonly txin_getFinalisedScript: (a: number, b: number) => void;
   readonly txin_isCoinbase: (a: number) => number;
-  readonly ecdh_deriveSharedKey: (a: number, b: number, c: number) => void;
-  readonly __wbg_ecdh_free: (a: number) => void;
   readonly __wbg_chainparams_free: (a: number) => void;
   readonly __wbg_get_chainparams_p2pkh: (a: number) => number;
   readonly __wbg_set_chainparams_p2pkh: (a: number, b: number) => void;
@@ -2203,6 +2203,11 @@ export interface InitOutput {
   readonly signature_fromHexDER: (a: number, b: number, c: number) => void;
   readonly signature_fromCompactBytes: (a: number, b: number, c: number) => void;
   readonly signature_recoverPublicKey: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly kdf_pbkdf2: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
+  readonly ecdsa_signWithRandomK: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecdsa_sign: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecdsa_signWithK: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly chainparams_default: () => number;
   readonly __wbg_p2pkhaddress_free: (a: number) => void;
   readonly p2pkhaddress_toPubKeyHashBytes: (a: number, b: number) => void;
   readonly p2pkhaddress_toPubKeyHashHex: (a: number, b: number) => void;
@@ -2215,18 +2220,11 @@ export interface InitOutput {
   readonly p2pkhaddress_toLockingScript: (a: number, b: number) => void;
   readonly p2pkhaddress_toUnlockingScript: (a: number, b: number, c: number, d: number) => void;
   readonly p2pkhaddress_verifyBitcoinMessage: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly chainparams_default: () => number;
   readonly __wbg_scripttemplate_free: (a: number) => void;
   readonly scripttemplate_from_script: (a: number, b: number) => void;
   readonly scripttemplate_from_asm_string: (a: number, b: number, c: number) => void;
   readonly script_matches: (a: number, b: number, c: number) => void;
   readonly script_is_match: (a: number, b: number) => number;
-  readonly kdf_pbkdf2: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
-  readonly bsm_isValidMessage: (a: number, b: number, c: number, d: number) => number;
-  readonly bsm_verifyMessage: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly bsm_signMessage: (a: number, b: number, c: number, d: number) => void;
-  readonly bsm_signMessageWithK: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly __wbg_bsm_free: (a: number) => void;
   readonly __wbg_privatekey_free: (a: number) => void;
   readonly privatekey_toBytes: (a: number, b: number) => void;
   readonly privatekey_toHex: (a: number, b: number) => void;
@@ -2248,10 +2246,24 @@ export interface InitOutput {
   readonly bytes_toHex: (a: number, b: number) => void;
   readonly bytes_fromHex: (a: number, b: number, c: number) => void;
   readonly ecdsa_privateKeyFromSignatureK: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly ecdsa_signWithRandomK: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecdsa_sign: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecdsa_signWithK: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly bsm_isValidMessage: (a: number, b: number, c: number, d: number) => number;
+  readonly bsm_verifyMessage: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly bsm_signMessage: (a: number, b: number, c: number, d: number) => void;
+  readonly bsm_signMessageWithK: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly __wbg_bsm_free: (a: number) => void;
   readonly configureStacktrace: () => void;
+  readonly __wbg_txout_free: (a: number) => void;
+  readonly txout_new: (a: number, b: number, c: number) => number;
+  readonly txout_getSatoshis: (a: number, b: number) => void;
+  readonly txout_getSatoshisAsBytes: (a: number, b: number) => void;
+  readonly txout_getScriptPubKeySize: (a: number) => number;
+  readonly txout_getScriptPubKey: (a: number) => number;
+  readonly txout_getScriptPubKeyHex: (a: number, b: number) => void;
+  readonly txout_fromHex: (a: number, b: number, c: number) => void;
+  readonly txout_toBytes: (a: number, b: number) => void;
+  readonly txout_toHex: (a: number, b: number) => void;
+  readonly txout_toJSON: (a: number, b: number) => void;
+  readonly txout_toString: (a: number, b: number) => void;
   readonly __wbg_transaction_free: (a: number) => void;
   readonly transaction_getVersion: (a: number) => number;
   readonly transaction_getInputsCount: (a: number) => number;
@@ -2293,18 +2305,6 @@ export interface InitOutput {
   readonly transaction_fromCompactHex: (a: number, b: number, c: number) => void;
   readonly transaction_isCoinbase: (a: number) => number;
   readonly transaction_is_coinbase_impl: (a: number) => number;
-  readonly __wbg_txout_free: (a: number) => void;
-  readonly txout_new: (a: number, b: number, c: number) => number;
-  readonly txout_getSatoshis: (a: number, b: number) => void;
-  readonly txout_getSatoshisAsBytes: (a: number, b: number) => void;
-  readonly txout_getScriptPubKeySize: (a: number) => number;
-  readonly txout_getScriptPubKey: (a: number) => number;
-  readonly txout_getScriptPubKeyHex: (a: number, b: number) => void;
-  readonly txout_fromHex: (a: number, b: number, c: number) => void;
-  readonly txout_toBytes: (a: number, b: number) => void;
-  readonly txout_toHex: (a: number, b: number) => void;
-  readonly txout_toJSON: (a: number, b: number) => void;
-  readonly txout_toString: (a: number, b: number) => void;
   readonly __wbg_matchcriteria_free: (a: number) => void;
   readonly matchcriteria_new: () => number;
   readonly matchcriteria_setScriptTemplate: (a: number, b: number) => number;

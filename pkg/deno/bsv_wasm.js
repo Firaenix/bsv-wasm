@@ -21,9 +21,7 @@ function takeObject(idx) {
     return ret;
 }
 
-const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
-cachedTextDecoder.decode();
+let WASM_VECTOR_LEN = 0;
 
 let cachedUint8Memory0 = new Uint8Array();
 
@@ -33,21 +31,6 @@ function getUint8Memory0() {
     }
     return cachedUint8Memory0;
 }
-
-function getStringFromWasm0(ptr, len) {
-    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
-}
-
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
-let WASM_VECTOR_LEN = 0;
 
 const cachedTextEncoder = new TextEncoder('utf-8');
 
@@ -113,6 +96,23 @@ function getInt32Memory0() {
         cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
     }
     return cachedInt32Memory0;
+}
+
+const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+
+cachedTextDecoder.decode();
+
+function getStringFromWasm0(ptr, len) {
+    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
+}
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
 }
 
 let cachedFloat64Memory0 = new Float64Array();
@@ -785,13 +785,13 @@ export const AESAlgorithms = Object.freeze({ AES128_CBC:0,"0":"AES128_CBC",AES25
 export const SigningHash = Object.freeze({ Sha256:0,"0":"Sha256",Sha256d:1,"1":"Sha256d", });
 /**
 */
+export const PBKDF2Hashes = Object.freeze({ SHA1:0,"0":"SHA1",SHA256:1,"1":"SHA256",SHA512:2,"2":"SHA512", });
+/**
+*/
 export const DataLengthConstraints = Object.freeze({ Equals:0,"0":"Equals",GreaterThan:1,"1":"GreaterThan",LessThan:2,"2":"LessThan",GreaterThanOrEquals:3,"3":"GreaterThanOrEquals",LessThanOrEquals:4,"4":"LessThanOrEquals", });
 /**
 */
 export const MatchDataTypes = Object.freeze({ Data:0,"0":"Data",Signature:1,"1":"Signature",PublicKey:2,"2":"PublicKey",PublicKeyHash:3,"3":"PublicKeyHash", });
-/**
-*/
-export const PBKDF2Hashes = Object.freeze({ SHA1:0,"0":"SHA1",SHA256:1,"1":"SHA256",SHA512:2,"2":"SHA512", });
 
 const AESFinalization = new FinalizationRegistry(ptr => wasm.__wbg_aes_free(ptr));
 /**
@@ -1400,34 +1400,6 @@ export class ECDSA {
         }
     }
     /**
-    * @param {Signature} signature
-    * @param {PublicKey} public_key
-    * @param {PrivateKey} ephemeral_key
-    * @param {Uint8Array} preimage
-    * @param {number} hash_algo
-    * @returns {PrivateKey}
-    */
-    static privateKeyFromSignatureK(signature, public_key, ephemeral_key, preimage, hash_algo) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            _assertClass(signature, Signature);
-            _assertClass(public_key, PublicKey);
-            _assertClass(ephemeral_key, PrivateKey);
-            const ptr0 = passArray8ToWasm0(preimage, wasm.__wbindgen_malloc);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.ecdsa_privateKeyFromSignatureK(retptr, signature.ptr, public_key.ptr, ephemeral_key.ptr, ptr0, len0, hash_algo);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var r2 = getInt32Memory0()[retptr / 4 + 2];
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return PrivateKey.__wrap(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
     * @param {PrivateKey} private_key
     * @param {Uint8Array} preimage
     * @param {number} hash_algo
@@ -1499,6 +1471,34 @@ export class ECDSA {
                 throw takeObject(r1);
             }
             return Signature.__wrap(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * @param {Signature} signature
+    * @param {PublicKey} public_key
+    * @param {PrivateKey} ephemeral_key
+    * @param {Uint8Array} preimage
+    * @param {number} hash_algo
+    * @returns {PrivateKey}
+    */
+    static privateKeyFromSignatureK(signature, public_key, ephemeral_key, preimage, hash_algo) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            _assertClass(signature, Signature);
+            _assertClass(public_key, PublicKey);
+            _assertClass(ephemeral_key, PrivateKey);
+            const ptr0 = passArray8ToWasm0(preimage, wasm.__wbindgen_malloc);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.ecdsa_privateKeyFromSignatureK(retptr, signature.ptr, public_key.ptr, ephemeral_key.ptr, ptr0, len0, hash_algo);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var r2 = getInt32Memory0()[retptr / 4 + 2];
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return PrivateKey.__wrap(r0);
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -2421,7 +2421,7 @@ export class KDF {
     getSalt() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.cipherkeys_get_ke(retptr, this.ptr);
+            wasm.eciesciphertext_getCiphertext(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var v0 = getArrayU8FromWasm0(r0, r1).slice();
@@ -4919,10 +4919,10 @@ export class TxIn {
     /**
     * @returns {bigint}
     */
-    getScriptSigSize() {
+    getUnlockingScriptSize() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.txin_getScriptSigSize(retptr, this.ptr);
+            wasm.txin_getUnlockingScriptSize(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             // Instruction::I64FromLoHi
@@ -4937,17 +4937,17 @@ export class TxIn {
     /**
     * @returns {Script}
     */
-    getScriptSig() {
-        const ret = wasm.txin_getScriptSig(this.ptr);
+    getUnlockingScript() {
+        const ret = wasm.txin_getUnlockingScript(this.ptr);
         return Script.__wrap(ret);
     }
     /**
     * @returns {string}
     */
-    getScriptSigHex() {
+    getUnlockingScriptHex() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.txin_getScriptSigHex(retptr, this.ptr);
+            wasm.txin_getUnlockingScriptHex(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return getStringFromWasm0(r0, r1);
@@ -5081,17 +5081,17 @@ export class TxIn {
     /**
     * @returns {Script | undefined}
     */
-    getUnlockingScript() {
-        const ret = wasm.txin_getUnlockingScript(this.ptr);
+    getLockingScript() {
+        const ret = wasm.txin_getLockingScript(this.ptr);
         return ret === 0 ? undefined : Script.__wrap(ret);
     }
     /**
     * @returns {Uint8Array | undefined}
     */
-    getUnlockingScriptBytes() {
+    getLockingScriptBytes() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.txin_getUnlockingScriptBytes(retptr, this.ptr);
+            wasm.txin_getLockingScriptBytes(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             let v0;
@@ -5601,10 +5601,6 @@ function getImports() {
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
-    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-        const ret = getStringFromWasm0(arg0, arg1);
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
         const obj = getObject(arg1);
         const ret = typeof(obj) === 'string' ? obj : undefined;
@@ -5659,6 +5655,10 @@ function getImports() {
         u32CvtShim[1] = arg1;
         const n0 = (BigInt(u32CvtShim[1]) << 32n) | BigInt(u32CvtShim[0]);
         const ret = BigInt(n0);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+        const ret = getStringFromWasm0(arg0, arg1);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_is_null = function(arg0) {
