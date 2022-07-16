@@ -158,11 +158,11 @@ impl ScriptTemplate {
 #[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
 impl ScriptTemplate {
     pub fn from_script(script: &Script) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
-       Ok(ScriptTemplate::from_script_impl(script)?)
+        Ok(ScriptTemplate::from_script_impl(script)?)
     }
 
     pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
-       Ok(ScriptTemplate::from_asm_string_impl(asm)?)
+        Ok(ScriptTemplate::from_asm_string_impl(asm)?)
     }
 }
 
@@ -280,7 +280,7 @@ impl Script {
     pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, wasm_bindgen::JsError> {
         let matches = self.match_impl(script_template)?;
 
-       Ok(serde_wasm_bindgen::to_value(&matches)?)
+        Ok(serde_wasm_bindgen::to_value(&matches)?)
     }
 
     /// Matches the Script against the provided ScriptTemplate.

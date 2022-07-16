@@ -86,12 +86,12 @@ impl BSM {
 impl BSM {
     #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, wasm_bindgen::JsError> {
-       Ok(BSM::verify_message_impl(message, signature, address)?)
+        Ok(BSM::verify_message_impl(message, signature, address)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessage))]
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
-       Ok(BSM::sign_impl(priv_key, message)?)
+        Ok(BSM::sign_impl(priv_key, message)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-bsm"), wasm_bindgen(js_name = signMessageWithK))]

@@ -208,17 +208,17 @@ impl Signature {
 
     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromHexDER))]
     pub fn from_hex_der(hex: &str) -> Result<Signature, wasm_bindgen::JsError> {
-       Ok(Signature::from_hex_der_impl(hex)?)
+        Ok(Signature::from_hex_der_impl(hex)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
-       Ok(Signature::from_compact_impl(compact_bytes)?)
+        Ok(Signature::from_compact_impl(compact_bytes)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = recoverPublicKey))]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, wasm_bindgen::JsError> {
-       Ok(Signature::get_public_key(&self, &message, hash_algo)?)
+        Ok(Signature::get_public_key(&self, &message, hash_algo)?)
     }
 }
 

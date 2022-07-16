@@ -12,7 +12,7 @@ use crate::{
 };
 use serde::*;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str, JsValue, JsError};
+use wasm_bindgen::{prelude::*, throw_str, JsError, JsValue};
 
 use byteorder::*;
 
@@ -348,32 +348,32 @@ impl TxIn {
 impl TxIn {
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<TxIn, wasm_bindgen::JsError> {
-       Ok(TxIn::from_hex_impl(hex_str)?)
+        Ok(TxIn::from_hex_impl(hex_str)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, JsError> {
-        Ok(serde_wasm_bindgen::to_value(&self)?)    
+        Ok(serde_wasm_bindgen::to_value(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
     pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(TxIn::to_json_string_impl(&self)?)
+        Ok(TxIn::to_json_string_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(TxIn::to_bytes_impl(&self)?)
+        Ok(TxIn::to_bytes_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(TxIn::to_hex_impl(&self)?)
+        Ok(TxIn::to_hex_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromOutpointBytes))]
     pub fn from_outpoint_bytes(outpoint: &[u8]) -> Result<TxIn, wasm_bindgen::JsError> {
-       Ok(TxIn::from_outpoint_bytes_impl(outpoint)?)
+        Ok(TxIn::from_outpoint_bytes_impl(outpoint)?)
     }
 
     /**
@@ -381,7 +381,7 @@ impl TxIn {
      */
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactBytes))]
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(self.to_compact_bytes_impl()?)
+        Ok(self.to_compact_bytes_impl()?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toCompactHex))]
@@ -394,7 +394,7 @@ impl TxIn {
      */
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<TxIn, wasm_bindgen::JsError> {
-       Ok(TxIn::from_compact_bytes_impl(compact_buffer)?)
+        Ok(TxIn::from_compact_bytes_impl(compact_buffer)?)
     }
 
     /**
@@ -404,7 +404,7 @@ impl TxIn {
     pub fn from_compact_hex(compact_hex: String) -> Result<TxIn, wasm_bindgen::JsError> {
         let compact_buffer = hex::decode(compact_hex)?;
 
-       Ok(TxIn::from_compact_bytes_impl(&compact_buffer)?)
+        Ok(TxIn::from_compact_bytes_impl(&compact_buffer)?)
     }
 
     /// Concatenates ScriptSig and UnlockingScript into a single script.

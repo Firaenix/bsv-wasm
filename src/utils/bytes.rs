@@ -49,7 +49,7 @@ impl Bytes {
 impl Bytes {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<Bytes, wasm_bindgen::JsError> {
-       Ok(Bytes::from_hex_impl(hex_str)?)
+        Ok(Bytes::from_hex_impl(hex_str)?)
     }
 }
 

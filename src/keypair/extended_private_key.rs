@@ -276,37 +276,37 @@ impl ExtendedPrivateKey {
 impl ExtendedPrivateKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
     pub fn derive(&self, index: u32) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::derive_impl(&self, index)?)
+        Ok(Self::derive_impl(&self, index)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = derive))]
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::derive_from_path_impl(&self, path)?)
+        Ok(Self::derive_from_path_impl(&self, path)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromSeed))]
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::from_seed_impl(seed)?)
+        Ok(Self::from_seed_impl(seed)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromRandom))]
     pub fn from_random() -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::from_random_impl()?)
+        Ok(Self::from_random_impl()?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromString))]
     pub fn from_string(xprv_string: &str) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::from_string_impl(xprv_string)?)
+        Ok(Self::from_string_impl(xprv_string)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toString))]
     pub fn to_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(Self::to_string_impl(&self)?)
+        Ok(Self::to_string_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromMnemonic))]
     pub fn from_mnemonic(mnemonic: &[u8], passphrase: Option<Vec<u8>>) -> Result<ExtendedPrivateKey, wasm_bindgen::JsError> {
-       Ok(Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase)?)
+        Ok(Self::from_mnemonic_and_passphrase_impl(mnemonic, passphrase)?)
     }
 }
 

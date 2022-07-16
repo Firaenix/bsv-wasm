@@ -240,32 +240,32 @@ impl ExtendedPublicKey {
 impl ExtendedPublicKey {
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = deriveChild))]
     pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-       Ok(Self::derive_impl(&self, index)?)
+        Ok(Self::derive_impl(&self, index)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = derive))]
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-       Ok(Self::derive_from_path_impl(&self, path)?)
+        Ok(Self::derive_from_path_impl(&self, path)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromSeed))]
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-       Ok(Self::from_seed_impl(seed)?)
+        Ok(Self::from_seed_impl(seed)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromRandom))]
     pub fn from_random() -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-       Ok(Self::from_random_impl()?)
+        Ok(Self::from_random_impl()?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromString))]
     pub fn from_string(xpub_string: &str) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-       Ok(Self::from_string_impl(xpub_string)?)
+        Ok(Self::from_string_impl(xpub_string)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toString))]
     pub fn to_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(Self::to_string_impl(&self)?)
+        Ok(Self::to_string_impl(&self)?)
     }
 }
 

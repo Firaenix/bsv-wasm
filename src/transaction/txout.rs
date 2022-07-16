@@ -3,9 +3,9 @@ use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, JsError};
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::throw_str;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::{prelude::*, JsError};
 
 use byteorder::*;
 
@@ -117,17 +117,17 @@ impl TxOut {
 impl TxOut {
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex_str: &str) -> Result<TxOut, wasm_bindgen::JsError> {
-       Ok(TxOut::from_hex_impl(hex_str)?)
+        Ok(TxOut::from_hex_impl(hex_str)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(TxOut::to_bytes_impl(&self)?)
+        Ok(TxOut::to_bytes_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(TxOut::to_hex_impl(&self)?)
+        Ok(TxOut::to_hex_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
@@ -137,7 +137,7 @@ impl TxOut {
 
     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
     pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(TxOut::to_json_string_impl(&self)?)
+        Ok(TxOut::to_json_string_impl(&self)?)
     }
 }
 

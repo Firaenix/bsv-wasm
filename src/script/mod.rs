@@ -337,7 +337,6 @@ impl Script {
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
-
 }
 
 /**
@@ -358,7 +357,7 @@ impl Script {
     pub fn push(&mut self, code: ScriptBit) {
         self.0.push(code);
     }
-    
+
     pub fn push_array(&mut self, code: &[ScriptBit]) {
         self.0.extend_from_slice(code);
     }
@@ -423,22 +422,22 @@ impl Script {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
     pub fn from_hex(hex: &str) -> Result<Script, wasm_bindgen::JsError> {
-       Ok(Script::from_hex_impl(hex)?)
+        Ok(Script::from_hex_impl(hex)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
     pub fn from_bytes(bytes: &[u8]) -> Result<Script, wasm_bindgen::JsError> {
-       Ok(Script::from_bytes_impl(bytes)?)
+        Ok(Script::from_bytes_impl(bytes)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromASMString))]
     pub fn from_asm_string(asm_string: &str) -> Result<Script, wasm_bindgen::JsError> {
-       Ok(Script::from_asm_string_impl(asm_string)?)
+        Ok(Script::from_asm_string_impl(asm_string)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encodePushData))]
     pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(Script::encode_pushdata_impl(data_bytes)?)
+        Ok(Script::encode_pushdata_impl(data_bytes)?)
     }
 
     /**
@@ -446,11 +445,11 @@ impl Script {
      */
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPushDataBytes))]
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(Script::get_pushdata_prefix_bytes_impl(length)?)
+        Ok(Script::get_pushdata_prefix_bytes_impl(length)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toScriptBits))]
     pub fn to_script_bits(&self) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsError> {
-       Ok(serde_wasm_bindgen::to_value(self)?)
+        Ok(serde_wasm_bindgen::to_value(self)?)
     }
 }

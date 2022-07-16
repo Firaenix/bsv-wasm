@@ -134,12 +134,12 @@ impl ECDSA {
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithRandomK))]
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
-       Ok(ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)?)
+        Ok(ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = sign))]
     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
-       Ok(ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)?)
+        Ok(ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithK))]

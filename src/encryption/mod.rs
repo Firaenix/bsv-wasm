@@ -56,12 +56,12 @@ impl AES {
 impl AES {
     #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen(js_name = encrypt))]
     pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(AES::encrypt_impl(key, iv, message, algo)?)
+        Ok(AES::encrypt_impl(key, iv, message, algo)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-encryption"), wasm_bindgen(js_name = decrypt))]
     pub fn decrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(AES::decrypt_impl(key, iv, message, algo)?)
+        Ok(AES::decrypt_impl(key, iv, message, algo)?)
     }
 }
 

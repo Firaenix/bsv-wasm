@@ -24,7 +24,7 @@ impl ECDSA {
 impl ECDSA {
     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = verify))]
     pub fn verify_digest(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, wasm_bindgen::JsError> {
-       Ok(ECDSA::verify_digest_impl(message, pub_key, signature, hash_algo)?)
+        Ok(ECDSA::verify_digest_impl(message, pub_key, signature, hash_algo)?)
     }
 }
 

@@ -391,27 +391,27 @@ impl Transaction {
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
     pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(Transaction::to_json_string_impl(&self)?)
+        Ok(Transaction::to_json_string_impl(&self)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromJsonString))]
     pub fn from_json_string(json_string: &str) -> Result<Transaction, wasm_bindgen::JsError> {
-       Ok(Transaction::from_json_string_impl(json_string)?)
+        Ok(Transaction::from_json_string_impl(json_string)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
     pub fn to_json(&self) -> Result<JsValue, wasm_bindgen::JsError> {
-       Ok(serde_wasm_bindgen::to_value(&self)?)
+        Ok(serde_wasm_bindgen::to_value(&self)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(Transaction::to_bytes_impl(&self)?)
+        Ok(Transaction::to_bytes_impl(&self)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(Transaction::to_hex_impl(&self)?)
+        Ok(Transaction::to_hex_impl(&self)?)
     }
 
     /**
@@ -419,7 +419,7 @@ impl Transaction {
      */
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSize))]
     pub fn get_size(&self) -> Result<usize, wasm_bindgen::JsError> {
-       Ok(Transaction::get_size_impl(&self)?)
+        Ok(Transaction::get_size_impl(&self)?)
     }
 
     /**
@@ -445,7 +445,7 @@ impl Transaction {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutpoints))]
     pub fn get_outpoints(&mut self) -> Result<JsValue, wasm_bindgen::JsError> {
         let outpoints = self.get_outpoints_impl();
-       Ok(serde_wasm_bindgen::to_value(&outpoints)?)
+        Ok(serde_wasm_bindgen::to_value(&outpoints)?)
     }
 
     /**
@@ -484,12 +484,12 @@ impl Transaction {
      */
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
     pub fn to_compact_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(self.to_compact_bytes_impl()?)
+        Ok(self.to_compact_bytes_impl()?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
     pub fn to_compact_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(Transaction::to_compact_hex_impl(&self)?)
+        Ok(Transaction::to_compact_hex_impl(&self)?)
     }
 
     /**
@@ -497,7 +497,7 @@ impl Transaction {
      */
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
     pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, wasm_bindgen::JsError> {
-       Ok(Transaction::from_compact_bytes_impl(compact_buffer)?)
+        Ok(Transaction::from_compact_bytes_impl(compact_buffer)?)
     }
 
     /**
@@ -507,7 +507,7 @@ impl Transaction {
     pub fn from_compact_hex(compact_hex: String) -> Result<Transaction, wasm_bindgen::JsError> {
         let compact_buffer = hex::decode(compact_hex)?;
 
-       Ok(Transaction::from_compact_bytes_impl(&compact_buffer)?)
+        Ok(Transaction::from_compact_bytes_impl(&compact_buffer)?)
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isCoinbase))]

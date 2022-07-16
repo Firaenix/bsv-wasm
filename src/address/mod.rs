@@ -167,32 +167,32 @@ impl P2PKHAddress {
     }
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = fromPubKey))]
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
-       Ok(P2PKHAddress::from_pubkey_impl(pub_key)?)
+        Ok(P2PKHAddress::from_pubkey_impl(pub_key)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = setChainParams))]
     pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
-       Ok(P2PKHAddress::set_chain_params_impl(&self, chain_params)?)
+        Ok(P2PKHAddress::set_chain_params_impl(&self, chain_params)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toString))]
     pub fn to_address_string(&self) -> Result<String, wasm_bindgen::JsError> {
-       Ok(P2PKHAddress::to_address_string_impl(&self)?)
+        Ok(P2PKHAddress::to_address_string_impl(&self)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = fromString))]
     pub fn from_string(address_string: &str) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
-       Ok(P2PKHAddress::from_string_impl(address_string)?)
+        Ok(P2PKHAddress::from_string_impl(address_string)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toLockingScript))]
     pub fn get_locking_script(&self) -> Result<Script, wasm_bindgen::JsError> {
-       Ok(self.to_locking_script_impl()?)
+        Ok(self.to_locking_script_impl()?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = toUnlockingScript))]
     pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, wasm_bindgen::JsError> {
-       Ok(self.to_unlocking_script_impl(pub_key, sig)?)
+        Ok(self.to_unlocking_script_impl(pub_key, sig)?)
     }
 
     /**
@@ -202,7 +202,7 @@ impl P2PKHAddress {
      */
     #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = verifyBitcoinMessage))]
     pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
-       Ok(BSM::verify_message_impl(message, signature, self)?)
+        Ok(BSM::verify_message_impl(message, signature, self)?)
     }
 }
 

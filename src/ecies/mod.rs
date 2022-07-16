@@ -120,7 +120,7 @@ impl ECIES {
 #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 impl ECIES {
     pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-       Ok(ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key)?)
+        Ok(ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key)?)
     }
 
     /**
@@ -129,16 +129,16 @@ impl ECIES {
      */
     #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = encryptWithEphemeralKey))]
     pub fn encrypt_with_ephemeral_private_key(message: &[u8], recipient_pub_key: &PublicKey) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-       Ok(ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key)?)
+        Ok(ECIES::encrypt_with_ephemeral_private_key_impl(message, recipient_pub_key)?)
     }
 
     pub fn decrypt(ciphertext: &ECIESCiphertext, recipient_priv_key: &PrivateKey, sender_pub_key: &PublicKey) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-       Ok(ECIES::decrypt_impl(ciphertext, recipient_priv_key, sender_pub_key)?)
+        Ok(ECIES::decrypt_impl(ciphertext, recipient_priv_key, sender_pub_key)?)
     }
 
     #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen(js_name = deriveCipherKeys))]
     pub fn derive_cipher_keys(priv_key: &PrivateKey, pub_key: &PublicKey) -> Result<CipherKeys, wasm_bindgen::JsError> {
-       Ok(ECIES::derive_cipher_keys_impl(priv_key, pub_key)?)
+        Ok(ECIES::derive_cipher_keys_impl(priv_key, pub_key)?)
     }
 }
 
