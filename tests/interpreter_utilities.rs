@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod interpreter_utility_tests {
-    use bsv_wasm::Script;
-    use bsv_wasm::Interpreter;
+    use bsv::Script;
+    use bsv::Interpreter;
 
     #[test]
     fn simple_op_num2bin_test() {

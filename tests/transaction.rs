@@ -1,8 +1,8 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod transaction_tests {
-    use bsv_wasm::*;
-    use bsv_wasm::TxIn;
+    use bsv::*;
+    use bsv::TxIn;
 
     #[test]
     fn deserialise_and_serialise_transaction_hex() {

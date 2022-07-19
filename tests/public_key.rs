@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use bsv_wasm::{address::*, PrivateKey, PublicKey};
+    use bsv::{address::*, PrivateKey, PublicKey};
         
     #[test]
     fn pub_key_from_private_key() {

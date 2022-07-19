@@ -1,7 +1,7 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod tests {
-    use bsv_wasm::hash::Hash;
+    use bsv::hash::Hash;
     use pbkdf2::{
         password_hash::{Ident, PasswordHasher, Salt, SaltString},
         Params, Pbkdf2,

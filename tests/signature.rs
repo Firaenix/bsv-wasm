@@ -3,7 +3,7 @@
 use rayon::prelude::*;
 #[cfg(test)]
 mod tests {
-    use bsv_wasm::*;
+    use bsv::*;
     use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
     #[test]

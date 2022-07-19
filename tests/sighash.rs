@@ -2,7 +2,7 @@
 mod sighash_tests {
     use std::convert::{TryFrom, TryInto};
 
-    use bsv_wasm::*;
+    use bsv::*;
 
     #[test]
     fn sighash_inputs_output_single() {

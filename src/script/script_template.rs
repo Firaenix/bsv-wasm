@@ -235,7 +235,7 @@ impl Script {
     ///
     /// # Example
     /// ```
-    /// use bsv_wasm::{ Script, MatchDataTypes, ScriptTemplate };
+    /// use bsv::{ Script, MatchDataTypes, ScriptTemplate };
     ///
     /// let script = Script::from_asm_string("OP_HASH160 b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6 OP_EQUALVERIFY OP_DUP OP_HASH160 f9dfc5a4ae5256e5938c2d819738f7b57e4d7b46 OP_EQUALVERIFY OP_CHECKSIG OP_RETURN 21e8").unwrap();
     /// let script_template = ScriptTemplate::from_asm_string("OP_HASH160 OP_DATA=20 OP_EQUALVERIFY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG OP_RETURN OP_DATA").unwrap();

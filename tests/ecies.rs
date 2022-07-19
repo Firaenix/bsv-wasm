@@ -1,7 +1,7 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod ecies_tests {
-    use bsv_wasm::{ECIESCiphertext, PrivateKey, ECIES};
+    use bsv::{ECIESCiphertext, PrivateKey, ECIES};
     use std::io::Read;
         // Send to other party without encoding public key
     #[test]

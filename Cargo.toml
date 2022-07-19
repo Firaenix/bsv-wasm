@@ -1,5 +1,5 @@
 [package]
-name = "bsv-wasm"
+name = "bsv"
 version = "1.4.0-beta.2"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
@@ -35,11 +35,6 @@ ripemd160 = "^0.9.1"
 digest = "^0.9.0"
 num-bigint = "0.4"
 
-# WASM Related Packages - Eventually split out of core bsv library
-# console_error_panic_hook = { version = "^0.1" }
-# wasm-bindgen = { version = "0.2.81" }
-# serde-wasm-bindgen = "0.4"
-
 [dependencies.rand_core]
 version = "^0.6"
 features = ["getrandom"]
@@ -52,40 +47,8 @@ version = "^0.2"
 # wasm-bindgen-test = "^0.3"
 rayon = "1.5"
 
-# [features]
-# wasm-bindgen-exports = [
-#     'wasm-bindgen-script-template', 
-#     'wasm-bindgen-script',
-#     'wasm-bindgen-opcodes',
-#     'wasm-bindgen-transaction',
-#     'wasm-bindgen-ecdh',
-#     'wasm-bindgen-ecdsa',
-#     'wasm-bindgen-bsm',
-#     'wasm-bindgen-ecies',
-#     'wasm-bindgen-keypair',
-#     'wasm-bindgen-address',
-#     'wasm-bindgen-signature',
-#     'wasm-bindgen-kdf',
-#     'wasm-bindgen-hash',
-#     'wasm-bindgen-encryption'
-# ]
-# wasm-bindgen-script-template = ['wasm-bindgen-script']
-# wasm-bindgen-script = ['wasm-bindgen-opcodes']
-# wasm-bindgen-opcodes = []
-# wasm-bindgen-transaction = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-# wasm-bindgen-ecdh = ['wasm-bindgen-ecdsa', 'wasm-bindgen-keypair']
-# wasm-bindgen-ecdsa = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
-# wasm-bindgen-bsm = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-# wasm-bindgen-ecies = ['wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-# wasm-bindgen-keypair = ['wasm-bindgen-address', 'wasm-bindgen-ecies']
-# wasm-bindgen-address = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
-# wasm-bindgen-signature = ['wasm-bindgen-keypair']
-# wasm-bindgen-kdf = ['wasm-bindgen-hash']
-# wasm-bindgen-hash = []
-# wasm-bindgen-encryption = []
 
-# [patch.crates-io]
-# wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }
+
 
 [build]
 rustflags = ["-C", "target-feature=+simd128"]

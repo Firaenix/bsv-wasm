@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod private_key_tests {
-    use bsv_wasm::keypair::*;
+    use bsv::keypair::*;
     use core::time;
     use std::time::{SystemTime, UNIX_EPOCH};
         

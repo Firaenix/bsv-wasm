@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod script_tests {
-    use bsv_wasm::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
+    use bsv::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
         // #[test]
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn to_hex_string() {

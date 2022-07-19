@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod bitcoin_signed_message_tests {
-    use bsv_wasm::{PrivateKey, Signature, BSM};
+    use bsv::{PrivateKey, Signature, BSM};
     
     #[test]
     fn sign_and_verify_message() {
