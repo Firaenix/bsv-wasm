@@ -311,6 +311,12 @@ impl Script {
 
         Ok(pushdata_bytes)
     }
+    
+    /// This needs to exist because without it if you try to write code that compiles to both WASM
+    /// and Rust it errors
+    pub fn to_script_bits_impl(&self) -> Vec<ScriptBit> {
+        self.0.clone()
+    }
 }
 
 /**

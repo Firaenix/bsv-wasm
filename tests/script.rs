@@ -2,8 +2,6 @@
 mod script_tests {
     use bsv_wasm::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
     
-    use wasm_bindgen::JsValue;
-    
     use wasm_bindgen_test::*;
     wasm_bindgen_test::wasm_bindgen_test_configure!();
 
@@ -282,7 +280,7 @@ mod script_tests {
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    
+    #[cfg(target_arch = "wasm32")]
     fn if_statement_script() {
         let script = Script::from_asm_string(
             r#"21e8

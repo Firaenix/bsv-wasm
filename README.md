@@ -42,11 +42,10 @@ await init();
 - Testnet support
 
 ## TODO:
-- [ ] Isomorphic Package for JS
+- [ ] Split WASM modules from Rust - Release standalone bsv-rs
+- [ ] Break WASM packages up to be more modular
+- [ ] Allow Interop between WASM Packages
 - [ ] Write documentation (Inline on functions and structs)
-
-## Will not do:
-- Mnemonics
 
 ### Thanks
 - Brenton Gunning [(rust-sv)](https://github.com/brentongunning/rust-sv)
