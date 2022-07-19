@@ -1,8 +1,3 @@
-pub mod op_codes;
-pub use op_codes::*;
-
-pub mod script_bit;
-pub use script_bit::*;
 
 use crate::OpCodes::OP_0;
 use strum_macros::Display;
@@ -21,12 +16,15 @@ use num_traits::{FromPrimitive, ToPrimitive};
 
 use serde::{Deserialize, Serialize};
 
-use wasm_bindgen::{prelude::*, throw_str};
+pub mod op_codes;
+pub use op_codes::*;
+
+pub mod script_bit;
+pub use script_bit::*;
 
 mod script_template;
 pub use script_template::*;
 
-#[cfg_attr(feature = "wasm-bindgen-script", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(pub(crate) Vec<ScriptBit>);
 

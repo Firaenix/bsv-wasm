@@ -2,14 +2,8 @@ use crate::{BSVErrors, Script, VarIntReader, VarIntWriter};
 use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
-
-use wasm_bindgen::throw_str;
-
-use wasm_bindgen::{prelude::*, JsError};
-
 use byteorder::*;
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
     pub(crate) value: u64,
@@ -76,9 +70,9 @@ impl TxOut {
     }
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+// #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl TxOut {
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(value: u64, script_pub_key: &Script) -> TxOut {
         TxOut {
             value,
@@ -86,63 +80,62 @@ impl TxOut {
         }
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshis))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshis))]
     pub fn get_satoshis(&self) -> u64 {
         self.value
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshisAsBytes))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getSatoshisAsBytes))]
     pub fn get_satoshis_as_bytes(&self) -> Vec<u8> {
         self.value.to_be_bytes().to_vec()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKeySize))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKeySize))]
     pub fn get_script_pub_key_size(&self) -> usize {
         self.script_pub_key.get_script_length()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKey))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKey))]
     pub fn get_script_pub_key(&self) -> Script {
         self.script_pub_key.clone()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKeyHex))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getScriptPubKeyHex))]
     pub fn get_script_pub_key_hex(&self) -> String {
         self.script_pub_key.to_hex()
     }
 }
 
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-#[cfg(feature = "wasm-bindgen-transaction")]
-impl TxOut {
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex_str: &str) -> Result<TxOut, wasm_bindgen::JsError> {
-        Ok(TxOut::from_hex_impl(hex_str)?)
-    }
+// #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+// #[cfg(feature = "wasm-bindgen-transaction")]
+// impl TxOut {
+//     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = fromHex))]
+//     pub fn from_hex(hex_str: &str) -> Result<TxOut, wasm_bindgen::JsError> {
+//         Ok(TxOut::from_hex_impl(hex_str)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(TxOut::to_bytes_impl(&self)?)
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toBytes))]
+//     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+//         Ok(TxOut::to_bytes_impl(&self)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(TxOut::to_hex_impl(&self)?)
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toHex))]
+//     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
+//         Ok(TxOut::to_hex_impl(&self)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
-    pub fn to_json(&self) -> Result<JsValue, JsError> {
-        Ok(serde_wasm_bindgen::to_value(&self)?)
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toJSON))]
+//     pub fn to_json(&self) -> Result<JsValue, JsError> {
+//         Ok(serde_wasm_bindgen::to_value(&self)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
-    pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(TxOut::to_json_string_impl(&self)?)
-    }
-}
+//     #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = toString))]
+//     pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
+//         Ok(TxOut::to_json_string_impl(&self)?)
+//     }
+// }
 
-#[cfg(not(feature = "wasm-bindgen-transaction"))]
 impl TxOut {
     pub fn from_hex(hex_str: &str) -> Result<TxOut, BSVErrors> {
         TxOut::from_hex_impl(hex_str)
@@ -156,13 +149,11 @@ impl TxOut {
         TxOut::to_hex_impl(self)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json(&self) -> Result<serde_json::Value, BSVErrors> {
         let json = serde_json::to_value(self)?;
         Ok(json)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_json_string(&self) -> Result<String, BSVErrors> {
         TxOut::to_json_string_impl(self)
     }

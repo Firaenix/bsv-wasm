@@ -18,12 +18,6 @@ use rand_core::OsRng;
 use rand_core::RngCore;
 use sha2::Sha256;
 
-use wasm_bindgen::prelude::*;
-
-use wasm_bindgen::throw_str;
-
-use wasm_bindgen::JsValue;
-
 impl ECDSA {
     fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors>
     where
@@ -130,29 +124,28 @@ impl ECDSA {
 }
 
 
-#[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
-#[cfg(feature = "wasm-bindgen-ecdsa")]
-impl ECDSA {
-    #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithRandomK))]
-    pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
-        Ok(ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)?)
-    }
+// #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen)]
+// #[cfg(feature = "wasm-bindgen-ecdsa")]
+// impl ECDSA {
+//     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithRandomK))]
+//     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
+//         Ok(ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = sign))]
-    pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
-        Ok(ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)?)
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = sign))]
+//     pub fn sign_with_deterministic_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, wasm_bindgen::JsError> {
+//         Ok(ECDSA::sign_with_deterministic_k_impl(private_key, preimage, hash_algo, reverse_k)?)
+//     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithK))]
-    pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, wasm_bindgen::JsError> {
-        match ECDSA::sign_with_k_impl(private_key, ephemeral_key, preimage, hash_algo) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-}
+//     #[cfg_attr(all(feature = "wasm-bindgen-ecdsa"), wasm_bindgen(js_name = signWithK))]
+//     pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, wasm_bindgen::JsError> {
+//         match ECDSA::sign_with_k_impl(private_key, ephemeral_key, preimage, hash_algo) {
+//             Ok(v) => Ok(v),
+//             Err(e) => throw_str(&e.to_string()),
+//         }
+//     }
+// }
 
-#[cfg(not(feature = "wasm-bindgen-ecdsa"))]
 impl ECDSA {
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)

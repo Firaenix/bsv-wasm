@@ -1,7 +1,3 @@
-
-use wasm_bindgen::{prelude::*, throw_str};
-
-#[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChainParams {
     pub p2pkh: u8,
@@ -12,9 +8,8 @@ pub struct ChainParams {
     pub magic: u32,
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen)]
 impl ChainParams {
-    #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(constructor))]
     pub fn default() -> ChainParams {
         ChainParams {
             p2pkh: 0x00,
@@ -37,12 +32,12 @@ impl ChainParams {
         }
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Mainnet))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Mainnet))]
     pub fn mainnet() -> ChainParams {
         ChainParams::default()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Testnet))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Testnet))]
     pub fn testnet() -> ChainParams {
         ChainParams {
             p2pkh: 0x6f,
@@ -54,7 +49,7 @@ impl ChainParams {
         }
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Regtest))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = Regtest))]
     pub fn regtest() -> ChainParams {
         let ChainParams {
             p2pkh, p2sh, privkey, xpub, xpriv, ..
@@ -69,7 +64,7 @@ impl ChainParams {
         }
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = STN))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = STN))]
     pub fn stn() -> ChainParams {
         let ChainParams {
             p2pkh, p2sh, privkey, xpub, xpriv, ..

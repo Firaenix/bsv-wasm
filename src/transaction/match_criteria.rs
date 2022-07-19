@@ -1,9 +1,5 @@
 use crate::{ScriptTemplate, Transaction, TxIn, TxOut};
 
-
-use wasm_bindgen::prelude::*;
-
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
 pub struct MatchCriteria {
     pub(crate) script_template: Option<ScriptTemplate>,
@@ -12,35 +8,34 @@ pub struct MatchCriteria {
     pub(crate) max_value: Option<u64>,
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl MatchCriteria {
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new() -> MatchCriteria {
         MatchCriteria::default()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setScriptTemplate))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setScriptTemplate))]
     pub fn set_script_template(&mut self, script_template: &ScriptTemplate) -> MatchCriteria {
         self.script_template = Some(script_template.clone());
 
         self.clone()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setValue))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setValue))]
     pub fn set_value(&mut self, value: u64) -> MatchCriteria {
         self.exact_value = Some(value);
 
         self.clone()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setMin))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setMin))]
     pub fn set_min(&mut self, min: u64) -> MatchCriteria {
         self.min_value = Some(min);
 
         self.clone()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setMax))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setMax))]
     pub fn set_max(&mut self, max: u64) -> MatchCriteria {
         self.max_value = Some(max);
 
@@ -48,7 +43,6 @@ impl MatchCriteria {
     }
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
     fn is_matching_output(txout: &TxOut, criteria: &MatchCriteria) -> bool {
         // If script is specified and doesnt match
@@ -77,7 +71,7 @@ impl Transaction {
     /**
      * Returns the first output index that matches the given parameters, returns None or null if not found.
      */
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchOutput))]
     pub fn match_output(&self, criteria: &MatchCriteria) -> Option<usize> {
         self.outputs.iter().enumerate().find_map(|(i, txout)| match Transaction::is_matching_output(txout, criteria) {
             true => Some(i),
@@ -88,7 +82,7 @@ impl Transaction {
     /**
      * Returns a list of outputs indexes that match the given parameters
      */
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchOutputs))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchOutputs))]
     pub fn match_outputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
         let matches = self
             .outputs
@@ -130,7 +124,7 @@ impl Transaction {
     /**
      * Returns the first input index that matches the given parameters, returns None or null if not found.
      */
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchInput))]
     pub fn match_input(&self, criteria: &MatchCriteria) -> Option<usize> {
         self.inputs.iter().enumerate().find_map(|(i, txin)| match Transaction::is_matching_input(txin, criteria) {
             true => Some(i),
@@ -141,7 +135,7 @@ impl Transaction {
     /**
      * Returns a list of input indexes that match the given parameters
      */
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchInputs))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = matchInputs))]
     pub fn match_inputs(&self, criteria: &MatchCriteria) -> Vec<usize> {
         let matches = self
             .inputs

@@ -8,9 +8,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use strum_macros::EnumString;
 
-use wasm_bindgen::throw_str;
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
@@ -322,14 +320,12 @@ impl Transaction {
     }
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
         ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
     }
 }
 
-#[cfg(not(all(feature = "wasm-bindgen-transaction")))]
 impl Transaction {
     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)
@@ -344,34 +340,33 @@ impl Transaction {
     }
 }
 
-#[cfg(all(feature = "wasm-bindgen-transaction"))]
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-impl Transaction {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, wasm_bindgen::JsError> {
-        Ok(Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)?)
-    }
+// #[cfg(all(feature = "wasm-bindgen-transaction"))]
+// #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+// impl Transaction {
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
+//     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, wasm_bindgen::JsError> {
+//         Ok(Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)?)
+//     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signWithK))]
-    pub fn sign_with_k(
-        &mut self,
-        priv_key: &PrivateKey,
-        ephemeral_key: &PrivateKey,
-        sighash: SigHash,
-        n_tx_in: usize,
-        unsigned_script: &Script,
-        value: u64,
-    ) -> Result<SighashSignature, wasm_bindgen::JsError> {
-        Ok(Transaction::sign_with_k_impl(self, priv_key, ephemeral_key, sighash, n_tx_in, unsigned_script, value)?)
-    }
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = signWithK))]
+//     pub fn sign_with_k(
+//         &mut self,
+//         priv_key: &PrivateKey,
+//         ephemeral_key: &PrivateKey,
+//         sighash: SigHash,
+//         n_tx_in: usize,
+//         unsigned_script: &Script,
+//         value: u64,
+//     ) -> Result<SighashSignature, wasm_bindgen::JsError> {
+//         Ok(Transaction::sign_with_k_impl(self, priv_key, ephemeral_key, sighash, n_tx_in, unsigned_script, value)?)
+//     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sighashPreimage))]
-    pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value)?)
-    }
-}
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sighashPreimage))]
+//     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+//         Ok(Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value)?)
+//     }
+// }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 pub struct SighashSignature {
     pub(crate) signature: Signature,
     pub(crate) sighash_type: SigHash,
@@ -409,9 +404,8 @@ impl SighashSignature {
     }
 }
 
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl SighashSignature {
-    #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(signature: &Signature, sighash_type: SigHash, sighash_buffer: &[u8]) -> SighashSignature {
         SighashSignature {
             signature: signature.clone(),
@@ -421,7 +415,6 @@ impl SighashSignature {
     }
 }
 
-#[cfg(not(all(feature = "wasm-bindgen-transaction")))]
 impl SighashSignature {
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         self.to_hex_impl()
@@ -436,21 +429,21 @@ impl SighashSignature {
     }
 }
 
-#[cfg(all(feature = "wasm-bindgen-transaction"))]
-#[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-impl SighashSignature {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(self.to_hex_impl()?)
-    }
+// #[cfg(all(feature = "wasm-bindgen-transaction"))]
+// #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+// impl SighashSignature {
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
+//     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
+//         Ok(self.to_hex_impl()?)
+//     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(self.to_bytes_impl()?)
-    }
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
+//     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+//         Ok(self.to_bytes_impl()?)
+//     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<SighashSignature, wasm_bindgen::JsError> {
-        Ok(Self::from_bytes_impl(bytes, sighash_buffer)?)
-    }
-}
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
+//     pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<SighashSignature, wasm_bindgen::JsError> {
+//         Ok(Self::from_bytes_impl(bytes, sighash_buffer)?)
+//     }
+// }
