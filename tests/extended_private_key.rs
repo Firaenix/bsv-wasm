@@ -3,12 +3,8 @@
 mod xpriv_tests {
     use bsv_wasm::{hash::Hash, keypair::*};
     use rand_core::OsRng;
-    
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn xpriv_parts_to_xpriv_string() {
         // let seed = "4a6b71c77d6d37b5b95b10659632e64341b985fadb37f55668b4de3f404473b47ec36bfebd30d9195ae4580f73c09dd492acab731eafd7f236e41e4818531368";
         let parent_chain_code = hex::decode("05aae71d7c080474efaab01fa79e96f4c6cfe243237780b0df4bc36106228e31").unwrap();
@@ -25,7 +21,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_xprv_string() {
         let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K2rdSf96bvxvYtHYjf2899A7M7S3Ka2jASLK6P3hs7Bg9snGVsArqAA2awhc26e5kqKDquKSkpZ6hXymjpCcUj1tRi17L4Bg").unwrap();
 
@@ -36,7 +31,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_xprv_string_and_derive() {
         let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
 
@@ -58,7 +52,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_xprv_string_and_derive_hardened() {
         let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
 
@@ -88,7 +81,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_xprv_string_and_derive_from_path() {
         let key = ExtendedPrivateKey::from_string("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi").unwrap();
 
@@ -130,7 +122,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn seed_to_xprv() {
         let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
         let key = ExtendedPrivateKey::from_seed(&bytes).unwrap();
@@ -142,7 +133,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     #[allow(non_snake_case)]
     fn non_standard__long_seed_to_xprv() {
         let bytes = hex::decode("c3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355cc3cbf33f1b8f404fec9c6779b2b89d9fa08d0ecfc2c66bf679cbdbe6b8630fdd849911514fd01fef00d26dbb9290a4ea311765b8a5ed004a85af7253f0b1355c").unwrap();
@@ -155,7 +145,6 @@ mod xpriv_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     #[allow(non_snake_case)]
     fn non_standard__massive_seed_to_xpriv() {
         let mut seed = vec![0; 4096];

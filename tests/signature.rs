@@ -5,12 +5,8 @@ use rayon::prelude::*;
 mod tests {
     use bsv_wasm::*;
     use rayon::iter::{IntoParallelIterator, ParallelIterator};
-    
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
         let sig = Signature::from_der(&hex::decode(sig_hex).unwrap()).unwrap();
@@ -18,7 +14,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature_string() {
         let sig_hex = "3044022075fc517e541bd54769c080b64397e32161c850f6c1b2b67a5c433affbb3e62770220729e85cc46ffab881065ec07694220e71d4df9b2b8c8fd12c3122cf3a5efbcf2";
         let sig = Signature::from_hex_der(sig_hex).unwrap();
@@ -26,7 +21,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn import_signature_with_sighash_string() {
         let sig_hex = "304402205ebadbf09cf9b9be17ee6f588e93f490a2db9ac5966f938255282cca9ca75fa602206c37c1842e1b48a177c195e34579be84826b7ad919cda6d803a5fc1d77551580c3";
 
@@ -45,7 +39,6 @@ mod tests {
     // }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_message() {
         let wif = "L5EZftvrYaSudiozVRzTqLcHLNDoVn7H5HSfM9BAN6tMJX8oTWz6";
 
@@ -64,7 +57,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn recover_pub_key_from_signature_sha256() {
         let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
 
@@ -81,7 +73,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn to_compact_test() {
         let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
 
@@ -97,7 +88,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(target_arch = "wasm32"))]
     fn sign_with_k_test_par() {
         (0..2180i32).into_par_iter().for_each(|_i| {
             let private_key = PrivateKey::from_random();
@@ -114,7 +104,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_with_k_test() {
         // TODO: Handle for extremely low private key/ephemeral key
         let private_key = PrivateKey::from_random();

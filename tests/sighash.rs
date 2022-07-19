@@ -3,12 +3,8 @@ mod sighash_tests {
     use std::convert::{TryFrom, TryInto};
 
     use bsv_wasm::*;
-    
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_inputs_output_single() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::InputsOutput;
@@ -28,7 +24,6 @@ mod sighash_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_anyonecanpay_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::NONE | SigHash::ANYONECANPAY;
@@ -51,7 +46,6 @@ mod sighash_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_anyonecanpay_fork_id() {
         let signing_script = Script::from_asm_string("OP_CHECKSIG").unwrap();
         let mut tx = Transaction::new(1, 0);
@@ -73,7 +67,6 @@ mod sighash_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_none_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::NONE;
@@ -92,7 +85,6 @@ mod sighash_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_single_anyonecanpay_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::SINGLE | SigHash::ANYONECANPAY;
@@ -115,7 +107,6 @@ mod sighash_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sighash_single_no_fork_id() {
         let priv_key = PrivateKey::from_wif("L31JUXCGspUREe9Gya8F2WWjeoRz3bb8AQzJjAP8ntGYp37oYdSx").unwrap();
         let sighash = SigHash::SINGLE;

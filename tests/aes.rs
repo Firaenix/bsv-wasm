@@ -5,12 +5,8 @@ mod aes_tests {
 
     use bsv_wasm::{encryption::AESAlgorithms, hash::Hash, AES};
     use rand_core::{OsRng, RngCore};
-    
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_aes_128_cbc() {
         let key = &Hash::sha_256(hex::encode("Key Please").as_bytes()).to_bytes()[0..16];
         let iv = &Hash::sha_256(hex::encode("IV Please").as_bytes()).to_bytes()[0..16];
@@ -26,7 +22,6 @@ mod aes_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_aes_256_cbc() {
         let key = &Hash::sha_256(hex::encode("Key Please").as_bytes()).to_bytes()[0..32];
         let iv = &Hash::sha_256(hex::encode("IV Please").as_bytes()).to_bytes()[0..16];
@@ -42,7 +37,6 @@ mod aes_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_aes_128_ctr() {
         let key = &Hash::sha_256(hex::encode("Key Please").as_bytes()).to_bytes()[0..16];
         let iv = &Hash::sha_256(hex::encode("IV Please").as_bytes()).to_bytes()[0..16];
@@ -58,7 +52,6 @@ mod aes_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encrypt_aes_256_ctr() {
         let key = &Hash::sha_256(hex::encode("Key Please").as_bytes()).to_bytes()[0..32];
         let iv = &Hash::sha_256(hex::encode("IV Please").as_bytes()).to_bytes()[0..16];

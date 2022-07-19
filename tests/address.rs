@@ -2,12 +2,8 @@
 mod tests {
     use bsv_wasm::{address::*, chainparams::ChainParams, PrivateKey, PublicKey};
     use serde::{Deserialize, Serialize};
-    
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn private_key_to_address_verify() {
         // Arrange
         let pub_key_hash = "3c3fa3d4adcaf8f52d5b1843975e122548269937";
@@ -22,7 +18,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn private_key_to_address_verify_2() {
         // Arrange
         let pub_key_hash = "47c6ad3495d35e6df17ccb06831cb44dbd570995";
@@ -37,7 +32,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn pub_key_hash_to_pub_key_hash() {
         // Arrange
         let pub_key_hash = "47c6ad3495d35e6df17ccb06831cb44dbd570995";
@@ -54,7 +48,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn private_key_to_public_key_to_address() {
         let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2").unwrap();
         let pub_key = PublicKey::from_private_key(&priv_key);
@@ -69,7 +62,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_address_string_to_address_string() {
         let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2").unwrap();
         let pub_key = PublicKey::from_private_key(&priv_key);
@@ -88,7 +80,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_testnet_address_string_to_testnet_address_string() {
         let address_string = "moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC".to_string();
         let decoded_address = P2PKHAddress::from_string("moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC").unwrap();
@@ -96,7 +87,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_mainnet_address_string_to_testnet_address_string() {
         let address_string = "moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC".to_string();
         let decoded_address = P2PKHAddress::from_string("18irYdwarX2sxFbcYXG47B1iMnM5rWxsem")
@@ -107,7 +97,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn compressed_wif_to_compressed_p2pkh() {
         let priv_key = PrivateKey::from_wif("KziiqE8Ud9hVUfootTmvYissdY3grsA94avMnkaGDYEFDcFoen74").unwrap();
         let pub_key = priv_key.to_public_key().unwrap();
@@ -119,7 +108,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn uncompressed_wif_to_uncompressed_p2pkh() {
         let priv_key = PrivateKey::from_wif("5Jn2vgPSP7QacDi9U5XsH4BEwBHLQjUD4StsJDWC7DAdFXdLrdh").unwrap();
         let pub_key = priv_key.to_public_key().unwrap();
@@ -134,7 +122,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn p2pkhaddress_to_json_returns_base58_address() {
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
         struct Test {
