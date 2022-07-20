@@ -104,7 +104,7 @@ impl Script {
         bytes
     }
 
-    pub fn to_asm_string(&self, extended: bool) -> String {
+    pub fn to_asm_string_impl(&self, extended: bool) -> String {
         Script::script_bits_to_asm_string(&self.0, extended)
     }
 
@@ -257,7 +257,7 @@ impl Script {
         Ok(nested_bits)
     }
 
-    pub(crate) fn from_asm_string_impl(asm: &str) -> Result<Script, BSVErrors> {
+    pub fn from_asm_string(asm: &str) -> Result<Script, BSVErrors> {
         let bits: Result<Vec<ScriptBit>, _> = asm.split(' ').filter(|x| !(x.is_empty() || x == &"\n" || x == &"\r")).map(Script::map_string_to_script_bit).collect();
         let bits = Script::if_statement_pass(&bits?)?;
 
@@ -322,7 +322,7 @@ impl Script {
     }
 
     pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(&chunks.into_iter().flatten().collect::<Vec<u8>>())
+        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
 
     pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
@@ -345,15 +345,11 @@ impl Script {
         Script::to_asm_string_impl(self, true)
     }
 
-    pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
-        Script::from_hex_impl(hex)
-    }
-
     /**
      * Gets the OP_PUSHDATA prefix varint
      */
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
-        Script::get_pushdata_prefix_bytes_impl(length)
+        Script::get_pushdata_prefix_bytes(length)
     }
 
     pub fn to_script_bits(&self) -> Vec<ScriptBit> {

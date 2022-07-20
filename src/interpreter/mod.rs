@@ -93,7 +93,7 @@ impl Interpreter {
 impl Interpreter {
     pub fn from_script(script: &Script) -> Interpreter {
         Interpreter {
-            script_bits: script.to_script_bits_impl(),
+            script_bits: script.to_script_bits(),
             script_index: 0,
             state: State::default(),
             tx_script: None,
@@ -154,7 +154,7 @@ impl Interpreter {
                 .get_input(txin as usize)
                 .unwrap()
                 .get_finalised_script_impl()?
-                .to_script_bits_impl();
+                .to_script_bits();
         Ok(Interpreter::from_transaction_and_script_bits(tx.clone(), txin, script_bits))
     }
 

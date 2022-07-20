@@ -50,7 +50,7 @@ impl TxIn {
                 let locking_script_bytes = locking_script.to_bytes();
 
                 unlocking_script_bytes.extend_from_slice(&locking_script_bytes);
-                Script::from_bytes_impl(&unlocking_script_bytes)
+                Script::from_bytes(&unlocking_script_bytes)
             }
             None => Ok(self.unlocking_script.clone()),
         }
@@ -107,8 +107,8 @@ impl TxIn {
 
         Ok(TxIn {
             unlocking_script: match TxIn::is_coinbase_outpoint_impl(&prev_tx_id, &vout) {
-                true => Script::from_coinbase_bytes_impl(&unlocking_script)?,
-                false => Script::from_bytes_impl(&unlocking_script)?,
+                true => Script::from_coinbase_bytes(&unlocking_script)?,
+                false => Script::from_bytes(&unlocking_script)?,
             },
             prev_tx_id,
             vout,

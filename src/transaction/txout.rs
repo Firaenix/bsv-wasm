@@ -40,7 +40,7 @@ impl TxOut {
 
         Ok(TxOut {
             value: satoshis,
-            script_pub_key: Script::from_bytes_impl(&script_pub_key)?,
+            script_pub_key: Script::from_bytes(&script_pub_key)?,
         })
     }
 

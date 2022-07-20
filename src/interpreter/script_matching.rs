@@ -725,10 +725,10 @@ fn calculate_sighash_preimage(txscript: &mut TxScript, sighash: SigHash, codesep
         }
     };
     
-    let unlock_script_len = txin.get_unlocking_script().to_script_bits_impl().len();
+    let unlock_script_len = txin.get_unlocking_script().to_script_bits().len();
     let script_offset = codeseparator_offset.checked_sub(unlock_script_len).unwrap_or(0);
     let unsigned_script = match txin.get_locking_script () {
-        Some(v) => Script::from_script_bits(v.to_script_bits_impl()[script_offset..].to_vec()),
+        Some(v) => Script::from_script_bits(v.to_script_bits()[script_offset..].to_vec()),
         None => {
             return Err(InterpreterError::InvalidStackOperation(
                 "TxIn at given index does not have locking script provided",

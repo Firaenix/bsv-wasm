@@ -102,7 +102,7 @@ impl P2PKHAddress {
      * Should be inserted into a new TxOut.
      */
     pub(crate) fn to_locking_script_impl(&self) -> Result<Script, BSVErrors> {
-        Script::from_asm_string_impl(&format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
+        Script::from_asm_string(&format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", self.to_pubkey_hash_hex()))
     }
 
     /**
@@ -118,7 +118,7 @@ impl P2PKHAddress {
         }
 
         let pub_key_hex = pub_key.to_hex_impl()?;
-        let script = Script::from_asm_string_impl(&format!("{} {}", sig.to_hex_impl()?, pub_key_hex))?;
+        let script = Script::from_asm_string(&format!("{} {}", sig.to_hex_impl()?, pub_key_hex))?;
 
         Ok(script)
     }
