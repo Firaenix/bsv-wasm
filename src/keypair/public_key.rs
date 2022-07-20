@@ -1,12 +1,35 @@
 use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 use elliptic_curve::{sec1::*, subtle::Choice};
 use k256::{AffinePoint, Secp256k1};
+use serde::{Deserializer, Deserialize, Serializer, Serialize};
 use crate::PrivateKey;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey {
     point: Vec<u8>,
     is_compressed: bool,
+}
+
+impl Serialize for PublicKey {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let pubkey = self.to_hex_impl().map_err(|e| serde::ser::Error::custom(e.to_string()))?;
+        serializer.serialize_str(&pubkey)
+    }
+}
+
+impl<'de> Deserialize<'de> for PublicKey {
+    fn deserialize<D>(deserializer: D) -> Result<PublicKey, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let pubkey_string = String::deserialize(deserializer)?;
+
+        let p2pkh = PublicKey::from_hex_impl(&pubkey_string).map_err(|e| serde::de::Error::custom(e.to_string()))?;
+        Ok(p2pkh)
+    }
 }
 
 impl PublicKey {
