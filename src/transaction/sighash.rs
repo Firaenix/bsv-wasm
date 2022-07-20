@@ -9,7 +9,7 @@ use num_traits::{FromPrimitive, ToPrimitive};
 use strum_macros::EnumString;
 
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
     FORKID = 0x40,
