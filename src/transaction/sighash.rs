@@ -10,6 +10,7 @@ use strum_macros::EnumString;
 
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString, Serialize, Deserialize)]
+#[serde(untagged)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
     FORKID = 0x40,
