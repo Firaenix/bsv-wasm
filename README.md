@@ -1,4 +1,4 @@
-# BSV.WASM
+# BSV.WASM/BSV-RS
 
 A Rust/WASM Library to interact with Bitcoin SV   
 
@@ -13,7 +13,7 @@ Webpack:
 `npm i bsv-wasm-bundler --save`
 
 Rust:  
-https://crates.io/crates/bsv-wasm
+https://crates.io/crates/bsv
 
 Deno:  
 ```js

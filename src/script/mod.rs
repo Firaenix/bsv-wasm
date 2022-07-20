@@ -104,20 +104,15 @@ impl Script {
         bytes
     }
 
-    pub(crate) fn to_asm_string_impl(&self, extended: bool) -> String {
+    pub fn to_asm_string(&self, extended: bool) -> String {
         Script::script_bits_to_asm_string(&self.0, extended)
     }
-}
 
-/**
- * Deserialise Methods
- */
-impl Script {
-    pub(crate) fn from_hex_impl(hex: &str) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(&hex::decode(hex)?)
+    pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
+        Script::from_bytes(&hex::decode(hex)?)
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<Script, BSVErrors> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
         let mut cursor = Cursor::new(bytes);
 
         let mut bit_accumulator = vec![];
@@ -159,7 +154,7 @@ impl Script {
         Ok(Script(nested_bits))
     }
 
-    pub(crate) fn from_coinbase_bytes_impl(bytes: &[u8]) -> Result<Script, BSVErrors> {
+    pub fn from_coinbase_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
         Ok(Script(vec![ScriptBit::Coinbase(bytes.to_vec())]))
     }
 
@@ -269,7 +264,7 @@ impl Script {
         Ok(Script(bits))
     }
 
-    pub(crate) fn get_pushdata_prefix_bytes_impl(length: usize) -> Result<Vec<u8>, BSVErrors> {
+    pub fn get_pushdata_prefix_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
         match length {
             op_push @ 0x01..=0x4b => Ok(vec![op_push as u8]),
             op_pushdata1_size @ 0x4c..=0xFF => {
@@ -303,53 +298,29 @@ impl Script {
         }
     }
 
-    pub(crate) fn encode_pushdata_impl(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
-        let mut pushdata_bytes = Script::get_pushdata_prefix_bytes_impl(data_bytes.len())?;
+    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
+        let mut pushdata_bytes = Script::get_pushdata_prefix_bytes(data_bytes.len())?;
         pushdata_bytes.append(&mut data_bytes.to_vec());
 
         Ok(pushdata_bytes)
     }
-    
-    /// This needs to exist because without it if you try to write code that compiles to both WASM
-    /// and Rust it errors
-    pub fn to_script_bits_impl(&self) -> Vec<ScriptBit> {
-        self.0.clone()
-    }
-}
 
-/**
- * Shared Functions
- */
-#[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen)]
-impl Script {
-    #[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         Script::script_bits_to_bytes(&self.0)
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen(js_name = getScriptLength))]
     pub fn get_script_length(&self) -> usize {
         self.to_bytes().len()
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }
 
-    #[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen(js_name = removeCodeSeparators))]
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
-}
 
-/**
- * Only export to inside Rust calling code
- */
-impl Script {
-    /**
-     * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
-     */
     pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Script, BSVErrors> {
         Script::from_bytes_impl(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
@@ -365,19 +336,9 @@ impl Script {
     pub fn push_array(&mut self, code: &[ScriptBit]) {
         self.0.extend_from_slice(code);
     }
-}
 
-/**
- * Native Specific Functions
- */
-#[cfg(not(all(feature = "wasm-bindgen-script")))]
-impl Script {
     pub fn to_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, false)
-    }
-
-    pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(bytes)
     }
 
     pub fn to_extended_asm_string(&self) -> String {
@@ -386,14 +347,6 @@ impl Script {
 
     pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
         Script::from_hex_impl(hex)
-    }
-
-    pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
-        Script::from_asm_string_impl(asm_string)
-    }
-
-    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
-        Script::encode_pushdata_impl(data_bytes)
     }
 
     /**
@@ -405,55 +358,5 @@ impl Script {
 
     pub fn to_script_bits(&self) -> Vec<ScriptBit> {
         self.0.clone()
-    }
-}
-
-/**
- * WASM Specific Functions
- */
-#[cfg(all(feature = "wasm-bindgen-script"))]
-#[cfg_attr(all(feature = "wasm-bindgen-script"), wasm_bindgen)]
-impl Script {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toASMString))]
-    pub fn to_asm_string(&self) -> String {
-        Script::to_asm_string_impl(&self, false)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toExtendedASMString))]
-    pub fn to_extended_asm_string(&self) -> String {
-        Script::to_asm_string_impl(&self, true)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex: &str) -> Result<Script, wasm_bindgen::JsError> {
-        Ok(Script::from_hex_impl(hex)?)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Script, wasm_bindgen::JsError> {
-        Ok(Script::from_bytes_impl(bytes)?)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromASMString))]
-    pub fn from_asm_string(asm_string: &str) -> Result<Script, wasm_bindgen::JsError> {
-        Ok(Script::from_asm_string_impl(asm_string)?)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encodePushData))]
-    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(Script::encode_pushdata_impl(data_bytes)?)
-    }
-
-    /**
-     * Gets the OP_PUSHDATA prefix varint
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPushDataBytes))]
-    pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(Script::get_pushdata_prefix_bytes_impl(length)?)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toScriptBits))]
-    pub fn to_script_bits(&self) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsError> {
-        Ok(serde_wasm_bindgen::to_value(self)?)
     }
 }

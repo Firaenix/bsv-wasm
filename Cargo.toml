@@ -3,9 +3,9 @@ name = "bsv"
 version = "1.4.0-beta.2"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
-description = "A Bitcoin SV library with WASM in mind."
+description = "A Bitcoin SV stdlib"
 license = "MIT"
-categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto']
+categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto', 'bitcoin', 'bcash', 'bitcoin-cash', 'bch', 'btc', 'bitcoin-core']
 
 [lib]
 crate-type = ["cdylib", "rlib"]
