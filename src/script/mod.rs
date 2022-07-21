@@ -1,4 +1,3 @@
-
 use crate::OpCodes::OP_0;
 use strum_macros::Display;
 
@@ -65,7 +64,7 @@ impl Script {
             .join(" ")
     }
 
-    fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
+    pub fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
         let bytes = codes
             .iter()
             .flat_map(|x| match x {
