@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(js_name = Script)]
-pub struct Script(bsv::Script);
+#[wasm_bindgen]
+pub struct Script(pub(crate) bsv::Script);
 
 /**
  * WASM Specific Functions
