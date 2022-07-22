@@ -106,74 +106,14 @@ impl PublicKey {
 }
 
 impl PublicKey {
-    // #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = isValidMessage))]
     pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
         self.verify_message_impl(message, signature).is_ok()
     }
 
-    // #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = isCompressed))]
     pub fn is_compressed(&self) -> bool {
         self.is_compressed
     }
 }
-
-/**
- * WASM Exported Methods
- */
-
-// #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
-// #[cfg(feature = "wasm-bindgen-keypair")]
-// impl PublicKey {
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromHex))]
-//     pub fn from_hex(hex_str: &str) -> Result<PublicKey, wasm_bindgen::JsError> {
-//         Ok(PublicKey::from_hex_impl(hex_str)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromBytes))]
-//     pub fn from_bytes(bytes: &[u8]) -> Result<PublicKey, wasm_bindgen::JsError> {
-//         Ok(PublicKey::from_bytes_impl(bytes)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toBytes))]
-//     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-//         Ok(PublicKey::to_bytes_impl(&self)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toHex))]
-//     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
-//         Ok(PublicKey::to_hex_impl(&self)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromPrivateKey))]
-//     pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
-//         PublicKey::from_private_key_impl(priv_key)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = verifyMessage))]
-//     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
-//         Ok(self.verify_message_impl(message, signature)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toAddress))]
-//     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
-//         Ok(self.to_p2pkh_address_impl()?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toCompressed))]
-//     pub fn to_compressed(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
-//         Ok(self.to_compressed_impl()?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toDecompressed))]
-//     pub fn to_decompressed(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
-//         Ok(self.to_decompressed_impl()?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = encryptMessage))]
-//     pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-//         Ok(self.encrypt_message_impl(message, sender_private_key)?)
-//     }
-// }
 
 /**
  * Native Exported Methods

@@ -167,62 +167,6 @@ impl PrivateKey {
     }
 }
 
-/**
- * WASM Exported Methods
- */
-
-// #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
-// #[cfg(feature = "wasm-bindgen-keypair")]
-// impl PrivateKey {
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromWIF))]
-//     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, wasm_bindgen::JsError> {
-//         Ok(PrivateKey::from_wif_impl(wif_string)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromHex))]
-//     pub fn from_hex(hex_str: &str) -> Result<PrivateKey, wasm_bindgen::JsError> {
-//         Ok(PrivateKey::from_hex_impl(hex_str)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = signMessage))]
-//     /**
-//      * Standard ECDSA Message Signing using SHA256 as the digestg
-//      */
-//     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
-//         Ok(PrivateKey::sign_message_impl(&self, msg)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toWIF))]
-//     pub fn to_wif(&self) -> Result<String, wasm_bindgen::JsError> {
-//         Ok(PrivateKey::to_wif_impl(&self)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = fromBytes))]
-//     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, wasm_bindgen::JsError> {
-//         Ok(Self::from_bytes_impl(bytes)?)
-//     }
-
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = toPublicKey))]
-//     pub fn to_public_key(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
-//         Ok(self.to_public_key_impl()?)
-//     }
-
-//     /**
-//      * Encrypt a message to the public key of this private key.
-//      */
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = encryptMessage))]
-//     pub fn encrypt_message(&self, message: &[u8]) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-//         Ok(self.encrypt_message_impl(message)?)
-//     }
-
-//     /**
-//      * Decrypt a message that was sent to the public key corresponding to this private key.
-//      */
-//     #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = decryptMessage))]
-//     pub fn decrypt_message(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-//         Ok(self.decrypt_message_impl(ciphertext, sender_pub_key)?)
-//     }
-// }
 
 /**
  * Native Exported Methods
