@@ -1,5 +1,2 @@
-mod public_key;
-mod private_key;
-
-
-
+pub mod private_key;
+pub mod public_key;
