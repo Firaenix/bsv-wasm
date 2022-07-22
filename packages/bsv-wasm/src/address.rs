@@ -1,4 +1,4 @@
-use crate::{chainparams::ChainParams, keypair::public_key::PublicKey, script::Script, signature::Signature};
+use crate::{chainparams::ChainParams, keypair::public_key::PublicKey, script::Script, sighash::SighashSignature, signature::Signature};
 use bsv::P2PKHAddress as BSVP2PKHAdress;
 use wasm_bindgen::prelude::*;
 
@@ -32,7 +32,7 @@ impl P2PKHAddress {
     }
 
     pub fn get_unlocking_script(&self, pub_key: &PublicKey, sig: &SighashSignature) -> Result<Script, wasm_bindgen::JsError> {
-        Ok(Script(BSVP2PKHAdress::get_unlocking_script(&self.0, &pub_key.0, sig.0)?))
+        Ok(Script(BSVP2PKHAdress::get_unlocking_script(&self.0, &pub_key.0, &sig.0)?))
     }
 
     pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {

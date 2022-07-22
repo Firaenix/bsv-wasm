@@ -6,8 +6,8 @@ use std::io::Write;
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
 use strum_macros::EnumString;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString, Serialize, Deserialize)]
 #[serde(untagged)]
