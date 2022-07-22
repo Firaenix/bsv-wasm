@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use bsv::PublicKey as BSVPublicKey;
 
-use crate::keypair::private_key::PrivateKey;
+use crate::{keypair::private_key::PrivateKey, address::P2PKHAddress};
 
 #[wasm_bindgen]
 pub struct PublicKey(pub(crate) BSVPublicKey);
@@ -25,7 +25,7 @@ impl PublicKey {
     }
 
     pub fn from_private_key(priv_key: &PrivateKey) -> PublicKey {
-        PublicKey(BSVPublicKey::from_private_key(priv_key))
+        PublicKey(BSVPublicKey::from_private_key(&priv_key.0))
     }
 
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
@@ -33,15 +33,15 @@ impl PublicKey {
     }
 
     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
-        Ok(self.0.to_p2pkh_address()?)
+        Ok(P2PKHAddress(self.0.to_p2pkh_address()?))
     }
 
     pub fn to_compressed(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
-        Ok(self.0.to_compressed()?)
+        Ok(PublicKey(self.0.to_compressed()?))
     }
 
     pub fn to_decompressed(&self) -> Result<PublicKey, wasm_bindgen::JsError> {
-        Ok(self.0.to_decompressed()?)
+        Ok(PublicKey(self.0.to_decompressed()?))
     }
 
     pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {

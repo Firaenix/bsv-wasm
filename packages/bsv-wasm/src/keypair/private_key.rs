@@ -4,7 +4,7 @@ use bsv::PrivateKey as BSVPrivateKey;
 use crate::keypair::public_key::PublicKey;
 
 #[wasm_bindgen]
-pub struct PrivateKey(BSVPrivateKey);
+pub struct PrivateKey(pub(crate) BSVPrivateKey);
 
 #[wasm_bindgen]
 impl PrivateKey {
