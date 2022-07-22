@@ -2,7 +2,6 @@ use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecoveryInfo {
     is_y_odd: bool,
@@ -62,7 +61,7 @@ impl Signature {
         Signature::from_der_impl(&bytes)
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
+    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         let recovery = match &self.recovery {
             Some(v) => v,
             None => {
@@ -90,7 +89,7 @@ impl Signature {
         Ok(pub_key)
     }
 
-    pub(crate) fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
+    pub fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
         let (recovery, is_compressed) = match (compact_bytes[0] - 27) as i8 - 4 {
