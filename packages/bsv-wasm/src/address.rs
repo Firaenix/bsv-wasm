@@ -3,7 +3,7 @@ use bsv::P2PKHAddress as BSVP2PKHAdress;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct P2PKHAddress(BSVP2PKHAdress);
+pub struct P2PKHAddress(pub(crate) BSVP2PKHAdress);
 
 #[wasm_bindgen]
 impl P2PKHAddress {
