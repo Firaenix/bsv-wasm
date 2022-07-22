@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use bsv::PrivateKey as BSVPrivateKey;
 
-use crate::keypair::public_key::PublicKey;
+use crate::{keypair::public_key::PublicKey, ecies::ECIESCiphertext, signature::Signature};
 
 #[wasm_bindgen]
 pub struct PrivateKey(pub(crate) BSVPrivateKey);
@@ -40,7 +40,7 @@ impl PrivateKey {
      * Standard ECDSA Message Signing using SHA256 as the digestg
      */
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
-        Ok(PrivateKey::sign_message(&self, msg)?)
+        Ok(Signature(self.0.sign_message(msg)?))
     }
 
     pub fn to_wif(&self) -> Result<String, wasm_bindgen::JsError> {
@@ -59,14 +59,14 @@ impl PrivateKey {
      * Encrypt a message to the public key of this private key.
      */
     pub fn encrypt_message(&self, message: &[u8]) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-        Ok(ECIESCiphertext(self.0.encrypt_message_impl(message)?))
+        Ok(ECIESCiphertext(self.0.encrypt_message(message)?))
     }
 
     /**
      * Decrypt a message that was sent to the public key corresponding to this private key.
      */
     pub fn decrypt_message(&self, ciphertext: &ECIESCiphertext, sender_pub_key: &PublicKey) -> Result<Vec<u8>, wasm_bindgen::JsError> {
-        Ok(self.0.decrypt_message_impl(ciphertext, sender_pub_key)?)
+        Ok(self.0.decrypt_message(&ciphertext.0, &sender_pub_key.0)?)
     }
 }
 

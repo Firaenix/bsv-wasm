@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use bsv::PublicKey as BSVPublicKey;
 
-use crate::{keypair::private_key::PrivateKey, address::P2PKHAddress};
+use crate::{keypair::private_key::PrivateKey, address::P2PKHAddress, ecies::ECIESCiphertext, signature::Signature};
 
 #[wasm_bindgen]
 pub struct PublicKey(pub(crate) BSVPublicKey);
@@ -29,7 +29,7 @@ impl PublicKey {
     }
 
     pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
-        Ok(self.0.verify_message(message, signature)?)
+        Ok(self.0.verify_message(message, &signature.0)?)
     }
 
     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
@@ -45,11 +45,11 @@ impl PublicKey {
     }
 
     pub fn encrypt_message(&self, message: &[u8], sender_private_key: &PrivateKey) -> Result<ECIESCiphertext, wasm_bindgen::JsError> {
-        Ok(self.0.encrypt_message(message, sender_private_key)?)
+        Ok(ECIESCiphertext(self.0.encrypt_message(message, &sender_private_key.0)?))
     }
 
     pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
-        self.0.verify_message(message, signature).is_ok()
+        self.0.verify_message(message, &signature.0).is_ok()
     }
 
     pub fn is_compressed(&self) -> bool {
