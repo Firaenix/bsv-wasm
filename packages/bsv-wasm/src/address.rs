@@ -1,4 +1,4 @@
-use crate::{chainparams::ChainParams, keypair::public_key::PublicKey, script::Script};
+use crate::{chainparams::ChainParams, keypair::public_key::PublicKey, script::Script, signature::Signature};
 use bsv::P2PKHAddress as BSVP2PKHAdress;
 use wasm_bindgen::prelude::*;
 
@@ -36,6 +36,6 @@ impl P2PKHAddress {
     }
 
     pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
-        Ok(BSVP2PKHAdress::verify_bitcoin_message(&self.0, message, signature.0)?)
+        Ok(BSVP2PKHAdress::verify_bitcoin_message(&self.0, message, &signature.0)?)
     }
 }
