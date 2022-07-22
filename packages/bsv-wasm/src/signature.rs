@@ -1,6 +1,7 @@
-use crate::keypair::public_key::PublicKey;
+use crate::{keypair::public_key::PublicKey, ecdsa::SigningHash};
 use bsv::{RecoveryInfo as BSVRecoveryInfo, Signature as BSVSignature};
 use wasm_bindgen::prelude::*;
+use crate::sighash::SighashSignature;
 
 #[wasm_bindgen]
 pub struct Signature(pub(crate) BSVSignature);
@@ -35,7 +36,7 @@ impl Signature {
     }
 
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, wasm_bindgen::JsError> {
-        Ok(PublicKey(BSVSignature::get_public_key(&self.0, &message, hash_algo)?))
+        Ok(PublicKey(self.0.recover_public_key(message, hash_algo.into())?))
     }
 
     pub fn to_der_hex(&self) -> String {
