@@ -1,7 +1,6 @@
 use crate::{keypair::public_key::PublicKey, ecdsa::SigningHash};
 use bsv::{RecoveryInfo as BSVRecoveryInfo, Signature as BSVSignature};
 use wasm_bindgen::prelude::*;
-use crate::sighash::SighashSignature;
 
 #[wasm_bindgen]
 pub struct Signature(pub(crate) BSVSignature);

@@ -34,11 +34,11 @@ impl ExtendedPublicKey {
     }
 
     pub fn derive(&self, index: u32) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-        Ok(self.derive(index)?)
+        Ok(Self(self.0.derive(index)?))
     }
 
     pub fn derive_from_path(&self, path: &str) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {
-        Ok(self.derive_from_path(path)?)
+        Ok(Self(self.0.derive_from_path(path)?))
     }
 
     pub fn from_seed(seed: &[u8]) -> Result<ExtendedPublicKey, wasm_bindgen::JsError> {

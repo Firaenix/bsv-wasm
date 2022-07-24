@@ -50,7 +50,7 @@ impl TxOut {
     }
 
     pub fn to_json_string(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(self.to_json_string()?)
+        Ok(self.0.to_json_string()?)
     }
 }
 

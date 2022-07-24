@@ -44,7 +44,7 @@ impl PrivateKey {
     }
 
     pub fn to_wif(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(PrivateKey::to_wif(&self)?)
+        Ok(BSVPrivateKey::to_wif(&self.0)?)
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<PrivateKey, wasm_bindgen::JsError> {

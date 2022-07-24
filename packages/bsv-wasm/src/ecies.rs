@@ -60,7 +60,7 @@ impl ECIESCiphertext {
     }
 
     pub fn get_hmac(&self) -> Vec<u8> {
-        self.get_hmac()
+        self.0.get_hmac()
     }
 
     pub fn get_cipher_keys(&self) -> Option<CipherKeys> {
