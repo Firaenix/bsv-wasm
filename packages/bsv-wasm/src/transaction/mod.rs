@@ -1,14 +1,13 @@
 use wasm_bindgen::prelude::*;
 use bsv::Transaction as BSVTransaction;
-use bsv::TxIn as BSVTxIn;
-use bsv::TxOut as BSVTxOut;
+
+mod txin;
+mod txout;
+pub use txin::*;
+pub use txout::*;
 
 #[wasm_bindgen]
 pub struct Transaction(pub(crate) BSVTransaction);
-#[wasm_bindgen]
-pub struct TxIn(pub(crate) BSVTxIn);
-#[wasm_bindgen]
-pub struct TxOut(pub(crate) BSVTxOut);
 
 #[wasm_bindgen]
 impl Transaction {
@@ -44,6 +43,7 @@ impl Transaction {
      * Creates a new empty transaction where you need to add inputs and outputs
      * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)
      */
+    #[wasm_bindgen(constructor)]
     pub fn new(version: u32, n_locktime: u32) -> Transaction {
         Transaction(BSVTransaction::new(version, n_locktime))
     }
