@@ -1,6 +1,6 @@
 use wasm_bindgen::{prelude::*, JsError};
 use crate::{ script::Script, transaction::Transaction };
-use bsv::{ Interpreter as BSVInterpreter, State };
+use bsv::{ Interpreter as BSVInterpreter, State as BSVState };
 
 #[wasm_bindgen]
 pub struct Interpreter(pub(crate) BSVInterpreter);
@@ -20,21 +20,21 @@ impl Interpreter {
         Ok(self.0.run()?)
     }
 
-    pub fn next(&mut self) -> Result<Option<JsState>, JsError> {
+    pub fn next(&mut self) -> Result<Option<State>, JsError> {
         let state = self.0.next()?;
 
-        let js_state = state.map(|s| JsState(s));
+        let js_state = state.map(|s| State(s));
         Ok(js_state)
     }
 
-    pub fn get_state(&self) -> JsState {
-        JsState(self.0.state())
+    pub fn get_state(&self) -> State {
+        State(self.0.state())
     }
 }
 
 
-#[wasm_bindgen(js_name = State)]
-pub struct JsState(pub(crate) State);
+#[wasm_bindgen]
+pub struct State(pub(crate) BSVState);
 
 #[wasm_bindgen(js_name = Status)]
 pub enum JsStatus {
@@ -52,7 +52,7 @@ impl From<bsv::Status> for JsStatus {
 }
 
 #[wasm_bindgen]
-impl JsState {
+impl State {
     pub fn get_executed_script(&self) -> Result<Script, JsError> {
         let asm_string: String = self.0.executed_opcodes.iter().map(|x| x.to_string()).fold(String::new(), |acc, x| format!("{} {}", acc, x));
         Ok(Script::from_asm_string(&asm_string)?)
