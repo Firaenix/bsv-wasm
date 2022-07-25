@@ -8,13 +8,13 @@ build-bundler:
 	wasm-pack build --release --out-dir ./pkg/bundler --target bundler
 
 build-nodejs:
-	wasm-pack build --release --out-dir ./pkg/node --target nodejs -- --features wasm-bindgen-exports # Generate package.json, etc.
-	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
+	wasm-pack build --release --out-dir ./pkg/node --target nodejs
+	cargo build --target wasm32-unknown-unknown --release
 	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/node --target nodejs --weak-refs
 	wasm-opt -O4 --dce ./pkg/node/bsv_wasm_bg.wasm -o ./pkg/node/bsv_wasm_bg.wasm
 
 build-deno:
-	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
+	cargo build --target wasm32-unknown-unknown --release
 	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/deno --target web --weak-refs
 	wasm-opt -O4 --dce ./pkg/deno/bsv_wasm_bg.wasm -o ./pkg/deno/bsv_wasm_bg.wasm
 
@@ -29,19 +29,19 @@ wasm-tests:
 
 publish-node:
 	# make sure not to call make build-* because wasm-pack doesnt allow you to specify subdirectories.
-	wasm-pack build --release --out-dir ./pkg --target nodejs -- --features wasm-bindgen-exports # Generate package.json, etc.
-	cargo build --target wasm32-unknown-unknown --features wasm-bindgen-exports --release
+	wasm-pack build --release --out-dir ./pkg --target nodejs
+	cargo build --target wasm32-unknown-unknown --release
 	wasm-bindgen ./target/wasm32-unknown-unknown/release/bsv_wasm.wasm --out-dir pkg/ --target nodejs --weak-refs
 	wasm-opt -O4 --dce ./pkg/bsv_wasm_bg.wasm -o ./pkg/bsv_wasm_bg.wasm
 	wasm-pack publish ./pkg/
 
 publish-web:
-	wasm-pack build --release --target web -- --features wasm-bindgen-exports
+	wasm-pack build --release --target web
 	sed -i "s/bsv-wasm/bsv-wasm-web/" ./pkg/package.json
 	wasm-pack publish ./pkg
 
 publish-bundler:
-	wasm-pack build --release --target bundler -- --features wasm-bindgen-exports
+	wasm-pack build --release --target bundler
 	sed -i "s/bsv-wasm/bsv-wasm-bundler/" ./pkg/package.json
 	wasm-pack publish ./pkg
 

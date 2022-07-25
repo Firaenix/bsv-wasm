@@ -9,3 +9,7 @@ mod transaction;
 mod ecies;
 mod ecdsa;
 mod interpreter;
+mod encryption;
+mod bsm;
+mod ecdh;
+mod hash;
