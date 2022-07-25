@@ -10,7 +10,6 @@ mod interpreter_signature_tests {
         let mut tx = Transaction::new(2, 0);
 
         let locking_script = Script::from_asm_string(&format!("OP_DUP OP_HASH160 {} OP_EQUALVERIFY OP_CHECKSIG", Hash::hash_160(&pubkey.to_bytes().unwrap()).to_hex())).unwrap();
-        
 
         let mut txin = TxIn::default();
         txin.set_satoshis(0);

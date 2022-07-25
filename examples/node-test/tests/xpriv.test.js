@@ -48,7 +48,7 @@ describe('XPriv Tests', function () {
     let xpriv_wasm = ExtendedPrivateKey.from_string(xpriv_wif);
     let xpriv_js = Bip32.fromString(xpriv_wif);
 
-    assert.equal(xpriv_wasm.derive(path).to_string(), xpriv_js.derive(path).toString());
+    assert.equal(xpriv_wasm.derive_from_path(path).to_string(), xpriv_js.derive(path).toString());
   })
 
   it('XPriv hardened derivations match BSV.JS', () => {
@@ -58,7 +58,7 @@ describe('XPriv Tests', function () {
     let xpriv_wasm = ExtendedPrivateKey.from_string(xpriv_wif);
     let xpriv_js = Bip32.fromString(xpriv_wif);
 
-    assert.equal(xpriv_wasm.derive(path).to_string(), xpriv_js.derive(path).toString());
+    assert.equal(xpriv_wasm.derive_from_path(path).to_string(), xpriv_js.derive(path).toString());
   })
 
   it('XPriv loop hardened derivations match BSV.JS', () => {
@@ -69,11 +69,11 @@ describe('XPriv Tests', function () {
     let xpriv_js = Bip32.fromString(xpriv_wif);
 
     assert.equal(xpriv_wasm.to_string(), xpriv_js.toString());
-    assert.equal(xpriv_wasm.derive(path).to_string(), xpriv_js.derive(path).toString());
+    assert.equal(xpriv_wasm.derive_from_path(path).to_string(), xpriv_js.derive(path).toString());
 
     for (let index = 0; index < 100; index++) {
       const element = path + '/' + index;
-      assert.equal(xpriv_wasm.derive(element).to_string(), xpriv_js.derive(element).toString());
+      assert.equal(xpriv_wasm.derive_from_path(element).to_string(), xpriv_js.derive(element).toString());
     }
   })
 });

@@ -21,7 +21,7 @@ describe('XPub Tests', function () {
     let xpub_wasm = ExtendedPublicKey.from_string(xpub_wif);
     let xpub_js = Bip32.fromString(xpub_wif);
 
-    assert.equal(xpub_wasm.derive(path).to_string(), xpub_js.derive(path).toString());
+    assert.equal(xpub_wasm.derive_from_path(path).to_string(), xpub_js.derive(path).toString());
   })
 
   it('XPub hardened derivations match BSV.JS - Throws Error', () => {
@@ -31,7 +31,7 @@ describe('XPub Tests', function () {
     let xpub_wasm = ExtendedPublicKey.from_string(xpub_wif);
     let xpub_js = Bip32.fromString(xpub_wif);
 
-    assert.throws(() => xpub_wasm.derive(path).to_string());
+    assert.throws(() => xpub_wasm.derive_from_path(path).to_string());
     assert.throws(() => xpub_js.derive(path).toString());
   })
 
@@ -43,11 +43,11 @@ describe('XPub Tests', function () {
     let xpub_js = Bip32.fromString(xpub_wif);
 
     assert.equal(xpub_wasm.to_string(), xpub_js.toString());
-    assert.equal(xpub_wasm.derive(path).to_string(), xpub_js.derive(path).toString());
+    assert.equal(xpub_wasm.derive_from_path(path).to_string(), xpub_js.derive(path).toString());
 
     for (let index = 0; index < 100; index++) {
       const element = path + '/' + index;
-      assert.equal(xpub_wasm.derive(element).to_string(), xpub_js.derive(element).toString());
+      assert.equal(xpub_wasm.derive_from_path(element).to_string(), xpub_js.derive(element).toString());
     }
   })
 });
