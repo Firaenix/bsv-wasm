@@ -154,8 +154,8 @@ bs58@4.0.1:
   dependencies:
     base-x "^3.0.2"
 
-bsv-wasm@../../pkg/node:
-  version "1.2.1"
+bsv-wasm@../../packages/bsv-wasm/pkg:
+  version "0.0.0"
 
 bsv@^2.0.10:
   version "2.0.10"
