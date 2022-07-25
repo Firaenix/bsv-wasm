@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 use bsv::Hash as BSVHash;
 
 #[wasm_bindgen]
-pub struct Hash(BSVHash);
+pub struct Hash(pub(crate) BSVHash);
 
 /**
  * Serialisation Functions
