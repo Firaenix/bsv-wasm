@@ -1,19 +1,19 @@
 use wasm_bindgen::{prelude::*, JsError};
 use crate::{ script::Script, transaction::Transaction };
-use bsv::{ Interpreter, State };
+use bsv::{ Interpreter as BSVInterpreter, State };
 
-#[wasm_bindgen(js_name = Interpreter)]
-pub struct JsInterpreter(pub(crate) Interpreter);
+#[wasm_bindgen]
+pub struct Interpreter(pub(crate) BSVInterpreter);
 
 
 #[wasm_bindgen]
-impl JsInterpreter {
-    pub fn from_transaction(tx: Transaction, txin_idx: usize) -> Result<JsInterpreter, JsError>  {
-        Ok(JsInterpreter(Interpreter::from_transaction(&tx.0, txin_idx)?))
+impl Interpreter {
+    pub fn from_transaction(tx: Transaction, txin_idx: usize) -> Result<Interpreter, JsError>  {
+        Ok(Interpreter(BSVInterpreter::from_transaction(&tx.0, txin_idx)?))
     }
 
-    pub fn from_script(script: Script) -> JsInterpreter {
-        JsInterpreter(Interpreter::from_script(&script.0))
+    pub fn from_script(script: Script) -> Interpreter {
+        Interpreter(BSVInterpreter::from_script(&script.0))
     }
 
     pub fn run(&mut self) -> Result<(), JsError> {

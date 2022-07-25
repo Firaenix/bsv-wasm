@@ -6,6 +6,8 @@ mod txout;
 pub use txin::*;
 pub use txout::*;
 
+use crate::{sighash::{SighashSignature, SigHash}, keypair::private_key::PrivateKey, script::Script};
+
 #[wasm_bindgen]
 pub struct Transaction(pub(crate) BSVTransaction);
 
@@ -228,8 +230,30 @@ impl Transaction {
     }
 
     pub fn is_coinbase(&self) -> bool {
-        self.0.is_coinbase_impl()
+        self.0.is_coinbase()
+    }
+
+    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, wasm_bindgen::JsError> {
+        Ok(SighashSignature(self.0.sign(&priv_key.0, sighash.into(), n_tx_in, &unsigned_script.0, value)?))
+    }
+
+    pub fn sign_with_k(
+        &mut self,
+        priv_key: &PrivateKey,
+        ephemeral_key: &PrivateKey,
+        sighash: SigHash,
+        n_tx_in: usize,
+        unsigned_script: &Script,
+        value: u64,
+    ) -> Result<SighashSignature, wasm_bindgen::JsError> {
+        Ok(SighashSignature(self.0.sign_with_k(&priv_key.0, &ephemeral_key.0, sighash.into(), n_tx_in, &unsigned_script.0, value)?))
+    }
+
+    pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+        Ok(self.0.sighash_preimage(sighash.into(), n_tx_in, &unsigned_script.0, value)?)
     }
 }
+
+
 
 

@@ -6,7 +6,7 @@ use super::{private_key::PrivateKey, public_key::PublicKey};
 #[wasm_bindgen]
 pub struct ExtendedPrivateKey(pub(crate) BSVExtendedPrivateKey);
 
-
+#[wasm_bindgen]
 impl ExtendedPrivateKey {
     // #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getPrivateKey))]
     pub fn get_private_key(&self) -> PrivateKey {
