@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::*;
 use bsv::BSM as BSVBSM;
+use wasm_bindgen::prelude::*;
 
-use crate::{signature::Signature, address::P2PKHAddress, keypair::private_key::PrivateKey};
+use crate::{address::P2PKHAddress, keypair::private_key::PrivateKey, signature::Signature};
 
 #[wasm_bindgen]
 pub struct BSM;

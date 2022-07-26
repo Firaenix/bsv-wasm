@@ -4,6 +4,12 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub struct ChainParams(pub(crate) BSVChainParams);
 
+impl From<BSVChainParams> for ChainParams {
+    fn from(v: BSVChainParams) -> ChainParams {
+        ChainParams(v)
+    }
+}
+
 #[wasm_bindgen]
 impl ChainParams {
     #[wasm_bindgen(constructor)]

@@ -1,10 +1,16 @@
 use bsv::ExtendedPublicKey as BSVExtendedPublicKey;
 use wasm_bindgen::prelude::*;
 
-use crate::keypair::{public_key::PublicKey, extended_private_key::ExtendedPrivateKey};
+use crate::keypair::{extended_private_key::ExtendedPrivateKey, public_key::PublicKey};
 
 #[wasm_bindgen]
 pub struct ExtendedPublicKey(pub(crate) BSVExtendedPublicKey);
+
+impl From<BSVExtendedPublicKey> for ExtendedPublicKey {
+    fn from(v: BSVExtendedPublicKey) -> ExtendedPublicKey {
+        ExtendedPublicKey(v)
+    }
+}
 
 #[wasm_bindgen]
 impl ExtendedPublicKey {
@@ -13,7 +19,7 @@ impl ExtendedPublicKey {
     }
 
     pub fn from_xpriv(xpriv: &ExtendedPrivateKey) -> Self {
-       ExtendedPublicKey(BSVExtendedPublicKey::from_xpriv(&xpriv.0)) 
+        ExtendedPublicKey(BSVExtendedPublicKey::from_xpriv(&xpriv.0))
     }
 
     pub fn get_chain_code(&self) -> Vec<u8> {
@@ -57,5 +63,3 @@ impl ExtendedPublicKey {
         Ok(self.0.to_string()?)
     }
 }
-
-

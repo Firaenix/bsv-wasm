@@ -1,8 +1,14 @@
-use wasm_bindgen::prelude::*;
 use bsv::Hash as BSVHash;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Hash(pub(crate) BSVHash);
+
+impl From<BSVHash> for Hash {
+    fn from(v: BSVHash) -> Hash {
+        Hash(v)
+    }
+}
 
 /**
  * Serialisation Functions

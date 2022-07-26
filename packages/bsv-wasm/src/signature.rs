@@ -1,12 +1,24 @@
-use crate::{keypair::public_key::PublicKey, ecdsa::SigningHash};
+use crate::{ecdsa::SigningHash, keypair::public_key::PublicKey};
 use bsv::{RecoveryInfo as BSVRecoveryInfo, Signature as BSVSignature};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Signature(pub(crate) BSVSignature);
 
+impl From<BSVSignature> for Signature {
+    fn from(v: BSVSignature) -> Signature {
+        Signature(v)
+    }
+}
+
 #[wasm_bindgen]
 pub struct RecoveryInfo(pub(crate) BSVRecoveryInfo);
+
+impl From<BSVRecoveryInfo> for RecoveryInfo {
+    fn from(v: BSVRecoveryInfo) -> RecoveryInfo {
+        RecoveryInfo(v)
+    }
+}
 
 #[wasm_bindgen]
 impl RecoveryInfo {

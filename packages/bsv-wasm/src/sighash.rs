@@ -1,9 +1,15 @@
 use crate::signature::Signature;
-use bsv::{SigHash as BSVSigHash, SighashSignature as BSVSighashSignature};
+use bsv::SighashSignature as BSVSighashSignature;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct SighashSignature(pub(crate) BSVSighashSignature);
+
+impl From<BSVSighashSignature> for SighashSignature {
+    fn from(v: BSVSighashSignature) -> SighashSignature {
+        SighashSignature(v)
+    }
+}
 
 #[wasm_bindgen]
 #[allow(non_camel_case_types)]

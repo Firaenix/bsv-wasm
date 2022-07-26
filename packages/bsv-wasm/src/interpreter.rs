@@ -1,14 +1,19 @@
+use crate::{script::Script, transaction::Transaction};
+use bsv::{Interpreter as BSVInterpreter, State as BSVState};
 use wasm_bindgen::{prelude::*, JsError};
-use crate::{ script::Script, transaction::Transaction };
-use bsv::{ Interpreter as BSVInterpreter, State as BSVState };
 
 #[wasm_bindgen]
 pub struct Interpreter(pub(crate) BSVInterpreter);
 
+impl From<BSVInterpreter> for Interpreter {
+    fn from(v: BSVInterpreter) -> Interpreter {
+        Interpreter(v)
+    }
+}
 
 #[wasm_bindgen]
 impl Interpreter {
-    pub fn from_transaction(tx: Transaction, txin_idx: usize) -> Result<Interpreter, JsError>  {
+    pub fn from_transaction(tx: Transaction, txin_idx: usize) -> Result<Interpreter, JsError> {
         Ok(Interpreter(BSVInterpreter::from_transaction(&tx.0, txin_idx)?))
     }
 
@@ -32,14 +37,19 @@ impl Interpreter {
     }
 }
 
-
 #[wasm_bindgen]
 pub struct State(pub(crate) BSVState);
 
+impl From<BSVState> for State {
+    fn from(v: BSVState) -> State {
+        State(v)
+    }
+}
+
 #[wasm_bindgen(js_name = Status)]
 pub enum JsStatus {
- Running,
- Finished
+    Running,
+    Finished,
 }
 
 impl From<bsv::Status> for JsStatus {
@@ -64,13 +74,13 @@ impl State {
         Ok(serde_wasm_bindgen::to_value(stack)?)
     }
 
-     pub fn get_alt_stack(&self) -> Result<JsValue, JsError> {
+    pub fn get_alt_stack(&self) -> Result<JsValue, JsError> {
         let stack = &self.0.alt_stack;
 
         Ok(serde_wasm_bindgen::to_value(&stack)?)
     }
 
-     pub fn get_status(&self) -> JsStatus {
-         self.0.status.clone().into()
-     }
+    pub fn get_status(&self) -> JsStatus {
+        self.0.status.clone().into()
+    }
 }

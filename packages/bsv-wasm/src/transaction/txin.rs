@@ -1,10 +1,16 @@
-use wasm_bindgen::prelude::*;
 use bsv::TxIn as BSVTxIn;
+use wasm_bindgen::prelude::*;
 
 use crate::script::Script;
 
 #[wasm_bindgen]
 pub struct TxIn(pub(crate) BSVTxIn);
+
+impl From<BSVTxIn> for TxIn {
+    fn from(v: BSVTxIn) -> TxIn {
+        TxIn(v)
+    }
+}
 
 #[wasm_bindgen]
 impl TxIn {
@@ -14,11 +20,11 @@ impl TxIn {
     }
 
     pub fn default() -> TxIn {
-       TxIn(BSVTxIn::default()) 
+        TxIn(BSVTxIn::default())
     }
 
     pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {
-       self.0.get_prev_tx_id(little_endian) 
+        self.0.get_prev_tx_id(little_endian)
     }
 
     pub fn get_prev_tx_id_hex(&self, little_endian: Option<bool>) -> String {
@@ -34,17 +40,17 @@ impl TxIn {
     }
 
     pub fn get_unlocking_script(&self) -> Script {
-       Script(self.0.get_unlocking_script())
+        Script(self.0.get_unlocking_script())
     }
 
     pub fn get_unlocking_script_hex(&self) -> String {
-       self.0.get_unlocking_script_hex() 
+        self.0.get_unlocking_script_hex()
     }
 
     pub fn get_sequence(&self) -> u32 {
         self.0.get_sequence()
     }
-    
+
     pub fn get_sequence_as_bytes(&self) -> Vec<u8> {
         self.0.get_sequence_as_bytes()
     }
@@ -152,5 +158,3 @@ impl TxIn {
         self.0.is_coinbase()
     }
 }
-
-

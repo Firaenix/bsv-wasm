@@ -1,8 +1,7 @@
-use wasm_bindgen::prelude::*;
-use bsv::KDF as BSVKDF;
-use bsv::PBKDF2Hashes as BSVPBKDF2Hashes;
 use crate::hash::Hash;
-
+use bsv::PBKDF2Hashes as BSVPBKDF2Hashes;
+use bsv::KDF as BSVKDF;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Debug, Clone, Copy)]
@@ -24,6 +23,12 @@ impl Into<BSVPBKDF2Hashes> for PBKDF2Hashes {
 
 #[wasm_bindgen]
 pub struct KDF(BSVKDF);
+
+impl From<BSVKDF> for KDF {
+    fn from(v: BSVKDF) -> KDF {
+        KDF(v)
+    }
+}
 
 #[wasm_bindgen]
 impl KDF {

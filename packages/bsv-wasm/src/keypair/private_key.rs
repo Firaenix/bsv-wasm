@@ -1,10 +1,16 @@
-use wasm_bindgen::prelude::*;
 use bsv::PrivateKey as BSVPrivateKey;
+use wasm_bindgen::prelude::*;
 
-use crate::{keypair::public_key::PublicKey, ecies::ECIESCiphertext, signature::Signature};
+use crate::{ecies::ECIESCiphertext, keypair::public_key::PublicKey, signature::Signature};
 
 #[wasm_bindgen]
 pub struct PrivateKey(pub(crate) BSVPrivateKey);
+
+impl From<BSVPrivateKey> for PrivateKey {
+    fn from(v: BSVPrivateKey) -> PrivateKey {
+        PrivateKey(v)
+    }
+}
 
 #[wasm_bindgen]
 impl PrivateKey {
@@ -25,7 +31,7 @@ impl PrivateKey {
     }
 
     pub fn compress_public_key(&self, should_compress: bool) -> PrivateKey {
-       PrivateKey(self.0.compress_public_key(should_compress)) 
+        PrivateKey(self.0.compress_public_key(should_compress))
     }
 
     pub fn from_wif(wif_string: &str) -> Result<PrivateKey, wasm_bindgen::JsError> {
@@ -69,4 +75,3 @@ impl PrivateKey {
         Ok(self.0.decrypt_message(&ciphertext.0, &sender_pub_key.0)?)
     }
 }
-

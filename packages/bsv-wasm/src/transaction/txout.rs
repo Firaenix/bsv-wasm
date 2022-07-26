@@ -6,11 +6,17 @@ use crate::script::Script;
 #[wasm_bindgen]
 pub struct TxOut(pub(crate) BSVTxOut);
 
+impl From<BSVTxOut> for TxOut {
+    fn from(v: BSVTxOut) -> TxOut {
+        TxOut(v)
+    }
+}
+
 #[wasm_bindgen]
 impl TxOut {
     #[wasm_bindgen(constructor)]
     pub fn new(value: u64, script_pub_key: &Script) -> TxOut {
-       TxOut(BSVTxOut::new(value, &script_pub_key.0)) 
+        TxOut(BSVTxOut::new(value, &script_pub_key.0))
     }
 
     pub fn get_satoshis(&self) -> u64 {
@@ -53,5 +59,3 @@ impl TxOut {
         Ok(self.0.to_json_string()?)
     }
 }
-
-

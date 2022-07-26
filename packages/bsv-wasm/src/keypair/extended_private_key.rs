@@ -1,10 +1,16 @@
-use wasm_bindgen::prelude::*;
 use bsv::ExtendedPrivateKey as BSVExtendedPrivateKey;
+use wasm_bindgen::prelude::*;
 
 use super::{private_key::PrivateKey, public_key::PublicKey};
 
 #[wasm_bindgen]
 pub struct ExtendedPrivateKey(pub(crate) BSVExtendedPrivateKey);
+
+impl From<BSVExtendedPrivateKey> for ExtendedPrivateKey {
+    fn from(v: BSVExtendedPrivateKey) -> ExtendedPrivateKey {
+        ExtendedPrivateKey(v)
+    }
+}
 
 #[wasm_bindgen]
 impl ExtendedPrivateKey {

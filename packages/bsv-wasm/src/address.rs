@@ -5,6 +5,12 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub struct P2PKHAddress(pub(crate) BSVP2PKHAdress);
 
+impl From<BSVP2PKHAdress> for P2PKHAddress {
+    fn from(v: BSVP2PKHAdress) -> P2PKHAddress {
+        P2PKHAddress(v)
+    }
+}
+
 #[wasm_bindgen]
 impl P2PKHAddress {
     pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
