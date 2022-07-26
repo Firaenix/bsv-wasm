@@ -1,15 +1,31 @@
-use wasm_bindgen::prelude::*;
 use bsv::Transaction as BSVTransaction;
+use wasm_bindgen::prelude::*;
 
 mod txin;
 mod txout;
 pub use txin::*;
 pub use txout::*;
 
-use crate::{sighash::{SighashSignature, SigHash}, keypair::private_key::PrivateKey, script::Script};
+use crate::{
+    keypair::private_key::PrivateKey,
+    script::Script,
+    sighash::{SigHash, SighashSignature},
+};
 
 #[wasm_bindgen]
 pub struct Transaction(pub(crate) BSVTransaction);
+
+impl From<BSVTransaction> for Transaction {
+    fn from(v: BSVTransaction) -> Transaction {
+        Transaction(v)
+    }
+}
+
+impl From<Transaction> for BSVTransaction {
+    fn from(v: Transaction) -> BSVTransaction {
+        v.0
+    }
+}
 
 #[wasm_bindgen]
 impl Transaction {
@@ -246,14 +262,17 @@ impl Transaction {
         unsigned_script: &Script,
         value: u64,
     ) -> Result<SighashSignature, wasm_bindgen::JsError> {
-        Ok(SighashSignature(self.0.sign_with_k(&priv_key.0, &ephemeral_key.0, sighash.into(), n_tx_in, &unsigned_script.0, value)?))
+        Ok(SighashSignature(self.0.sign_with_k(
+            &priv_key.0,
+            &ephemeral_key.0,
+            sighash.into(),
+            n_tx_in,
+            &unsigned_script.0,
+            value,
+        )?))
     }
 
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, wasm_bindgen::JsError> {
         Ok(self.0.sighash_preimage(sighash.into(), n_tx_in, &unsigned_script.0, value)?)
     }
 }
-
-
-
-
