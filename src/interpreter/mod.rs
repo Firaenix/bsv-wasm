@@ -1,15 +1,13 @@
-use std::{
-    fmt::Display,
-    ops::{Neg, Not, Shl, Shr},
-};
+//use std::{
+//fmt::Display,
+//ops::{Neg, Not, Shl, Shr},
+//};
 
-use crate::{
-    Hash, OpCodes, PublicKey, Script, ScriptBit, SigHash, SighashSignature, ToHex, Transaction,
-};
+use crate::{Script, ScriptBit, Transaction};
 use errors::InterpreterError;
-use num_bigint::{BigInt, Sign};
+//use num_bigint::{BigInt, Sign};
 use serde::{Deserialize, Serialize};
-use stack_trait::ScriptStack;
+//use stack_trait::ScriptStack;
 
 mod errors;
 mod stack_trait;
@@ -46,16 +44,12 @@ pub struct Interpreter {
 impl Interpreter {
     pub fn from_transaction_and_script_bits(tx: Transaction, txin: usize, script_bits: Vec<ScriptBit>) -> Interpreter {
         Interpreter {
-            script_bits, 
-                script_index: 0,
-                state: State::default(),
-                tx_script: Some(TxScript {
-                    tx,
-                    input_index: txin,
-                }),
+            script_bits,
+            script_index: 0,
+            state: State::default(),
+            tx_script: Some(TxScript { tx, input_index: txin }),
         }
     }
-
 
     /// Runs the script to completion
     pub(crate) fn run_impl(&mut self) -> Result<(), InterpreterError> {
@@ -98,7 +92,7 @@ impl Interpreter {
             state: State::default(),
             tx_script: None,
         }
-    } 
+    }
 
     pub fn script(&self) -> Script {
         Script::from_script_bits(self.script_bits.clone())
@@ -150,11 +144,7 @@ impl Interpreter {
 /// Rust Only Functionality
 impl Interpreter {
     pub fn from_transaction(tx: &Transaction, txin: usize) -> Result<Interpreter, InterpreterError> {
-        let script_bits = tx
-                .get_input(txin as usize)
-                .unwrap()
-                .get_finalised_script_impl()?
-                .to_script_bits();
+        let script_bits = tx.get_input(txin as usize).unwrap().get_finalised_script_impl()?.to_script_bits();
         Ok(Interpreter::from_transaction_and_script_bits(tx.clone(), txin, script_bits))
     }
 
@@ -169,9 +159,8 @@ impl Interpreter {
     /// Get a reference to the interpreter's script bits.
     #[must_use]
     pub fn script_bits(&self) -> Vec<ScriptBit> {
-        self.script_bits.clone()    
+        self.script_bits.clone()
     }
-
 }
 
 // Interpreter is an iterator, very useful incase we want to build a debugger

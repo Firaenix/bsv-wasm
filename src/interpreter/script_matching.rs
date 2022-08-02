@@ -1,12 +1,16 @@
 use std::ops::Neg;
 
-use crate::{ScriptBit, OpCodes, Hash, SigHash, SighashSignature, PublicKey, Script, ToHex};
+use crate::{Hash, OpCodes, PublicKey, Script, ScriptBit, SigHash, SighashSignature, ToHex};
 use num_bigint::{BigInt, Sign};
 
-use super::{Interpreter, errors::InterpreterError, state::State, TxScript, stack_trait::{self, ScriptStack}};
+use super::{
+    errors::InterpreterError,
+    stack_trait::{self, ScriptStack},
+    state::State,
+    Interpreter, TxScript,
+};
 
-
-/// Script Matching functions 
+/// Script Matching functions
 impl Interpreter {
     fn verify(boolean: bool) -> Result<(), InterpreterError> {
         match boolean {
@@ -17,12 +21,7 @@ impl Interpreter {
 
     pub(crate) fn match_script_bit(&mut self, bit: &ScriptBit) -> Result<State, InterpreterError> {
         Ok(match bit {
-            ScriptBit::OpCode(o) => match Interpreter::match_opcode(
-                self.script_index,
-                o,
-                &mut self.state.clone(),
-                self.tx_script.clone(),
-            ) {
+            ScriptBit::OpCode(o) => match Interpreter::match_opcode(self.script_index, o, &mut self.state.clone(), self.tx_script.clone()) {
                 Ok(mut next_state) => {
                     next_state.executed_opcodes.push(o.clone());
                     next_state
@@ -47,16 +46,10 @@ impl Interpreter {
                 self.state.executed_opcodes.push(code.clone());
 
                 if predicate {
-                    let removed: Vec<ScriptBit> = self
-                        .script_bits
-                        .splice(self.script_index + 1..self.script_index + 1, pass.clone())
-                        .collect();
+                    let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, pass.clone()).collect();
                     // println!("Removed items: {:?}", removed);
                 } else {
-                    let removed: Vec<ScriptBit> = self
-                        .script_bits
-                        .splice(self.script_index + 1..self.script_index + 1, fail.clone())
-                        .collect();
+                    let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, fail.clone()).collect();
                     // println!("Removed items: {:?}", removed);
                 }
 
@@ -66,12 +59,7 @@ impl Interpreter {
         })
     }
 
-    pub(crate) fn match_opcode(
-        script_index: usize,
-        opcode: &OpCodes,
-        state: &mut State,
-        tx: Option<TxScript>,
-    ) -> Result<State, InterpreterError> {
+    pub(crate) fn match_opcode(script_index: usize, opcode: &OpCodes, state: &mut State, tx: Option<TxScript>) -> Result<State, InterpreterError> {
         let mut state = state;
         match opcode {
             OpCodes::OP_0 => state.stack.push_number(0)?,
@@ -156,11 +144,7 @@ impl Interpreter {
             }
             OpCodes::OP_PICK => {
                 let index = state.stack.pop_number()?;
-                let selected_item = state
-                    .stack
-                    .get((state.stack.len() - 1) - index as usize)
-                    .cloned()
-                    .ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let selected_item = state.stack.get((state.stack.len() - 1) - index as usize).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
                 state.stack.push_bytes(selected_item);
             }
             OpCodes::OP_ROLL => {
@@ -227,7 +211,7 @@ impl Interpreter {
                 state.stack.push_bytes(x4);
                 state.stack.push_bytes(x1);
                 state.stack.push_bytes(x2)
-            },
+            }
             OpCodes::OP_CAT => {
                 let mut x1 = state.stack.pop_bytes()?;
                 let x2 = state.stack.pop_bytes()?;
@@ -235,7 +219,7 @@ impl Interpreter {
                 x1.extend_from_slice(&x2);
 
                 state.stack.push_bytes(x1)
-            },
+            }
             OpCodes::OP_SPLIT => {
                 let x = state.stack.pop_bytes()?;
                 let n = state.stack.pop_number()?;
@@ -243,7 +227,7 @@ impl Interpreter {
                 let (x1, x2) = x.split_at(n as usize);
                 state.stack.push_bytes(x1.to_vec());
                 state.stack.push_bytes(x2.to_vec());
-            },
+            }
 
             OpCodes::OP_SIZE => {
                 let len = state.stack.last().unwrap().len();
@@ -285,7 +269,7 @@ impl Interpreter {
                 let a = state.stack.pop_bytes()?;
                 let b = state.stack.pop_bytes()?;
 
-                state.stack.push_bool(a.eq(&b));
+                state.stack.push_bool(a.eq(&b))?;
             }
             OpCodes::OP_EQUALVERIFY => {
                 let a = state.stack.pop_bytes()?;
@@ -469,9 +453,7 @@ impl Interpreter {
                 let bytes = state.stack.pop_bytes()?;
 
                 if length < 1 || length < bytes.len() as i32 || length > i32::MAX {
-                    return Err(InterpreterError::InvalidStackOperation(
-                        "OP_NUM2BIN failed, provide length was out of range",
-                    ));
+                    return Err(InterpreterError::InvalidStackOperation("OP_NUM2BIN failed, provide length was out of range"));
                 }
 
                 // Fill the data in, extend the buffer to the length of the length parameter
@@ -488,11 +470,7 @@ impl Interpreter {
                 match sign {
                     Sign::Plus => bin_array[bin_array_len - 1] |= 0x00,
                     Sign::Minus => bin_array[bin_array_len - 1] |= 0x80,
-                    Sign::NoSign => {
-                        return Err(InterpreterError::InvalidStackOperation(
-                            "OP_NUM2BIN failed, invalid sign on bigint.",
-                        ))
-                    }
+                    Sign::NoSign => return Err(InterpreterError::InvalidStackOperation("OP_NUM2BIN failed, invalid sign on bigint.")),
                 };
                 state.stack.push_bytes(bin_array);
             }
@@ -537,7 +515,7 @@ impl Interpreter {
                     None => return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKSIG)),
                 };
 
-                let is_signature_valid = checksig(state, txscript)?;  
+                let is_signature_valid = checksig(state, txscript)?;
                 state.stack.push_bool(is_signature_valid)?;
             }
             OpCodes::OP_CHECKSIGVERIFY => {
@@ -552,9 +530,7 @@ impl Interpreter {
             OpCodes::OP_CHECKMULTISIG => {
                 let mut txscript = match tx {
                     Some(x) => x,
-                    None => {
-                        return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKMULTISIG))
-                    }
+                    None => return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKMULTISIG)),
                 };
 
                 let is_multisig_valid = multisig(state, &mut txscript)?;
@@ -563,11 +539,7 @@ impl Interpreter {
             OpCodes::OP_CHECKMULTISIGVERIFY => {
                 let mut txscript = match tx {
                     Some(x) => x,
-                    None => {
-                        return Err(InterpreterError::RequiresTransaction(
-                            &OpCodes::OP_CHECKMULTISIGVERIFY,
-                        ))
-                    }
+                    None => return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKMULTISIGVERIFY)),
                 };
 
                 let is_multisig_valid = multisig(state, &mut txscript)?;
@@ -575,27 +547,15 @@ impl Interpreter {
             }
 
             // TODO: Allow enabling of specific opcodes or opcode feature sets
-            OpCodes::OP_CHECKLOCKTIMEVERIFY => {
-                return Err(InterpreterError::DisabledOpCode(
-                    &OpCodes::OP_CHECKLOCKTIMEVERIFY,
-                ))
-            }
-            OpCodes::OP_CHECKSEQUENCEVERIFY => {
-                return Err(InterpreterError::DisabledOpCode(
-                    &OpCodes::OP_CHECKSEQUENCEVERIFY,
-                ))
-            }
+            OpCodes::OP_CHECKLOCKTIMEVERIFY => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_CHECKLOCKTIMEVERIFY)),
+            OpCodes::OP_CHECKSEQUENCEVERIFY => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_CHECKSEQUENCEVERIFY)),
 
             OpCodes::OP_VER => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_VER)),
             OpCodes::OP_VERIF => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_VERIF)),
             OpCodes::OP_VERNOTIF => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_VERNOTIF)),
             OpCodes::OP_RESERVED => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_RESERVED)),
-            OpCodes::OP_RESERVED1 => {
-                return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_RESERVED1))
-            }
-            OpCodes::OP_RESERVED2 => {
-                return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_RESERVED2))
-            }
+            OpCodes::OP_RESERVED1 => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_RESERVED1)),
+            OpCodes::OP_RESERVED2 => return Err(InterpreterError::DisabledOpCode(&OpCodes::OP_RESERVED2)),
             OpCodes::OP_NOP1 => {}
             OpCodes::OP_NOP4 => {}
             OpCodes::OP_NOP5 => {}
@@ -629,28 +589,17 @@ fn checksig(state: &mut State, mut txscript: TxScript) -> Result<bool, Interpret
     println!("Sighash Byte: {:#?}", sighash_byte);
     let sighash = match sighash_byte {
         Some(x) => SigHash::try_from(x).map_err(|_| InterpreterError::FailedToConvertSighash)?,
-        None => {
-            return Err(InterpreterError::InvalidStackOperation(
-                "could not read Sighash flag from signature",
-            ))
-        }
+        None => return Err(InterpreterError::InvalidStackOperation("could not read Sighash flag from signature")),
     };
     let preimage = calculate_sighash_preimage(&mut txscript, sighash, state.codeseparator_offset)?;
-    let is_signature_valid = verify_tx_signature(
-        &preimage,
-        &mut txscript,
-        &signature,
-        &public_key,
-    )?;
+    let is_signature_valid = verify_tx_signature(&preimage, &mut txscript, &signature, &public_key)?;
     Ok(is_signature_valid)
 }
 
 fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, InterpreterError> {
     let pubkey_count = state.stack.pop_number()?;
     if pubkey_count < 1 {
-        return Err(InterpreterError::InvalidStackOperation(
-            "PubKey count must be a positive number",
-        ));
+        return Err(InterpreterError::InvalidStackOperation("PubKey count must be a positive number"));
     }
 
     // Slice the correct amount of pubkeys off the stack in reverse order so we can pop them.
@@ -658,18 +607,14 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
     pubkeys.reverse();
 
     println!("Pubkeys: {:?}", pubkeys.iter().map(|x| x.to_hex()).collect::<Vec<String>>());
-    
+
     let sig_count = state.stack.pop_number()?;
     if sig_count < 1 {
-        return Err(InterpreterError::InvalidStackOperation(
-            "Signature count must be a positive number",
-        ));
+        return Err(InterpreterError::InvalidStackOperation("Signature count must be a positive number"));
     }
 
     if pubkey_count < sig_count {
-        return Err(InterpreterError::InvalidStackOperation(
-            "PubKey count must be greater than or equal to Signature count",
-        ));
+        return Err(InterpreterError::InvalidStackOperation("PubKey count must be greater than or equal to Signature count"));
     }
 
     let sigs = state.stack.split_off(state.stack.len() - sig_count as usize);
@@ -682,20 +627,15 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
     for sig in sigs {
         let sighash = match sig.last().cloned() {
             Some(x) => SigHash::try_from(x).map_err(|_| InterpreterError::FailedToConvertSighash)?,
-            None => {
-                return Err(InterpreterError::InvalidStackOperation(
-                    "could not read Sighash flag from signature",
-                ))
-            }
+            None => return Err(InterpreterError::InvalidStackOperation("could not read Sighash flag from signature")),
         };
-
 
         let preimage = calculate_sighash_preimage(txscript, sighash, state.codeseparator_offset)?;
 
         // Pop each pubkey because they are only to be compared against once.
         while let Some(public_key) = pubkeys.pop() {
             let is_signature_valid = verify_tx_signature(&preimage, txscript, &sig, &public_key)?;
-            if is_signature_valid { 
+            if is_signature_valid {
                 successes += 1;
                 break;
             }
@@ -704,12 +644,7 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
     Ok(successes == sig_count)
 }
 
-fn verify_tx_signature(
-    preimage: &[u8],
-    txscript: &mut TxScript,
-    signature: &[u8],
-    public_key: &[u8],
-) -> Result<bool, InterpreterError> {
+fn verify_tx_signature(preimage: &[u8], txscript: &mut TxScript, signature: &[u8], public_key: &[u8]) -> Result<bool, InterpreterError> {
     let sighash_sig = SighashSignature::from_bytes_impl(&signature, &preimage)?;
     let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(&public_key)?, &sighash_sig);
     Ok(is_signature_valid)
@@ -718,41 +653,24 @@ fn verify_tx_signature(
 fn calculate_sighash_preimage(txscript: &mut TxScript, sighash: SigHash, codeseparator_offset: usize) -> Result<Vec<u8>, InterpreterError> {
     let txin = match txscript.tx.get_input(txscript.input_index) {
         Some(v) => v,
-        _ => {
-            return Err(InterpreterError::InvalidStackOperation(
-                "could not get TxIn at the provided index",
-            ))
-        }
+        _ => return Err(InterpreterError::InvalidStackOperation("could not get TxIn at the provided index")),
     };
-    
+
     let unlock_script_len = txin.get_unlocking_script().to_script_bits().len();
     let script_offset = codeseparator_offset.checked_sub(unlock_script_len).unwrap_or(0);
-    let unsigned_script = match txin.get_locking_script () {
+    let unsigned_script = match txin.get_locking_script() {
         Some(v) => Script::from_script_bits(v.to_script_bits()[script_offset..].to_vec()),
-        None => {
-            return Err(InterpreterError::InvalidStackOperation(
-                "TxIn at given index does not have locking script provided",
-            ))
-        }
+        None => return Err(InterpreterError::InvalidStackOperation("TxIn at given index does not have locking script provided")),
     };
     println!("Unsigned script: {}", unsigned_script.to_asm_string());
 
-    let satoshis = match txscript
-        .tx
-        .get_input(txscript.input_index)
-        .and_then(|x| x.get_satoshis())
-    {
+    let satoshis = match txscript.tx.get_input(txscript.input_index).and_then(|x| x.get_satoshis()) {
         Some(v) => v,
-        _ => {
-            return Err(InterpreterError::InvalidStackOperation(
-                "TxIn at given index does not have satoshis provided",
-            ))
-        }
+        _ => return Err(InterpreterError::InvalidStackOperation("TxIn at given index does not have satoshis provided")),
     };
 
-    txscript.tx
+    txscript
+        .tx
         .sighash_preimage_impl(txscript.input_index, sighash, &unsigned_script, satoshis)
         .map_err(|e| InterpreterError::SighashPreimageCalculation(e.to_string()))
-
 }
-

@@ -1,5 +1,4 @@
 use crate::BSVErrors;
-use crate::VarInt;
 use crate::VarIntReader;
 use crate::VarIntWriter;
 use std::io::Cursor;
@@ -11,7 +10,6 @@ use crate::{
     Script,
 };
 use serde::*;
-
 
 use byteorder::*;
 

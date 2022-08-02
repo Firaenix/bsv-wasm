@@ -1,7 +1,5 @@
 use crate::OpCodes::OP_0;
-use strum_macros::Display;
 
-use crate::utils::{from_hex, to_hex};
 use std::{
     io::{Cursor, Read},
     slice::Iter,
