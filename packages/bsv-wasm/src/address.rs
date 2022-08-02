@@ -25,8 +25,8 @@ impl P2PKHAddress {
         Ok(P2PKHAddress(BSVP2PKHAdress::set_chain_params(&self.0, &chain_params.0)?))
     }
 
-    pub fn to_address_string(&self) -> Result<String, wasm_bindgen::JsError> {
-        Ok(BSVP2PKHAdress::to_address_string(&self.0)?)
+    pub fn to_string(&self) -> Result<String, wasm_bindgen::JsError> {
+        Ok(BSVP2PKHAdress::to_string(&self.0)?)
     }
 
     pub fn from_string(address_string: &str) -> Result<P2PKHAddress, wasm_bindgen::JsError> {

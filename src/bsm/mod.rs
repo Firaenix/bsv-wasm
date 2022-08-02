@@ -49,8 +49,8 @@ impl BSM {
         let public_key = signature.get_public_key(&magic_message, SigningHash::Sha256d)?;
         let verify_p2pkh = P2PKHAddress::from_pubkey_impl(&public_key)?;
 
-        let verify_address = verify_p2pkh.to_address_string_impl()?;
-        let address_string = address.to_address_string_impl()?;
+        let verify_address = verify_p2pkh.to_string_impl()?;
+        let address_string = address.to_string_impl()?;
         if verify_address != address_string {
             return Err(BSVErrors::MessageVerification(format!(
                 "Provided address ({}) does not match signature address ({})",
@@ -73,7 +73,6 @@ impl BSM {
         BSM::verify_message_impl(message, signature, address).is_ok()
     }
 }
-
 
 impl BSM {
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {

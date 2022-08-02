@@ -1,13 +1,23 @@
-use wasm_bindgen::prelude::*;
 use bsv::PublicKey as BSVPublicKey;
+use wasm_bindgen::prelude::*;
 
-use crate::{keypair::private_key::PrivateKey, address::P2PKHAddress, ecies::ECIESCiphertext, signature::Signature};
+use crate::{address::P2PKHAddress, ecies::ECIESCiphertext, keypair::private_key::PrivateKey, signature::Signature};
 
 #[wasm_bindgen]
 pub struct PublicKey(pub(crate) BSVPublicKey);
 
+impl From<BSVPublicKey> for PublicKey {
+    fn from(v: BSVPublicKey) -> PublicKey {
+        PublicKey(v)
+    }
+}
+
 #[wasm_bindgen]
 impl PublicKey {
+    pub fn to_address(&self) -> Result<P2PKHAddress, wasm_bindgen::JsError> {
+        Ok(P2PKHAddress(self.0.to_p2pkh_address()?))
+    }
+
     pub fn from_hex(hex_str: &str) -> Result<PublicKey, wasm_bindgen::JsError> {
         Ok(PublicKey(BSVPublicKey::from_hex(hex_str)?))
     }

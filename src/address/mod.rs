@@ -12,7 +12,7 @@ impl Serialize for P2PKHAddress {
     where
         S: Serializer,
     {
-        let addr = self.to_address_string_impl().map_err(|e| serde::ser::Error::custom(e.to_string()))?;
+        let addr = self.to_string_impl().map_err(|e| serde::ser::Error::custom(e.to_string()))?;
         serializer.serialize_str(&addr)
     }
 }
@@ -59,7 +59,7 @@ impl P2PKHAddress {
         Ok(P2PKHAddress(chain.p2pkh, self.1, checksum_bytes))
     }
 
-    pub(crate) fn to_address_string_impl(&self) -> Result<String, BSVErrors> {
+    pub(crate) fn to_string_impl(&self) -> Result<String, BSVErrors> {
         let mut pub_key_hash_bytes = self.1.to_vec();
 
         let mut address_bytes: Vec<u8> = vec![self.0];
@@ -207,13 +207,13 @@ impl P2PKHAddress {
     pub fn from_pubkey_hash(hash_bytes: &[u8]) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_hash_impl(hash_bytes)
     }
-    
+
     pub fn from_pubkey(pub_key: &PublicKey) -> Result<P2PKHAddress, BSVErrors> {
         P2PKHAddress::from_pubkey_impl(pub_key)
     }
 
-    pub fn to_address_string(&self) -> Result<String, BSVErrors> {
-        P2PKHAddress::to_address_string_impl(self)
+    pub fn to_string(&self) -> Result<String, BSVErrors> {
+        P2PKHAddress::to_string_impl(self)
     }
 
     pub fn set_chain_params(&self, chain_params: &ChainParams) -> Result<P2PKHAddress, BSVErrors> {

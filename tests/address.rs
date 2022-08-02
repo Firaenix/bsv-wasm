@@ -11,7 +11,7 @@ mod tests {
         let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes).unwrap();
 
         // Act
-        let address_string = address.to_address_string().unwrap();
+        let address_string = address.to_string().unwrap();
 
         // Assert
         assert_eq!(address_string, "16VZnHwRhwrExfeHFHGjwrgEMq8VcYPs9r")
@@ -25,7 +25,7 @@ mod tests {
         let address = P2PKHAddress::from_pubkey_hash(&pub_key_hash_bytes).unwrap();
 
         // Act
-        let address_string = address.to_address_string().unwrap();
+        let address_string = address.to_string().unwrap();
 
         // Assert
         assert_eq!(address_string, "17YWyuqbL4D8C8chM1zrC3nTKaPnNiqfTE")
@@ -56,13 +56,13 @@ mod tests {
         assert_eq!(pub_key_hex, "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737");
 
         let address = P2PKHAddress::from_pubkey(&pub_key).unwrap();
-        let address_string = address.to_address_string().unwrap();
+        let address_string = address.to_string().unwrap();
 
         assert_eq!(address_string, "1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem")
     }
 
     #[test]
-    fn from_address_string_to_address_string() {
+    fn from_address_string_to_string() {
         let priv_key = PrivateKey::from_hex("ef235aacf90d9f4aadd8c92e4b2562e1d9eb97f0df9ba3b508258739cb013db2").unwrap();
         let pub_key = PublicKey::from_private_key(&priv_key);
 
@@ -70,20 +70,20 @@ mod tests {
         assert_eq!(pub_key_hex, "02b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a8737");
 
         let address = P2PKHAddress::from_pubkey(&pub_key).unwrap();
-        let address_string = address.to_address_string().unwrap();
+        let address_string = address.to_string().unwrap();
 
         assert_eq!(address_string, "1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem");
 
         let decoded_address = P2PKHAddress::from_string("1EUXSxuUVy2PC5enGXR1a3yxbEjNWMHuem").unwrap();
 
-        assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
+        assert_eq!(decoded_address.to_string().unwrap(), address_string);
     }
 
     #[test]
     fn from_testnet_address_string_to_testnet_address_string() {
         let address_string = "moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC".to_string();
         let decoded_address = P2PKHAddress::from_string("moEoqh2ZfYU8jN5EG6ERw6E3DmwnkuTdBC").unwrap();
-        assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
+        assert_eq!(decoded_address.to_string().unwrap(), address_string);
     }
 
     #[test]
@@ -93,7 +93,7 @@ mod tests {
             .unwrap()
             .set_chain_params(&ChainParams::testnet())
             .unwrap();
-        assert_eq!(decoded_address.to_address_string().unwrap(), address_string);
+        assert_eq!(decoded_address.to_string().unwrap(), address_string);
     }
 
     #[test]
@@ -104,7 +104,7 @@ mod tests {
         let pub_key_hex = pub_key.to_hex().unwrap();
         assert_eq!(pub_key_hex, "02214735afc6f7e38c07275d575b51e208a7a9a9521d0af8425de6722a4e738a5f");
 
-        assert_eq!(pub_key.to_p2pkh_address().unwrap().to_address_string().unwrap(), "1Mr8cQoYtUeMrFu8RfBPorvWKAfYFP6CyT");
+        assert_eq!(pub_key.to_p2pkh_address().unwrap().to_string().unwrap(), "1Mr8cQoYtUeMrFu8RfBPorvWKAfYFP6CyT");
     }
 
     #[test]
@@ -118,7 +118,7 @@ mod tests {
             "04301384ee34996df7a420306d87094cdf86779059faf072d77b3fb4b7869afbc7da03c8576cf71c2955e75c5380c6deb2d6d8f5146c5b1b7c101bc7f3b5a02e64"
         );
 
-        assert_eq!(pub_key.to_p2pkh_address().unwrap().to_address_string().unwrap(), "1BH9Udn8uspgnHJtDMJ8SjVx97ytKxkY8");
+        assert_eq!(pub_key.to_p2pkh_address().unwrap().to_string().unwrap(), "1BH9Udn8uspgnHJtDMJ8SjVx97ytKxkY8");
     }
 
     #[test]
