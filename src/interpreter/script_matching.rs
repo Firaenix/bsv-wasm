@@ -151,21 +151,21 @@ impl Interpreter {
             }
             OpCodes::OP_OVER => {
                 let index = state.stack.len() - 2;
-                let second_last = state.stack.get(index).cloned().unwrap();
+                let second_last = state.stack.get(index).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
                 state.stack.push_bytes(second_last);
             }
             OpCodes::OP_PICK => {
                 let index = state.stack.pop_number()?;
                 let selected_item = state
                     .stack
-                    .get(state.stack.len() - index as usize)
+                    .get((state.stack.len() - 1) - index as usize)
                     .cloned()
-                    .unwrap();
+                    .ok_or_else(|| InterpreterError::NumberOutOfRange)?;
                 state.stack.push_bytes(selected_item);
             }
             OpCodes::OP_ROLL => {
                 let index = state.stack.pop_number()?;
-                let selected_item = state.stack.remove(state.stack.len() - index as usize);
+                let selected_item = state.stack.remove((state.stack.len() - 1) - index as usize);
                 state.stack.push_bytes(selected_item);
             }
             OpCodes::OP_ROT => {
@@ -179,7 +179,7 @@ impl Interpreter {
                 state.stack.swap(len - 1, len - 2);
             }
             OpCodes::OP_TUCK => {
-                let selected_item = state.stack.last().cloned().unwrap();
+                let selected_item = state.stack.last().cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
                 state.stack.insert(state.stack.len() - 2, selected_item);
             }
             OpCodes::OP_2DROP => {
@@ -187,16 +187,16 @@ impl Interpreter {
                 state.stack.pop_bytes()?;
             }
             OpCodes::OP_2DUP => {
-                let first = state.stack.get(state.stack.len() - 1).cloned().unwrap();
-                let second = state.stack.get(state.stack.len() - 2).cloned().unwrap();
+                let first = state.stack.get(state.stack.len() - 1).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
 
                 state.stack.push_bytes(first);
                 state.stack.push_bytes(second);
             }
             OpCodes::OP_3DUP => {
-                let first = state.stack.get(state.stack.len() - 1).cloned().unwrap();
-                let second = state.stack.get(state.stack.len() - 2).cloned().unwrap();
-                let third = state.stack.get(state.stack.len() - 3).cloned().unwrap();
+                let first = state.stack.get(state.stack.len() - 1).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let third = state.stack.get(state.stack.len() - 3).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
 
                 state.stack.push_bytes(first);
                 state.stack.push_bytes(second);
