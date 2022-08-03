@@ -12,6 +12,12 @@ impl From<BSVTxOut> for TxOut {
     }
 }
 
+impl From<TxOut> for BSVTxOut {
+    fn from(v: TxOut) -> BSVTxOut {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl TxOut {
     #[wasm_bindgen(constructor)]

@@ -11,6 +11,12 @@ impl From<BSVSighashSignature> for SighashSignature {
     }
 }
 
+impl From<SighashSignature> for BSVSighashSignature {
+    fn from(v: SighashSignature) -> BSVSighashSignature {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 #[allow(non_camel_case_types)]
 pub enum SigHash {

@@ -3,12 +3,19 @@ use wasm_bindgen::prelude::*;
 
 use crate::{address::P2PKHAddress, ecies::ECIESCiphertext, keypair::private_key::PrivateKey, signature::Signature};
 
+#[derive(Clone)]
 #[wasm_bindgen]
 pub struct PublicKey(pub(crate) BSVPublicKey);
 
 impl From<BSVPublicKey> for PublicKey {
     fn from(v: BSVPublicKey) -> PublicKey {
         PublicKey(v)
+    }
+}
+
+impl From<PublicKey> for BSVPublicKey {
+    fn from(v: PublicKey) -> BSVPublicKey {
+        v.0
     }
 }
 

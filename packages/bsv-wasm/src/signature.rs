@@ -20,6 +20,12 @@ impl From<BSVRecoveryInfo> for RecoveryInfo {
     }
 }
 
+impl From<RecoveryInfo> for BSVRecoveryInfo {
+    fn from(v: RecoveryInfo) -> BSVRecoveryInfo {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl RecoveryInfo {
     #[wasm_bindgen(constructor)]

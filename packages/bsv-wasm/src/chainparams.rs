@@ -10,6 +10,12 @@ impl From<BSVChainParams> for ChainParams {
     }
 }
 
+impl From<ChainParams> for BSVChainParams {
+    fn from(v: ChainParams) -> BSVChainParams {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl ChainParams {
     #[wasm_bindgen(constructor)]

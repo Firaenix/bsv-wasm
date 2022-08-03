@@ -12,6 +12,12 @@ impl From<BSVPrivateKey> for PrivateKey {
     }
 }
 
+impl From<PrivateKey> for BSVPrivateKey {
+    fn from(v: PrivateKey) -> BSVPrivateKey {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl PrivateKey {
     pub fn to_bytes(&self) -> Vec<u8> {

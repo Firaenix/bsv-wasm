@@ -12,6 +12,12 @@ impl From<BSVExtendedPrivateKey> for ExtendedPrivateKey {
     }
 }
 
+impl From<ExtendedPrivateKey> for BSVExtendedPrivateKey {
+    fn from(v: ExtendedPrivateKey) -> BSVExtendedPrivateKey {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl ExtendedPrivateKey {
     // #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen(js_name = getPrivateKey))]

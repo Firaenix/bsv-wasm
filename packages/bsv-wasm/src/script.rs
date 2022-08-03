@@ -10,6 +10,12 @@ impl From<BSVScript> for Script {
     }
 }
 
+impl From<Script> for BSVScript {
+    fn from(v: Script) -> BSVScript {
+        v.0
+    }
+}
+
 /**
  * WASM Specific Functions
  */

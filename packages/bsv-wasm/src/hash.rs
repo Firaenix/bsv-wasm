@@ -10,6 +10,12 @@ impl From<BSVHash> for Hash {
     }
 }
 
+impl From<Hash> for BSVHash {
+    fn from(v: Hash) -> BSVHash {
+        v.0
+    }
+}
+
 /**
  * Serialisation Functions
  */

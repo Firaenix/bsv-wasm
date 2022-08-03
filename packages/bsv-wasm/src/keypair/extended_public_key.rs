@@ -12,6 +12,12 @@ impl From<BSVExtendedPublicKey> for ExtendedPublicKey {
     }
 }
 
+impl From<ExtendedPublicKey> for BSVExtendedPublicKey {
+    fn from(v: ExtendedPublicKey) -> BSVExtendedPublicKey {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl ExtendedPublicKey {
     pub fn get_public_key(&self) -> PublicKey {

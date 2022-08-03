@@ -11,6 +11,12 @@ impl From<BSVInterpreter> for Interpreter {
     }
 }
 
+impl From<Interpreter> for BSVInterpreter {
+    fn from(v: Interpreter) -> BSVInterpreter {
+        v.0
+    }
+}
+
 #[wasm_bindgen]
 impl Interpreter {
     pub fn from_transaction(tx: Transaction, txin_idx: usize) -> Result<Interpreter, JsError> {
