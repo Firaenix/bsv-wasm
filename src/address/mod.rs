@@ -76,6 +76,10 @@ impl P2PKHAddress {
     }
 
     pub(crate) fn from_string_impl(address_string: &str) -> Result<P2PKHAddress, BSVErrors> {
+        if address_string.len() < 33 {
+            return Err(BSVErrors::P2PKHAddress("Too Short! invalid address"));
+        }
+
         let decoded = bs58::decode(address_string);
         let decoded_bytes = decoded.into_vec()?;
 
