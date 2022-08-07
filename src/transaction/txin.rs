@@ -22,6 +22,7 @@ pub struct TxIn {
      * The script to unlock a UTXO at an outpoint.
      * AKA ScriptSig
      */
+    #[serde(alias = "script_sig")]
     pub(crate) unlocking_script: Script,
     pub(crate) sequence: u32,
 
@@ -30,6 +31,7 @@ pub struct TxIn {
      * The representation of this TxIn's past life as a UTXO (The TxOut's
      * ScriptPubKey/LockingScript)
      */
+    #[serde(alias = "unlocking_script")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) locking_script: Option<Script>,
     /**
