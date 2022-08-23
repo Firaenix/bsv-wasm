@@ -1,4 +1,4 @@
-use crate::OpCodes::OP_0;
+use crate::{Hash, OpCodes::OP_0};
 
 use std::{
     io::{Cursor, Read},
@@ -332,6 +332,16 @@ impl Script {
 
     pub fn push_array(&mut self, code: &[ScriptBit]) {
         self.0.extend_from_slice(code);
+    }
+
+    pub fn to_scripthash_hex(&self) -> String {
+        hex::encode(self.to_scripthash_bytes())
+    }
+
+    pub fn to_scripthash_bytes(&self) -> Vec<u8> {
+        let mut scripthash = Hash::sha_256(&self.to_bytes()).to_bytes();
+        scripthash.reverse();
+        scripthash
     }
 
     pub fn to_asm_string(&self) -> String {
