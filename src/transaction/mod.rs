@@ -75,8 +75,11 @@ impl Transaction {
 
         // List of  Outputs
         let mut outputs: Vec<TxOut> = Vec::new();
-        for _ in 0..n_outputs {
-            let tx_out = TxOut::read_in(&mut cursor)?;
+        for i in 0..n_outputs {
+            let tx_out = match TxOut::read_in(&mut cursor) {
+                Ok(v) => v,
+                Err(e) => return Err(BSVErrors::DeserialiseScript(format!("TxOut: {} {}", i, e))),
+            };
             outputs.push(tx_out);
         }
 

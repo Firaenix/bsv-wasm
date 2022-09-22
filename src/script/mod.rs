@@ -25,6 +25,12 @@ pub use script_template::*;
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(pub(crate) Vec<ScriptBit>);
 
+pub fn scripthash(bytes: &[u8]) -> Vec<u8> {
+    let mut scripthash = Hash::sha_256(bytes).to_bytes();
+    scripthash.reverse();
+    scripthash
+}
+
 /**
  * Serialise Methods
  */
@@ -110,45 +116,7 @@ impl Script {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
-        let mut cursor = Cursor::new(bytes);
-
-        let mut bit_accumulator = vec![];
-        while let Ok(byte) = cursor.read_u8() {
-            if (0x01..=0x4b).contains(&byte) {
-                let mut data = vec![0; byte as usize];
-                if let Err(e) = cursor.read(&mut data) {
-                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e)));
-                }
-
-                bit_accumulator.push(ScriptBit::Push(data));
-                continue;
-            }
-
-            let bit = match OpCodes::from_u8(byte) {
-                Some(v @ (OpCodes::OP_PUSHDATA1 | OpCodes::OP_PUSHDATA2 | OpCodes::OP_PUSHDATA4)) => {
-                    let data_length = match v {
-                        OpCodes::OP_PUSHDATA1 => cursor.read_u8()? as usize,
-                        OpCodes::OP_PUSHDATA2 => cursor.read_u16::<LittleEndian>()? as usize,
-                        _ => cursor.read_u32::<LittleEndian>()? as usize,
-                    };
-
-                    let mut data = vec![0; data_length];
-                    if let Err(e) = cursor.read(&mut data) {
-                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e)));
-                    }
-
-                    ScriptBit::PushData(v, data)
-                }
-                Some(v) => ScriptBit::OpCode(v),
-                None => return Err(BSVErrors::DeserialiseScript(format!("Unknown opcode {}", byte))),
-            };
-
-            bit_accumulator.push(bit);
-        }
-
-        let nested_bits = Script::if_statement_pass(&bit_accumulator)?;
-
-        Ok(Script(nested_bits))
+        return Ok(Script(vec![ScriptBit::Coinbase(bytes.to_vec())]));
     }
 
     pub fn from_coinbase_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
