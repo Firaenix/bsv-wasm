@@ -12,7 +12,8 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   experiments: {
-    asyncWebAssembly: true
+    asyncWebAssembly: true,
+    topLevelAwait: true
   },
   plugins: [new HtmlWebpackPlugin()],
 };

@@ -47,14 +47,26 @@ impl Script {
                 },
                 ScriptBit::OpCode(code) => code.to_string(),
                 ScriptBit::If { code, pass, fail } => {
-                    format!(
-                        "{} {} {} {} {}",
-                        code,
-                        Script::script_bits_to_asm_string(pass, extended),
-                        OpCodes::OP_ELSE,
-                        Script::script_bits_to_asm_string(fail, extended),
-                        OpCodes::OP_ENDIF
-                    )
+                    let mut string_parts = vec![];
+
+                    string_parts.push(code.to_string());
+
+                    let pass_string = Script::script_bits_to_asm_string(pass, extended);
+                    if !pass_string.is_empty() {
+                        string_parts.push(pass_string);
+                    }
+
+                    if let Some(fail) = fail {
+                        string_parts.push(OpCodes::OP_ELSE.to_string());
+                        let fail_string = Script::script_bits_to_asm_string(fail, extended);
+                        if !fail_string.is_empty() {
+                            string_parts.push(fail_string);
+                        }
+                    }
+
+                    string_parts.push(OpCodes::OP_ENDIF.to_string());
+                    
+                    string_parts.join(" ")
                 }
                 ScriptBit::Coinbase(bytes) => hex::encode(bytes),
             })
@@ -88,8 +100,11 @@ impl Script {
                     let mut bytes = vec![*code as u8];
 
                     bytes.extend_from_slice(&Script::script_bits_to_bytes(pass));
-                    bytes.push(OpCodes::OP_ELSE as u8);
-                    bytes.extend_from_slice(&Script::script_bits_to_bytes(fail));
+
+                    if let Some(fail) = fail {
+                        bytes.push(OpCodes::OP_ELSE as u8);
+                        bytes.extend_from_slice(&Script::script_bits_to_bytes(fail));
+                    }
                     bytes.push(OpCodes::OP_ENDIF as u8);
 
                     bytes
@@ -146,7 +161,7 @@ impl Script {
             bit_accumulator.push(bit);
         }
 
-        let nested_bits = Script::if_statement_pass(&bit_accumulator)?;
+        let nested_bits = Script::if_statement_pass(&mut bit_accumulator.iter())?;
 
         Ok(Script(nested_bits))
     }
@@ -193,60 +208,55 @@ impl Script {
         Ok(bit)
     }
 
-    fn read_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
+    fn read_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<(Vec<ScriptBit>, bool), BSVErrors> {
         let mut nested_bits = vec![];
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: *v,
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(bits_iter)?,
-                }),
-                ScriptBit::OpCode(OpCodes::OP_ELSE) => return Ok(nested_bits),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
+                ScriptBit::OpCode(OpCodes::OP_ELSE) => return Ok((nested_bits, false)),
+                ScriptBit::OpCode(OpCodes::OP_ENDIF) => return Ok((nested_bits, true)),
                 o => nested_bits.push(o.clone()),
             }
         }
 
-        Err(BSVErrors::DeserialiseScript("OP_IF statement requires an OP_ELSE code".into()))
+
+        Err(BSVErrors::DeserialiseScript("OP_IF branch requires an OP_ELSE or OP_ENDIF code".into()))
     }
 
     fn read_fail(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
         let mut nested_bits = vec![];
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: *v,
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(bits_iter)?,
-                }),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
                 ScriptBit::OpCode(OpCodes::OP_ENDIF) => return Ok(nested_bits),
                 o => nested_bits.push(o.clone()),
             }
         }
 
-        Err(BSVErrors::DeserialiseScript("OP_IF statement requires an OP_ENDIF code".into()))
+        Err(BSVErrors::DeserialiseScript("OP_ELSE branch requires an OP_ENDIF code".into()))
+    }
+
+    fn read_if_statement(bits_iter: &mut Iter<ScriptBit>, nested_bits: &mut Vec<ScriptBit>, v: &OpCodes) -> Result<(), BSVErrors> {
+        let (pass_bits, ended) = Script::read_pass(bits_iter)?;
+        Ok(nested_bits.push(ScriptBit::If {
+            code: *v,
+            // Read until OP_ELSE or OP_ENDIF
+            pass: pass_bits,
+            // Read until OP_ENDIF
+            fail: match ended {
+                true => None,
+                false => Some(Script::read_fail(bits_iter)?)
+            },
+        }))
     }
 
     /// Iterates over a ScriptBit array, finds OP_XIF codes and calculates the nested ScriptBit::If block  
-    /// TODO: name this function better
-    fn if_statement_pass(bits: &[ScriptBit]) -> Result<Vec<ScriptBit>, BSVErrors> {
-        // let mut cursor = Cursor::new(bits);
-
+    fn if_statement_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
         let mut nested_bits = vec![];
-        let mut bits_iter = bits.iter();
+
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: *v,
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(&mut bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(&mut bits_iter)?,
-                }),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
                 o => nested_bits.push(o.clone()),
             }
         }
@@ -256,7 +266,7 @@ impl Script {
 
     pub fn from_asm_string(asm: &str) -> Result<Script, BSVErrors> {
         let bits: Result<Vec<ScriptBit>, _> = asm.split(' ').filter(|x| !(x.is_empty() || x == &"\n" || x == &"\r")).map(Script::map_string_to_script_bit).collect();
-        let bits = Script::if_statement_pass(&bits?)?;
+        let bits = Script::if_statement_pass(&mut bits?.iter())?;
 
         Ok(Script(bits))
     }
@@ -363,3 +373,4 @@ impl Script {
         self.0.clone()
     }
 }
+

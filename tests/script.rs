@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod script_tests {
     use bsv::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
-        // #[test]
+    // #[test]
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn to_hex_string() {
     //   let script_bytes = hex::decode("006a2231394878696756345179427633744870515663554551797131707a5a56646f4175744c8d2453485541207768616c65206170706561726564efbc81efbc810a4d61796265205348554120736861726befbc81f09f98aff09f98af0a0a68747470733a2f2f7477657463682e6170702f742f643435653233303233383762616235643138663534666566643736633461353462356466636338316461396436623133643832303335333838313064633565630a746578742f706c61696e04746578741f7477657463685f7477746578745f313631393336303532303332352e747874017c223150755161374b36324d694b43747373534c4b79316b683536575755374d74555235035345540b7477646174615f6a736f6e046e756c6c0375726c046e756c6c07636f6d6d656e74046e756c6c076d625f75736572046e756c6c057265706c79046e756c6c047479706504706f73740974696d657374616d70046e756c6c036170700674776574636807696e766f6963652438613262346330622d636531362d346166342d393932312d386638393334343436383938017c22313550636948473232534e4c514a584d6f53556157566937575371633768436676610d424954434f494e5f45434453412231513533564e7853316e647a56444431623834316545795a4458574c6a42735167694c5848384f4c685141527132365371784d56494852554449624b4e45686d49424e6e6e362f376a70786466685731434b61387a63356c3043497471425177557a47734b4b4f2b6e4e4c33444c45424c2f7467433657666f46413d").unwrap();
@@ -252,41 +252,41 @@ mod script_tests {
                 ScriptBit::If {
                     code: OpCodes::OP_IF,
                     pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                    fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                 }
             ]
         );
     }
 
-//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-//     #[cfg(target_arch = "wasm32")]
-//     fn if_statement_script() {
-//         let script = Script::from_asm_string(
-//             r#"21e8
-//             OP_IF 
-//                 OP_1 OP_RETURN 
-//             OP_ELSE 
-//                 OP_0 OP_RETURN 
-//             OP_ENDIF"#,
-//         )
-//         .unwrap();
+    //     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    //     #[cfg(target_arch = "wasm32")]
+    //     fn if_statement_script() {
+    //         let script = Script::from_asm_string(
+    //             r#"21e8
+    //             OP_IF
+    //                 OP_1 OP_RETURN
+    //             OP_ELSE
+    //                 OP_0 OP_RETURN
+    //             OP_ENDIF"#,
+    //         )
+    //         .unwrap();
 
-//         assert_eq!(
-//             format!("{:?}", &script.to_script_bits().unwrap()),
-//             format!(
-//                 "{:?}",
-//                 &serde_wasm_bindgen::to_value(&[
-//                     ScriptBit::Push(hex::decode("21e8").unwrap()),
-//                     ScriptBit::If {
-//                         code: OpCodes::OP_IF,
-//                         pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-//                         fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-//                     }
-//                 ])
-//                 .unwrap()
-//             )
-//         );
-//     }
+    //         assert_eq!(
+    //             format!("{:?}", &script.to_script_bits().unwrap()),
+    //             format!(
+    //                 "{:?}",
+    //                 &serde_wasm_bindgen::to_value(&[
+    //                     ScriptBit::Push(hex::decode("21e8").unwrap()),
+    //                     ScriptBit::If {
+    //                         code: OpCodes::OP_IF,
+    //                         pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+    //                         fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+    //                     }
+    //                 ])
+    //                 .unwrap()
+    //             )
+    //         );
+    //     }
 
     #[test]
     fn double_nested_if_statement_script() {
@@ -322,17 +322,17 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
@@ -372,17 +372,17 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
@@ -409,5 +409,88 @@ mod script_tests {
         );
 
         assert!(script.is_err())
+    }
+
+    #[test]
+    fn op_if_without_else_statement_script() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_0 
+            OP_IF 
+                OP_2 OP_RETURN
+            OP_ENDIF
+            OP_1 OP_RETURN
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: None,
+                },
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::OpCode(OpCodes::OP_RETURN)
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "0 OP_IF OP_2 OP_RETURN OP_ENDIF OP_1 OP_RETURN")
+    }
+
+    #[test]
+    fn empty_op_if_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF 
+            OP_ELSE
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: Some(vec![]),
+                },
+            ]
+        );
+
+         assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ELSE OP_ENDIF")
+    }
+
+    #[test]
+    fn empty_op_endif_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: None,
+                },
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ENDIF")
     }
 }

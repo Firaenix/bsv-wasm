@@ -49,7 +49,10 @@ impl Interpreter {
                     let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, pass.clone()).collect();
                     // println!("Removed items: {:?}", removed);
                 } else {
-                    let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, fail.clone()).collect();
+                    let _removed: Vec<ScriptBit> = self
+                        .script_bits
+                        .splice(self.script_index + 1..self.script_index + 1, fail.clone().unwrap_or_else(|| vec![]))
+                        .collect();
                     // println!("Removed items: {:?}", removed);
                 }
 

@@ -7,7 +7,7 @@ use strum_macros::Display;
 #[serde(untagged)]
 pub enum ScriptBit {
     OpCode(OpCodes),
-    If { code: OpCodes, pass: Vec<ScriptBit>, fail: Vec<ScriptBit> },
+    If { code: OpCodes, pass: Vec<ScriptBit>, fail: Option<Vec<ScriptBit>> },
     Push(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] Vec<u8>),
     PushData(OpCodes, #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] Vec<u8>),
     Coinbase(#[serde(serialize_with = "to_hex", deserialize_with = "from_hex")] Vec<u8>),
