@@ -32,10 +32,13 @@ impl Interpreter {
     }
 
     pub fn next(&mut self) -> Result<Option<State>, JsError> {
-        let state = self.0.next()?;
+        let state = match self.0.next() {
+            Some(v) => v?,
+            None => return Ok(None)
+        };
 
-        let js_state = state.map(|s| State(s));
-        Ok(js_state)
+        let js_state = State(state);
+        Ok(Some(js_state))
     }
 
     pub fn get_state(&self) -> State {
