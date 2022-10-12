@@ -10,6 +10,22 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: Swatinem/rust-cache@v1
+      with:
+          cache-on-failure: true
+
+    - name: Run tests
+      run: cargo test --verbose
+
   node-test:
       runs-on: ubuntu-latest
 
