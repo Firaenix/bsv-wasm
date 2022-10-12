@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use bsv::{address::*, PrivateKey, PublicKey};
-        
+    use bsv::{PrivateKey, PublicKey};
+
     #[test]
     fn pub_key_from_private_key() {
         // Arrange

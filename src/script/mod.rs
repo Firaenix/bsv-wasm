@@ -65,7 +65,7 @@ impl Script {
                     }
 
                     string_parts.push(OpCodes::OP_ENDIF.to_string());
-                    
+
                     string_parts.join(" ")
                 }
                 ScriptBit::Coinbase(bytes) => hex::encode(bytes),
@@ -219,7 +219,6 @@ impl Script {
             }
         }
 
-
         Err(BSVErrors::DeserialiseScript("OP_IF branch requires an OP_ELSE or OP_ENDIF code".into()))
     }
 
@@ -238,16 +237,17 @@ impl Script {
 
     fn read_if_statement(bits_iter: &mut Iter<ScriptBit>, nested_bits: &mut Vec<ScriptBit>, v: &OpCodes) -> Result<(), BSVErrors> {
         let (pass_bits, ended) = Script::read_pass(bits_iter)?;
-        Ok(nested_bits.push(ScriptBit::If {
+        nested_bits.push(ScriptBit::If {
             code: *v,
             // Read until OP_ELSE or OP_ENDIF
             pass: pass_bits,
             // Read until OP_ENDIF
             fail: match ended {
                 true => None,
-                false => Some(Script::read_fail(bits_iter)?)
+                false => Some(Script::read_fail(bits_iter)?),
             },
-        }))
+        });
+        Ok(())
     }
 
     /// Iterates over a ScriptBit array, finds OP_XIF codes and calculates the nested ScriptBit::If block  
@@ -301,7 +301,7 @@ impl Script {
 
                 Ok(push_data_prefix)
             }
-            size => return Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
+            size => Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
         }
     }
 
@@ -373,4 +373,3 @@ impl Script {
         self.0.clone()
     }
 }
-

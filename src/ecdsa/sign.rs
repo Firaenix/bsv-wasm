@@ -123,9 +123,6 @@ impl ECDSA {
     }
 }
 
-
-
-
 impl ECDSA {
     pub fn sign_with_random_k(private_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash, reverse_k: bool) -> Result<Signature, BSVErrors> {
         ECDSA::sign_with_random_k_impl(private_key, preimage, hash_algo, reverse_k)

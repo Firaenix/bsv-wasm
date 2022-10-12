@@ -15,7 +15,6 @@ impl ECDSA {
     }
 }
 
-
 impl ECDSA {
     pub fn verify_digest(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, BSVErrors> {
         ECDSA::verify_digest_impl(message, pub_key, signature, hash_algo)

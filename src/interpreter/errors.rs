@@ -1,4 +1,4 @@
-use crate::{OpCodes, BSVErrors};
+use crate::{BSVErrors, OpCodes};
 use thiserror::*;
 
 #[derive(Debug, Error)]
@@ -28,7 +28,7 @@ pub enum InterpreterError {
 
     #[error("Stack operation is invalid {0}")]
     InvalidStackOperation(&'static str),
-    
+
     #[error("The TxIn was not provided for this transaction")]
     NoTxInProvided,
 
@@ -37,5 +37,4 @@ pub enum InterpreterError {
 
     #[error("{0}")]
     BSVErrors(#[from] BSVErrors),
-
 }

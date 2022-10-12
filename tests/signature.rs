@@ -1,7 +1,4 @@
 #[cfg(test)]
-#[cfg(not(target_arch = "wasm32"))]
-use rayon::prelude::*;
-#[cfg(test)]
 mod tests {
     use bsv::*;
     use rayon::iter::{IntoParallelIterator, ParallelIterator};

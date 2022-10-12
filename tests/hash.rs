@@ -6,7 +6,7 @@ mod tests {
         password_hash::{Ident, PasswordHasher, Salt, SaltString},
         Params, Pbkdf2,
     };
-        
+
     #[test]
     fn sha1_hash_test() {
         let hash = Hash::sha_1("Hello, Bitcoin.".as_bytes());

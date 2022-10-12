@@ -1,9 +1,7 @@
 #[cfg(test)]
 mod private_key_tests {
     use bsv::keypair::*;
-    use core::time;
-    use std::time::{SystemTime, UNIX_EPOCH};
-        
+
     #[test]
     fn import_private_key_and_verify() {
         let priv_key = "E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262";

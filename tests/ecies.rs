@@ -3,7 +3,7 @@
 mod ecies_tests {
     use bsv::{ECIESCiphertext, PrivateKey, ECIES};
     use std::io::Read;
-        // Send to other party without encoding public key
+    // Send to other party without encoding public key
     #[test]
     fn encrypt_text_to_other_party_and_exclude_pub_key() {
         // Sender

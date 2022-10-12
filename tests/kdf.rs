@@ -7,7 +7,7 @@ mod kdf_tests {
         Params, Pbkdf2,
     };
     use std::str::from_utf8;
-        
+
     #[test]
     fn pbkdf2_sha256_hash_test() {
         let password = "stronk-password".as_bytes();

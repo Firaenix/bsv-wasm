@@ -47,32 +47,32 @@ impl Hash {
 impl Hash {
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = sha256d))]
     pub fn sha_256d(input: &[u8]) -> Self {
-        Hash((&*Sha256d::digest(input)).to_vec())
+        Hash((*Sha256d::digest(input)).to_vec())
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = sha256))]
     pub fn sha_256(input: &[u8]) -> Self {
-        Hash((&*Sha256::digest(input)).to_vec())
+        Hash((*Sha256::digest(input)).to_vec())
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = sha1))]
     pub fn sha_1(input: &[u8]) -> Self {
-        Hash((&*Sha1::digest(input)).to_vec())
+        Hash((*Sha1::digest(input)).to_vec())
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = ripemd160))]
     pub fn ripemd_160(input: &[u8]) -> Self {
-        Hash((&*Ripemd160::digest(input)).to_vec())
+        Hash((*Ripemd160::digest(input)).to_vec())
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = hash160))]
     pub fn hash_160(input: &[u8]) -> Self {
-        Hash((&*Hash160::digest(input)).to_vec())
+        Hash((*Hash160::digest(input)).to_vec())
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-hash"), wasm_bindgen(js_name = sha512))]
     pub fn sha_512(input: &[u8]) -> Self {
-        Hash((&*Sha512::digest(input)).to_vec())
+        Hash((*Sha512::digest(input)).to_vec())
     }
 }
 

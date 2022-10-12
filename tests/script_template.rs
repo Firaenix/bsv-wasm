@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod script_template_tests {
     use bsv::{MatchDataTypes, Script, ScriptTemplate};
-        
+
     #[test]
     fn empty_script_does_not_match_template() {
         let script = Script::default();
@@ -115,16 +115,16 @@ mod script_template_tests {
         assert!(script.matches(&script_template).is_err());
     }
 
-//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-//     fn p2pkh_script_template_doesnt_match_21e8_puzzle_wasm() {
-//         let script =
-//             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
-//                 .unwrap();
+    //     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    //     fn p2pkh_script_template_doesnt_match_21e8_puzzle_wasm() {
+    //         let script =
+    //             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
+    //                 .unwrap();
 
-//         let script_template = ScriptTemplate::from_asm_string("OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
+    //         let script_template = ScriptTemplate::from_asm_string("OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
-//         assert_eq!(script.is_match(&script_template), false)
-//     }
+    //         assert_eq!(script.is_match(&script_template), false)
+    //     }
 
     #[test]
     fn pubkey_script_template_matches_compressed_p2pk() {

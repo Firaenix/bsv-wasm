@@ -1,8 +1,8 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod transaction_tests {
-    use bsv::*;
     use bsv::TxIn;
+    use bsv::*;
 
     #[test]
     fn deserialise_and_serialise_transaction_hex() {
@@ -179,7 +179,6 @@ mod transaction_tests {
         assert_eq!(tx.get_ninputs(), 5);
     }
 
-    
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // #[cfg(target_arch = "wasm32")]
     // fn add_txins_to_transaction_wasm() {
@@ -233,7 +232,6 @@ mod transaction_tests {
         assert_eq!(tx.get_noutputs(), 5);
     }
 
-    
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // #[cfg(target_arch = "wasm32")]
     // fn add_txouts_to_transaction() {

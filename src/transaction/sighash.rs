@@ -84,7 +84,7 @@ impl std::ops::BitAnd for SigHash {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct HashCache {
     pub(super) hash_inputs: Option<Hash>,
     pub(super) hash_sequence: Option<Hash>,

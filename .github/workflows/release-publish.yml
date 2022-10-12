@@ -32,8 +32,10 @@ jobs:
       
     - name: Run tests
       run: cargo test --verbose
+
     - name: Run WASM tests
       run: make wasm-tests
+      working-directory: packages/bsv-wasm
 
   node-test:
       runs-on: ubuntu-latest
@@ -63,6 +65,8 @@ jobs:
         run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
 
       - run: make build-nodejs
+        working-directory: packages/bsv-wasm
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -106,9 +110,12 @@ jobs:
 
     - name: Publish Node Package
       run: make publish-node
+      working-directory: packages/bsv-wasm
 
     - name: Publish Web Package
       run: make publish-web
+      working-directory: packages/bsv-wasm
 
     - name: Publish Bundler Package
       run: make publish-bundler
+      working-directory: packages/bsv-wasm

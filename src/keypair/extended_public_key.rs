@@ -8,7 +8,6 @@ use crate::{hash::Hash, BSVErrors, ExtendedPrivateKey, PublicKey};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use getrandom::*;
 
-
 pub struct ExtendedPublicKey {
     public_key: PublicKey,
     chain_code: Vec<u8>,

@@ -47,7 +47,6 @@ impl AES {
     }
 }
 
-
 impl AES {
     pub fn encrypt(key: &[u8], iv: &[u8], message: &[u8], algo: AESAlgorithms) -> Result<Vec<u8>, BSVErrors> {
         AES::encrypt_impl(key, iv, message, algo)

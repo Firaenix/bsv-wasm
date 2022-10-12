@@ -465,7 +465,7 @@ mod script_tests {
             ]
         );
 
-         assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ELSE OP_ENDIF")
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ELSE OP_ENDIF")
     }
 
     #[test]

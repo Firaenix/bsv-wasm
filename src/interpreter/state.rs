@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
 use crate::{OpCodes, ToHex};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{Status};
+use crate::Status;
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct State {
@@ -30,14 +30,8 @@ impl Display for State {
 Alt Stack: {:?}
 Executed OpCodes: {:?}
         "#,
-            self.stack
-                .iter()
-                .map(|data| data.to_hex())
-                .collect::<Vec<String>>(),
-            self.alt_stack
-                .iter()
-                .map(|data| data.to_hex())
-                .collect::<Vec<String>>(),
+            self.stack.iter().map(|data| data.to_hex()).collect::<Vec<String>>(),
+            self.alt_stack.iter().map(|data| data.to_hex()).collect::<Vec<String>>(),
             self.executed_opcodes
         )
     }

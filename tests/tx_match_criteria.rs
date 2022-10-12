@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tx_criteria_tests {
-    use bsv::*;
     use bsv::TxIn;
+    use bsv::*;
 
     #[test]
     fn given_transaction_with_no_criteria_match_all_inputs() {

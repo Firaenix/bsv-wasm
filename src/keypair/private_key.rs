@@ -167,7 +167,6 @@ impl PrivateKey {
     }
 }
 
-
 /**
  * Native Exported Methods
  */

@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use thiserror::Error;
 
-
 #[derive(Debug, Error)]
 pub enum ScriptTemplateErrors {
     #[error("Script did not match template at index {0}. {2} is not equal to {1:?}. Error: {3:?}")]
