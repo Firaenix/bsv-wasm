@@ -2,6 +2,75 @@
 /* eslint-disable */
 /**
 */
+export enum SigHash {
+  FORKID,
+  ALL,
+  NONE,
+  SINGLE,
+  ANYONECANPAY,
+/**
+*
+*     * ALL | FORKID
+*     
+*/
+  InputsOutputs,
+/**
+*
+*     * NONE | FORKID
+*     
+*/
+  Inputs,
+/**
+*
+*     * SINGLE | FORKID
+*     
+*/
+  InputsOutput,
+/**
+*
+*     * ALL | ANYONECANPAY | FORKID
+*     
+*/
+  InputOutputs,
+/**
+*
+*     * NONE | ANYONECANPAY | FORKID
+*     
+*/
+  Input,
+/**
+*
+*     * SINGLE | ANYONECANPAY | FORKID
+*     
+*/
+  InputOutput,
+/**
+*
+*     * ALL | ANYONECANPAY
+*     
+*/
+  Legacy_InputOutputs,
+/**
+*
+*     * NONE | ANYONECANPAY
+*     
+*/
+  Legacy_Input,
+/**
+*
+*     * SINGLE | ANYONECANPAY
+*     
+*/
+  Legacy_InputOutput,
+}
+/**
+*/
+export enum Status {
+  Running,
+  Finished,
+}
+/**
+*/
 export enum OpCodes {
 /**
 * Pushes 0 onto the stack
@@ -473,75 +542,6 @@ export enum OpCodes {
 * The input is divided by 2
 */
   OP_2DIV,
-}
-/**
-*/
-export enum SigHash {
-  FORKID,
-  ALL,
-  NONE,
-  SINGLE,
-  ANYONECANPAY,
-/**
-*
-*     * ALL | FORKID
-*     
-*/
-  InputsOutputs,
-/**
-*
-*     * NONE | FORKID
-*     
-*/
-  Inputs,
-/**
-*
-*     * SINGLE | FORKID
-*     
-*/
-  InputsOutput,
-/**
-*
-*     * ALL | ANYONECANPAY | FORKID
-*     
-*/
-  InputOutputs,
-/**
-*
-*     * NONE | ANYONECANPAY | FORKID
-*     
-*/
-  Input,
-/**
-*
-*     * SINGLE | ANYONECANPAY | FORKID
-*     
-*/
-  InputOutput,
-/**
-*
-*     * ALL | ANYONECANPAY
-*     
-*/
-  Legacy_InputOutputs,
-/**
-*
-*     * NONE | ANYONECANPAY
-*     
-*/
-  Legacy_Input,
-/**
-*
-*     * SINGLE | ANYONECANPAY
-*     
-*/
-  Legacy_InputOutput,
-}
-/**
-*/
-export enum Status {
-  Running,
-  Finished,
 }
 /**
 */
@@ -1909,7 +1909,7 @@ export interface InitOutput {
   readonly transaction_set_output: (a: number, b: number, c: number) => void;
   readonly transaction_is_coinbase_impl: (a: number) => number;
   readonly transaction_satoshis_in: (a: number, b: number) => void;
-  readonly transaction_satoshis_out: (a: number, b: number) => void;
+  readonly transaction_satoshis_out: (a: number) => number;
   readonly transaction_from_hex: (a: number, b: number, c: number) => void;
   readonly transaction_from_bytes: (a: number, b: number, c: number) => void;
   readonly transaction_to_json_string: (a: number, b: number) => void;
@@ -1928,9 +1928,9 @@ export interface InitOutput {
   readonly transaction_from_compact_bytes: (a: number, b: number, c: number) => void;
   readonly transaction_from_compact_hex: (a: number, b: number, c: number) => void;
   readonly transaction_is_coinbase: (a: number) => number;
-  readonly transaction_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly transaction_sign_with_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
-  readonly transaction_sighash_preimage: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly transaction_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly transaction_sign_with_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly transaction_sighash_preimage: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly __wbg_extendedprivatekey_free: (a: number) => void;
   readonly extendedprivatekey_get_private_key: (a: number) => number;
   readonly extendedprivatekey_get_public_key: (a: number) => number;
@@ -1976,6 +1976,15 @@ export interface InitOutput {
   readonly state_get_status: (a: number) => number;
   readonly hash_sha_512_hmac: (a: number, b: number, c: number, d: number) => number;
   readonly hash_sha_256d_hmac: (a: number, b: number, c: number, d: number) => number;
+  readonly __wbg_p2pkhaddress_free: (a: number) => void;
+  readonly p2pkhaddress_from_pubkey_hash: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_from_pubkey: (a: number, b: number) => void;
+  readonly p2pkhaddress_set_chain_params: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_to_string: (a: number, b: number) => void;
+  readonly p2pkhaddress_from_string: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_get_locking_script: (a: number, b: number) => void;
+  readonly p2pkhaddress_get_unlocking_script: (a: number, b: number, c: number, d: number) => void;
+  readonly p2pkhaddress_verify_bitcoin_message: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_extendedpublickey_free: (a: number) => void;
   readonly extendedpublickey_get_public_key: (a: number) => number;
   readonly extendedpublickey_from_xpriv: (a: number) => number;
@@ -1989,15 +1998,7 @@ export interface InitOutput {
   readonly extendedpublickey_from_random: (a: number) => void;
   readonly extendedpublickey_from_string: (a: number, b: number, c: number) => void;
   readonly extendedpublickey_to_string: (a: number, b: number) => void;
-  readonly __wbg_p2pkhaddress_free: (a: number) => void;
-  readonly p2pkhaddress_from_pubkey_hash: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_from_pubkey: (a: number, b: number) => void;
-  readonly p2pkhaddress_set_chain_params: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_to_string: (a: number, b: number) => void;
-  readonly p2pkhaddress_from_string: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_get_locking_script: (a: number, b: number) => void;
-  readonly p2pkhaddress_get_unlocking_script: (a: number, b: number, c: number, d: number) => void;
-  readonly p2pkhaddress_verify_bitcoin_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly ecdh_derive_shared_key: (a: number, b: number, c: number) => void;
   readonly __wbg_script_free: (a: number) => void;
   readonly script_to_asm_string: (a: number, b: number) => void;
   readonly script_to_extended_asm_string: (a: number, b: number) => void;
@@ -2011,7 +2012,7 @@ export interface InitOutput {
   readonly script_get_script_length: (a: number) => number;
   readonly script_to_hex: (a: number, b: number) => void;
   readonly script_remove_codeseparators: (a: number) => void;
-  readonly ecdh_derive_shared_key: (a: number, b: number, c: number) => void;
+  readonly __wbg_ecdh_free: (a: number) => void;
   readonly ecdsa_private_key_from_signature_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly ecdsa_sign_with_random_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly ecdsa_sign_with_deterministic_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
@@ -2019,7 +2020,6 @@ export interface InitOutput {
   readonly ecdsa_verify_digest: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly __wbg_ecdh_free: (a: number) => void;
   readonly __wbg_ecdsa_free: (a: number) => void;
   readonly __wbg_aes_free: (a: number) => void;
   readonly __wbg_kdf_free: (a: number) => void;
@@ -2044,8 +2044,8 @@ export interface InitOutput {
   readonly signature_to_compact_hex: (a: number, b: number, c: number) => void;
   readonly signature_verify_message: (a: number, b: number, c: number, d: number) => number;
   readonly __wbg_txout_free: (a: number) => void;
-  readonly txout_new: (a: number, b: number, c: number) => number;
-  readonly txout_get_satoshis: (a: number, b: number) => void;
+  readonly txout_new: (a: number, b: number) => number;
+  readonly txout_get_satoshis: (a: number) => number;
   readonly txout_get_satoshis_as_bytes: (a: number, b: number) => void;
   readonly txout_get_script_pub_key_size: (a: number) => number;
   readonly txout_get_script_pub_key: (a: number) => number;
@@ -2073,6 +2073,12 @@ export interface InitOutput {
   readonly eciesciphertext_extract_public_key: (a: number, b: number) => void;
   readonly eciesciphertext_from_bytes: (a: number, b: number, c: number, d: number) => void;
   readonly __wbg_ecies_free: (a: number) => void;
+  readonly __wbg_chainparams_free: (a: number) => void;
+  readonly chainparams_mainnet: () => number;
+  readonly chainparams_testnet: () => number;
+  readonly chainparams_regtest: () => number;
+  readonly chainparams_stn: () => number;
+  readonly chainparams_new: () => number;
   readonly __wbg_publickey_free: (a: number) => void;
   readonly publickey_to_address: (a: number, b: number) => void;
   readonly publickey_from_hex: (a: number, b: number, c: number) => void;
@@ -2087,38 +2093,13 @@ export interface InitOutput {
   readonly publickey_is_valid_message: (a: number, b: number, c: number, d: number) => number;
   readonly publickey_is_compressed: (a: number) => number;
   readonly publickey_to_p2pkh_address: (a: number, b: number) => void;
-  readonly bsm_is_valid_message: (a: number, b: number, c: number, d: number) => number;
-  readonly bsm_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly bsm_sign_message: (a: number, b: number, c: number, d: number) => void;
-  readonly bsm_sign_message_with_k: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly __wbg_chainparams_free: (a: number) => void;
-  readonly chainparams_mainnet: () => number;
-  readonly chainparams_testnet: () => number;
-  readonly chainparams_regtest: () => number;
-  readonly chainparams_stn: () => number;
-  readonly __wbg_privatekey_free: (a: number) => void;
-  readonly privatekey_to_bytes: (a: number, b: number) => void;
-  readonly privatekey_to_hex: (a: number, b: number) => void;
-  readonly privatekey_from_random: () => number;
-  readonly privatekey_get_point: (a: number, b: number) => void;
-  readonly privatekey_compress_public_key: (a: number, b: number) => number;
-  readonly privatekey_from_wif: (a: number, b: number, c: number) => void;
-  readonly privatekey_from_hex: (a: number, b: number, c: number) => void;
-  readonly privatekey_sign_message: (a: number, b: number, c: number, d: number) => void;
-  readonly privatekey_to_wif: (a: number, b: number) => void;
-  readonly privatekey_from_bytes: (a: number, b: number, c: number) => void;
-  readonly privatekey_to_public_key: (a: number, b: number) => void;
-  readonly privatekey_encrypt_message: (a: number, b: number, c: number, d: number) => void;
-  readonly privatekey_decrypt_message: (a: number, b: number, c: number, d: number) => void;
-  readonly chainparams_new: () => number;
-  readonly __wbg_bsm_free: (a: number) => void;
   readonly __wbg_txin_free: (a: number) => void;
   readonly txin_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly txin_default: () => number;
   readonly txin_get_prev_tx_id: (a: number, b: number, c: number) => void;
   readonly txin_get_prev_tx_id_hex: (a: number, b: number, c: number) => void;
   readonly txin_get_vout: (a: number) => number;
-  readonly txin_get_unlocking_script_size: (a: number, b: number) => void;
+  readonly txin_get_unlocking_script_size: (a: number) => number;
   readonly txin_get_unlocking_script: (a: number) => number;
   readonly txin_get_unlocking_script_hex: (a: number, b: number) => void;
   readonly txin_get_sequence: (a: number) => number;
@@ -2129,7 +2110,7 @@ export interface InitOutput {
   readonly txin_set_prev_tx_id: (a: number, b: number, c: number) => void;
   readonly txin_set_vout: (a: number, b: number) => void;
   readonly txin_set_sequence: (a: number, b: number) => void;
-  readonly txin_set_satoshis: (a: number, b: number, c: number) => void;
+  readonly txin_set_satoshis: (a: number, b: number) => void;
   readonly txin_get_satoshis: (a: number, b: number) => void;
   readonly txin_set_locking_script: (a: number, b: number) => void;
   readonly txin_get_locking_script: (a: number) => number;
@@ -2146,6 +2127,25 @@ export interface InitOutput {
   readonly txin_from_compact_hex: (a: number, b: number, c: number) => void;
   readonly txin_get_finalised_script: (a: number, b: number) => void;
   readonly txin_is_coinbase: (a: number) => number;
+  readonly bsm_is_valid_message: (a: number, b: number, c: number, d: number) => number;
+  readonly bsm_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly bsm_sign_message: (a: number, b: number, c: number, d: number) => void;
+  readonly bsm_sign_message_with_k: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly __wbg_privatekey_free: (a: number) => void;
+  readonly privatekey_to_bytes: (a: number, b: number) => void;
+  readonly privatekey_to_hex: (a: number, b: number) => void;
+  readonly privatekey_from_random: () => number;
+  readonly privatekey_get_point: (a: number, b: number) => void;
+  readonly privatekey_compress_public_key: (a: number, b: number) => number;
+  readonly privatekey_from_wif: (a: number, b: number, c: number) => void;
+  readonly privatekey_from_hex: (a: number, b: number, c: number) => void;
+  readonly privatekey_sign_message: (a: number, b: number, c: number, d: number) => void;
+  readonly privatekey_to_wif: (a: number, b: number) => void;
+  readonly privatekey_from_bytes: (a: number, b: number, c: number) => void;
+  readonly privatekey_to_public_key: (a: number, b: number) => void;
+  readonly privatekey_encrypt_message: (a: number, b: number, c: number, d: number) => void;
+  readonly privatekey_decrypt_message: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_bsm_free: (a: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
@@ -2153,14 +2153,16 @@ export interface InitOutput {
   readonly __wbindgen_exn_store: (a: number) => void;
 }
 
+export type SyncInitInput = BufferSource | WebAssembly.Module;
 /**
-* Synchronously compiles the given `bytes` and instantiates the WebAssembly module.
+* Instantiates the given `module`, which can either be bytes or
+* a precompiled `WebAssembly.Module`.
 *
-* @param {BufferSource} bytes
+* @param {SyncInitInput} module
 *
 * @returns {InitOutput}
 */
-export function initSync(bytes: BufferSource): InitOutput;
+export function initSync(module: SyncInitInput): InitOutput;
 
 /**
 * If `module_or_path` is {RequestInfo} or {URL}, makes a request and
