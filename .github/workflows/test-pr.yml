@@ -31,8 +31,10 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
+
     - name: Run WASM tests
       run: make wasm-tests
+      working-directory: packages/bsv-wasm
 
   node-test:
       runs-on: ubuntu-latest
@@ -63,6 +65,8 @@ jobs:
           cache-on-failure: true
 
       - run: make build-nodejs
+        working-directory: packages/bsv-wasm
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
