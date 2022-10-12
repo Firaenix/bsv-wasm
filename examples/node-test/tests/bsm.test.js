@@ -39,7 +39,7 @@ describe("Bitcoin Signed Messages", function() {
           assert.equal(BSM.verify_message(message, wasm_reconstruct_sig, address_wasm), true);
           assert.equal(BSM.is_valid_message(message, wasm_reconstruct_sig, address_wasm), true);
           
-          assert.equal(address_js.toString(), address_wasm.to_address_string());
+          assert.equal(address_js.toString(), address_wasm.to_string());
 
           assert.equal(signature_wasm_b64, signature_js.toString(), "JS and WASM signatures did not match")
           
