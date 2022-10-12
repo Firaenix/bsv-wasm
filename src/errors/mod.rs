@@ -160,4 +160,7 @@ pub enum BSVErrors {
 
     #[error("Error serialising TxOut field {0}: {1}")]
     SerialiseTxOut(String, #[source] std::io::Error),
+
+    #[error("{0}")]
+    GenericError(String)
 }

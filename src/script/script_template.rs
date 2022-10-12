@@ -173,7 +173,7 @@ impl Script {
         for (i, (template, script)) in script_template.0.iter().zip(self.0.iter()).enumerate() {
             let is_match = match (template, script) {
                 (MatchToken::OpCode(tmpl_code), ScriptBit::OpCode(op_code)) => Ok(tmpl_code == op_code),
-                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(tmpl_data == data),
+                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(*tmpl_data == *data),
                 (MatchToken::PushData(tmpl_op, tmpl_data), ScriptBit::PushData(op, data)) => Ok(tmpl_op == op && tmpl_data == data),
 
                 (MatchToken::Data(len, constraint), ScriptBit::PushData(_, data) | ScriptBit::Push(data)) => match constraint {
@@ -197,7 +197,15 @@ impl Script {
             };
 
             match is_match {
-                Ok(_) => (),
+                Ok(true) => (),
+                Ok(false) => {
+                    return Err(ScriptTemplateErrors::MatchFailure(
+                        i,
+                        template.clone(),
+                        script.clone(),
+                        BSVErrors::GenericError(format!("{} != {}", template, script)),
+                    ));
+                }
                 Err(e) => {
                     return Err(ScriptTemplateErrors::MatchFailure(i, template.clone(), script.clone(), e));
                 }

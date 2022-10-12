@@ -20,6 +20,7 @@ mod script_template_tests {
             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
                 .unwrap();
 
+        println!("Script Test {:?}", script);
         let script_template = ScriptTemplate::from_asm_string(
             "d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG",
         )
@@ -27,11 +28,30 @@ mod script_template_tests {
 
         let match_result = script.matches(&script_template);
 
+        println!("Matches? {:?}", match_result);
         assert_eq!(match_result.is_ok(), true);
 
         let extracted = match_result.unwrap();
 
         assert!(extracted.is_empty());
+    }
+
+    #[test]
+    fn exact_script_template_matches_script_without_extracting_data_should_fail() {
+        let script =
+            Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
+                .unwrap();
+
+        println!("Script Test {:?}", script);
+        let script_template = ScriptTemplate::from_asm_string(
+            "3333333333333333333333333333333333333333333333333333333333333333 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG",
+        )
+        .unwrap();
+
+        let match_result = script.matches(&script_template);
+
+        println!("Matches? {:?}", match_result);
+        assert_eq!(match_result.is_err(), true);
     }
 
     #[test]
