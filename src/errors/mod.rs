@@ -162,5 +162,5 @@ pub enum BSVErrors {
     SerialiseTxOut(String, #[source] std::io::Error),
 
     #[error("{0}")]
-    GenericError(String)
+    GenericError(String),
 }
