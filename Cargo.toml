@@ -5,7 +5,7 @@ authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
 description = "A Bitcoin SV stdlib"
 license = "MIT"
-categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto', 'bitcoin', 'bcash', 'bitcoin-cash', 'bch', 'btc', 'bitcoin-core']
+categories = ['bitcoin', 'bsv', 'wasm', 'bitcoin', 'bitcoin-cash']
 
 [lib]
 crate-type = ["cdylib", "rlib"]
