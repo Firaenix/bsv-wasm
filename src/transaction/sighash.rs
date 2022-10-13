@@ -6,12 +6,11 @@ use std::io::Write;
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
 use strum_macros::EnumString;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::throw_str;
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, FromPrimitive, ToPrimitive, EnumString, Serialize, Deserialize)]
+#[serde(untagged)]
 #[allow(non_camel_case_types)]
 pub enum SigHash {
     FORKID = 0x40,
@@ -85,7 +84,7 @@ impl std::ops::BitAnd for SigHash {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct HashCache {
     pub(super) hash_inputs: Option<Hash>,
     pub(super) hash_sequence: Option<Hash>,
@@ -120,6 +119,29 @@ impl Transaction {
     }
 
     /**
+     * Calculates the SIGHASH buffer and then signs it with a specific ephemeral key. I hope you know what you're doing!
+     */
+    pub(crate) fn sign_with_k_impl(
+        &mut self,
+        priv_key: &PrivateKey,
+        ephemeral_key: &PrivateKey,
+        sighash: SigHash,
+        n_tx_in: usize,
+        unsigned_script: &Script,
+        value: u64,
+    ) -> Result<SighashSignature, BSVErrors> {
+        let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
+
+        let signature = ECDSA::sign_with_k_impl(priv_key, ephemeral_key, &buffer, crate::SigningHash::Sha256d)?;
+
+        Ok(SighashSignature {
+            signature,
+            sighash_type: sighash,
+            sighash_buffer: buffer,
+        })
+    }
+
+    /**
      * Calculates the SIGHASH Buffer to be signed
      */
     pub(crate) fn sighash_preimage_impl(&mut self, n_tx_in: usize, sighash: SigHash, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
@@ -139,10 +161,10 @@ impl Transaction {
         script.remove_codeseparators();
 
         // Empty scripts
-        tx.inputs.iter_mut().for_each(|txin| txin.set_script(&Script::default()));
+        tx.inputs.iter_mut().for_each(|txin| txin.set_unlocking_script(&Script::default()));
 
         let mut prev_txin = tx.get_input(n_tx_in).ok_or_else(|| BSVErrors::OutOfBounds(format!("Could not get TxIn at index {}", n_tx_in)))?;
-        prev_txin.set_script(&script);
+        prev_txin.set_unlocking_script(&script);
         tx.set_input(n_tx_in, &prev_txin);
 
         match sighash {
@@ -227,12 +249,11 @@ impl Transaction {
      * Checks the hash cache to see if there already are hashed sequence, otherwise calculates the hash and adds it to the cache
      */
     fn hash_sequence(&mut self, sighash: SigHash) -> Vec<u8> {
-        if let Some(x) = &self.hash_cache.hash_sequence {
-            return x.to_bytes();
-        }
-
         match sighash {
             SigHash::ALL | SigHash::InputsOutputs => {
+                if let Some(x) = &self.hash_cache.hash_sequence {
+                    return x.to_bytes();
+                }
                 let input_sequences: Vec<u8> = self.inputs.iter().flat_map(|x| x.get_sequence_as_bytes()).collect();
                 let hash = Hash::sha_256d(&input_sequences);
                 self.hash_cache.hash_sequence = Some(hash.clone());
@@ -246,10 +267,6 @@ impl Transaction {
      * Checks the hash cache to see if there already are hashed outputs, otherwise calculates the hash and adds it to the cache
      */
     fn hash_outputs(&mut self, sighash: SigHash, n_tx_in: usize) -> Result<Vec<u8>, BSVErrors> {
-        if let Some(x) = &self.hash_cache.hash_outputs {
-            return Ok(x.to_bytes());
-        }
-
         match sighash {
             // Only sign the output at the same index as the given txin
             SigHash::SINGLE | SigHash::InputOutput | SigHash::Legacy_InputOutput | SigHash::InputsOutput => {
@@ -263,6 +280,9 @@ impl Transaction {
             }
             // Sign all outputs
             SigHash::ALL | SigHash::InputOutputs | SigHash::Legacy_InputOutputs | SigHash::InputsOutputs => {
+                if let Some(x) = &self.hash_cache.hash_outputs {
+                    return Ok(x.to_bytes());
+                }
                 let mut txout_bytes = Vec::new();
                 for output in &self.outputs {
                     txout_bytes.write_all(&output.to_bytes_impl()?)?;
@@ -284,13 +304,12 @@ impl Transaction {
      * - Else 32 bytes of zeroes
      */
     pub fn hash_inputs(&mut self, sighash: SigHash) -> Vec<u8> {
-        if let Some(x) = &self.hash_cache.hash_inputs {
-            return x.to_bytes();
-        }
-
         match sighash {
             SigHash::ANYONECANPAY | SigHash::Input | SigHash::InputOutput | SigHash::Legacy_Input | SigHash::Legacy_InputOutput | SigHash::InputOutputs => [0; 32].to_vec(),
             _ => {
+                if let Some(x) = &self.hash_cache.hash_inputs {
+                    return x.to_bytes();
+                }
                 let input_bytes: Vec<u8> = self.inputs.iter().flat_map(|txin| txin.get_outpoint_bytes(Some(true))).collect();
 
                 let hash = Hash::sha_256d(&input_bytes);
@@ -302,17 +321,19 @@ impl Transaction {
     }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
         ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
     }
 }
 
-#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction")))]
 impl Transaction {
     pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)
+    }
+
+    pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_with_k_impl(self, priv_key, ephemeral_key, sighash, n_tx_in, unsigned_script, value)
     }
 
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, BSVErrors> {
@@ -320,27 +341,6 @@ impl Transaction {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-impl Transaction {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sign))]
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, JsValue> {
-        match Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = sighashPreimage))]
-    pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, JsValue> {
-        match Transaction::sighash_preimage_impl(self, n_tx_in, sighash, unsigned_script, value) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-}
-
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 pub struct SighashSignature {
     pub(crate) signature: Signature,
     pub(crate) sighash_type: SigHash,
@@ -362,11 +362,24 @@ impl SighashSignature {
         sig_bytes.push(sighash_u8);
         Ok(sig_bytes)
     }
+
+    pub(crate) fn from_bytes_impl(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
+        let signature = Signature::from_der_impl(&bytes[..bytes.len() - 1])?;
+        let sighash_type: SigHash = bytes
+            .last()
+            .cloned()
+            .ok_or_else(|| BSVErrors::ToSighash("Could not convert last byte of signature to Sighash flag".into()))?
+            .try_into()?;
+        Ok(Self {
+            sighash_type,
+            signature,
+            sighash_buffer: sighash_buffer.to_vec(),
+        })
+    }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl SighashSignature {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(signature: &Signature, sighash_type: SigHash, sighash_buffer: &[u8]) -> SighashSignature {
         SighashSignature {
             signature: signature.clone(),
@@ -376,7 +389,6 @@ impl SighashSignature {
     }
 }
 
-#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction")))]
 impl SighashSignature {
     pub fn to_hex(&self) -> Result<String, BSVErrors> {
         self.to_hex_impl()
@@ -385,24 +397,27 @@ impl SighashSignature {
     pub fn to_bytes(&self) -> Result<Vec<u8>, BSVErrors> {
         self.to_bytes_impl()
     }
-}
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-impl SighashSignature {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> Result<String, JsValue> {
-        match self.to_hex_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match self.to_bytes_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
+    pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<SighashSignature, BSVErrors> {
+        Self::from_bytes_impl(bytes, sighash_buffer)
     }
 }
+
+// #[cfg(all(feature = "wasm-bindgen-transaction"))]
+// #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+// impl SighashSignature {
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
+//     pub fn to_hex(&self) -> Result<String, wasm_bindgen::JsError> {
+//         Ok(self.to_hex_impl()?)
+//     }
+
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
+//     pub fn to_bytes(&self) -> Result<Vec<u8>, wasm_bindgen::JsError> {
+//         Ok(self.to_bytes_impl()?)
+//     }
+
+//     #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
+//     pub fn from_bytes(bytes: &[u8], sighash_buffer: &[u8]) -> Result<SighashSignature, wasm_bindgen::JsError> {
+//         Ok(Self::from_bytes_impl(bytes, sighash_buffer)?)
+//     }
+// }

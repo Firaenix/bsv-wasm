@@ -4,10 +4,7 @@ use pbkdf2::{password_hash::SaltString, pbkdf2};
 use rand_core::OsRng;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 #[derive(Debug, Clone, Copy)]
 pub enum PBKDF2Hashes {
     SHA1,
@@ -40,7 +37,6 @@ impl KDF {
     }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-kdf"), wasm_bindgen)]
 impl KDF {
     /**
      * Implementation of PBKDF2 - when None is specified for salt, a random salt will be generated

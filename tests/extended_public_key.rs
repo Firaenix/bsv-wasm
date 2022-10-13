@@ -1,13 +1,8 @@
 #[cfg_attr(not(target_arch = "wasm32"), allow(unused_imports))]
 #[cfg(test)]
 mod xpub_tests {
-    use bsv_wasm::{hash::Hash, keypair::*};
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
-
+    use bsv::{hash::Hash, keypair::*};
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn xpriv_to_xpub() {
         let key = ExtendedPrivateKey::from_string("xprv9tuogRdb5YTgcL3P8Waj7REqDuQx4sXcodQaWTtEVFEp6yRKh1CjrWfXChnhgHeLDuXxo2auDZegMiVMGGxwxcrb2PmiGyCngLxvLeGsZRq").unwrap();
         let pub_key = ExtendedPublicKey::from_xpriv(&key);
@@ -23,7 +18,6 @@ mod xpub_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn xpub_string_to_xpub() {
         let pub_key = ExtendedPublicKey::from_string("xpub67uA5wAUuv1ypp7rEY7jUZBZmwFSULFUArLBJrHr3amnymkUEYWzQJz13zLacZv33sSuxKVmerpZeFExapBNt8HpAqtTtWqDQRAgyqSKUHu").unwrap();
 
@@ -34,7 +28,6 @@ mod xpub_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn xpub_derived_key_is_correct() {
         let pub_key = ExtendedPublicKey::from_string("xpub67uA5wAUuv1ypp7rEY7jUZBZmwFSULFUArLBJrHr3amnymkUEYWzQJz13zLacZv33sSuxKVmerpZeFExapBNt8HpAqtTtWqDQRAgyqSKUHu").unwrap();
 

@@ -1,13 +1,5 @@
-pub mod op_codes;
-pub use op_codes::*;
+use crate::{Hash, OpCodes::OP_0};
 
-pub mod script_bit;
-pub use script_bit::*;
-
-use crate::OpCodes::OP_0;
-use strum_macros::Display;
-
-use crate::utils::{from_hex, to_hex};
 use std::{
     io::{Cursor, Read},
     slice::Iter,
@@ -20,13 +12,16 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 
 use serde::{Deserialize, Serialize};
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str};
+
+pub mod op_codes;
+pub use op_codes::*;
+
+pub mod script_bit;
+pub use script_bit::*;
 
 mod script_template;
 pub use script_template::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(pub(crate) Vec<ScriptBit>);
 
@@ -52,24 +47,37 @@ impl Script {
                 },
                 ScriptBit::OpCode(code) => code.to_string(),
                 ScriptBit::If { code, pass, fail } => {
-                    format!(
-                        "{} {} {} {} {}",
-                        code,
-                        Script::script_bits_to_asm_string(pass, extended),
-                        OpCodes::OP_ELSE,
-                        Script::script_bits_to_asm_string(fail, extended),
-                        OpCodes::OP_ENDIF
-                    )
+                    let mut string_parts = vec![];
+
+                    string_parts.push(code.to_string());
+
+                    let pass_string = Script::script_bits_to_asm_string(pass, extended);
+                    if !pass_string.is_empty() {
+                        string_parts.push(pass_string);
+                    }
+
+                    if let Some(fail) = fail {
+                        string_parts.push(OpCodes::OP_ELSE.to_string());
+                        let fail_string = Script::script_bits_to_asm_string(fail, extended);
+                        if !fail_string.is_empty() {
+                            string_parts.push(fail_string);
+                        }
+                    }
+
+                    string_parts.push(OpCodes::OP_ENDIF.to_string());
+
+                    string_parts.join(" ")
                 }
+                ScriptBit::Coinbase(bytes) => hex::encode(bytes),
             })
             .collect::<Vec<String>>()
             .join(" ")
     }
 
-    fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
+    pub fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
         let bytes = codes
             .iter()
-            .map(|x| match x {
+            .flat_map(|x| match x {
                 ScriptBit::OpCode(code) => vec![*code as u8],
                 ScriptBit::Push(bytes) => {
                     let mut pushbytes = bytes.clone();
@@ -92,33 +100,31 @@ impl Script {
                     let mut bytes = vec![*code as u8];
 
                     bytes.extend_from_slice(&Script::script_bits_to_bytes(pass));
-                    bytes.push(OpCodes::OP_ELSE as u8);
-                    bytes.extend_from_slice(&Script::script_bits_to_bytes(fail));
+
+                    if let Some(fail) = fail {
+                        bytes.push(OpCodes::OP_ELSE as u8);
+                        bytes.extend_from_slice(&Script::script_bits_to_bytes(fail));
+                    }
                     bytes.push(OpCodes::OP_ENDIF as u8);
 
                     bytes
                 }
+                ScriptBit::Coinbase(bytes) => bytes.to_vec(),
             })
-            .flatten()
             .collect();
 
         bytes
     }
 
-    pub(crate) fn to_asm_string_impl(&self, extended: bool) -> String {
+    pub fn to_asm_string_impl(&self, extended: bool) -> String {
         Script::script_bits_to_asm_string(&self.0, extended)
     }
-}
 
-/**
- * Deserialise Methods
- */
-impl Script {
-    pub(crate) fn from_hex_impl(hex: &str) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(&hex::decode(hex)?)
+    pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
+        Script::from_bytes(&hex::decode(hex)?)
     }
 
-    pub(crate) fn from_bytes_impl(bytes: &[u8]) -> Result<Script, BSVErrors> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
         let mut cursor = Cursor::new(bytes);
 
         let mut bit_accumulator = vec![];
@@ -126,7 +132,7 @@ impl Script {
             if (0x01..=0x4b).contains(&byte) {
                 let mut data = vec![0; byte as usize];
                 if let Err(e) = cursor.read(&mut data) {
-                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e.to_string())));
+                    return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e)));
                 }
 
                 bit_accumulator.push(ScriptBit::Push(data));
@@ -143,7 +149,7 @@ impl Script {
 
                     let mut data = vec![0; data_length];
                     if let Err(e) = cursor.read(&mut data) {
-                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e.to_string())));
+                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e)));
                     }
 
                     ScriptBit::PushData(v, data)
@@ -155,9 +161,13 @@ impl Script {
             bit_accumulator.push(bit);
         }
 
-        let nested_bits = Script::if_statement_pass(&bit_accumulator)?;
+        let nested_bits = Script::if_statement_pass(&mut bit_accumulator.iter())?;
 
         Ok(Script(nested_bits))
+    }
+
+    pub fn from_coinbase_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
+        Ok(Script(vec![ScriptBit::Coinbase(bytes.to_vec())]))
     }
 
     fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
@@ -198,60 +208,55 @@ impl Script {
         Ok(bit)
     }
 
-    fn read_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
+    fn read_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<(Vec<ScriptBit>, bool), BSVErrors> {
         let mut nested_bits = vec![];
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(bits_iter)?,
-                }),
-                ScriptBit::OpCode(OpCodes::OP_ELSE) => return Ok(nested_bits),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
+                ScriptBit::OpCode(OpCodes::OP_ELSE) => return Ok((nested_bits, false)),
+                ScriptBit::OpCode(OpCodes::OP_ENDIF) => return Ok((nested_bits, true)),
                 o => nested_bits.push(o.clone()),
             }
         }
 
-        Err(BSVErrors::DeserialiseScript("OP_IF statement requires an OP_ELSE code".into()))
+        Err(BSVErrors::DeserialiseScript("OP_IF branch requires an OP_ELSE or OP_ENDIF code".into()))
     }
 
     fn read_fail(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
         let mut nested_bits = vec![];
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(bits_iter)?,
-                }),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
                 ScriptBit::OpCode(OpCodes::OP_ENDIF) => return Ok(nested_bits),
                 o => nested_bits.push(o.clone()),
             }
         }
 
-        Err(BSVErrors::DeserialiseScript("OP_IF statement requires an OP_ENDIF code".into()))
+        Err(BSVErrors::DeserialiseScript("OP_ELSE branch requires an OP_ENDIF code".into()))
+    }
+
+    fn read_if_statement(bits_iter: &mut Iter<ScriptBit>, nested_bits: &mut Vec<ScriptBit>, v: &OpCodes) -> Result<(), BSVErrors> {
+        let (pass_bits, ended) = Script::read_pass(bits_iter)?;
+        nested_bits.push(ScriptBit::If {
+            code: *v,
+            // Read until OP_ELSE or OP_ENDIF
+            pass: pass_bits,
+            // Read until OP_ENDIF
+            fail: match ended {
+                true => None,
+                false => Some(Script::read_fail(bits_iter)?),
+            },
+        });
+        Ok(())
     }
 
     /// Iterates over a ScriptBit array, finds OP_XIF codes and calculates the nested ScriptBit::If block  
-    /// TODO: name this function better
-    fn if_statement_pass(bits: &[ScriptBit]) -> Result<Vec<ScriptBit>, BSVErrors> {
-        // let mut cursor = Cursor::new(bits);
-
+    fn if_statement_pass(bits_iter: &mut Iter<ScriptBit>) -> Result<Vec<ScriptBit>, BSVErrors> {
         let mut nested_bits = vec![];
-        let mut bits_iter = bits.iter();
+
         while let Some(thing) = bits_iter.next() {
             match thing {
-                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => nested_bits.push(ScriptBit::If {
-                    code: v.clone(),
-                    // Read until OP_ELSE
-                    pass: Script::read_pass(&mut bits_iter)?,
-                    // Read until OP_ENDIF
-                    fail: Script::read_fail(&mut bits_iter)?,
-                }),
+                ScriptBit::OpCode(v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => Script::read_if_statement(bits_iter, &mut nested_bits, v)?,
                 o => nested_bits.push(o.clone()),
             }
         }
@@ -259,14 +264,14 @@ impl Script {
         Ok(nested_bits)
     }
 
-    pub(crate) fn from_asm_string_impl(asm: &str) -> Result<Script, BSVErrors> {
+    pub fn from_asm_string(asm: &str) -> Result<Script, BSVErrors> {
         let bits: Result<Vec<ScriptBit>, _> = asm.split(' ').filter(|x| !(x.is_empty() || x == &"\n" || x == &"\r")).map(Script::map_string_to_script_bit).collect();
-        let bits = Script::if_statement_pass(&bits?)?;
+        let bits = Script::if_statement_pass(&mut bits?.iter())?;
 
         Ok(Script(bits))
     }
 
-    pub(crate) fn get_pushdata_prefix_bytes_impl(length: usize) -> Result<Vec<u8>, BSVErrors> {
+    pub fn get_pushdata_prefix_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
         match length {
             op_push @ 0x01..=0x4b => Ok(vec![op_push as u8]),
             op_pushdata1_size @ 0x4c..=0xFF => {
@@ -296,161 +301,75 @@ impl Script {
 
                 Ok(push_data_prefix)
             }
-            size => return Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
+            size => Err(BSVErrors::DeserialiseScript(format!("{} is too large for OP_PUSHDATAX commands", size))),
         }
     }
 
-    pub(crate) fn encode_pushdata_impl(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
-        let mut pushdata_bytes = Script::get_pushdata_prefix_bytes_impl(data_bytes.len())?;
+    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
+        let mut pushdata_bytes = Script::get_pushdata_prefix_bytes(data_bytes.len())?;
         pushdata_bytes.append(&mut data_bytes.to_vec());
 
         Ok(pushdata_bytes)
     }
-}
 
-/**
- * Shared Functions
- */
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen)]
-impl Script {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toBytes))]
     pub fn to_bytes(&self) -> Vec<u8> {
         Script::script_bits_to_bytes(&self.0)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = getScriptLength))]
     pub fn get_script_length(&self) -> usize {
         self.to_bytes().len()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = toHex))]
     pub fn to_hex(&self) -> String {
         hex::encode(self.to_bytes())
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen(js_name = removeCodeSeparators))]
     pub fn remove_codeseparators(&mut self) {
         self.0 = self.0.clone().into_iter().filter(|x| *x != ScriptBit::OpCode(OpCodes::OP_CODESEPARATOR)).collect();
     }
-}
 
-/**
- * Only export to inside Rust calling code
- */
-impl Script {
-    /**
-     * Rust only: wasm-bindgen doesnt handle 2D arrays of u8.
-     */
     pub fn from_chunks(chunks: Vec<Vec<u8>>) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(&chunks.into_iter().flatten().collect::<Vec<u8>>())
+        Script::from_bytes(&chunks.into_iter().flatten().collect::<Vec<u8>>())
     }
-}
 
-/**
- * Native Specific Functions
- */
-#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-script")))]
-impl Script {
+    pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
+        Script(bits)
+    }
+
+    pub fn push(&mut self, code: ScriptBit) {
+        self.0.push(code);
+    }
+
+    pub fn push_array(&mut self, code: &[ScriptBit]) {
+        self.0.extend_from_slice(code);
+    }
+
+    pub fn to_scripthash_hex(&self) -> String {
+        hex::encode(self.to_scripthash_bytes())
+    }
+
+    pub fn to_scripthash_bytes(&self) -> Vec<u8> {
+        let mut scripthash = Hash::sha_256(&self.to_bytes()).to_bytes();
+        scripthash.reverse();
+        scripthash
+    }
+
     pub fn to_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, false)
-    }
-
-    pub fn from_bytes(bytes: &[u8]) -> Result<Script, BSVErrors> {
-        Script::from_bytes_impl(bytes)
     }
 
     pub fn to_extended_asm_string(&self) -> String {
         Script::to_asm_string_impl(self, true)
     }
 
-    pub fn from_hex(hex: &str) -> Result<Script, BSVErrors> {
-        Script::from_hex_impl(hex)
-    }
-
-    pub fn from_asm_string(asm_string: &str) -> Result<Script, BSVErrors> {
-        Script::from_asm_string_impl(asm_string)
-    }
-
-    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, BSVErrors> {
-        Script::encode_pushdata_impl(data_bytes)
-    }
-
     /**
      * Gets the OP_PUSHDATA prefix varint
      */
     pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
-        Script::get_pushdata_prefix_bytes_impl(length)
+        Script::get_pushdata_prefix_bytes(length)
     }
 
     pub fn to_script_bits(&self) -> Vec<ScriptBit> {
         self.0.clone()
-    }
-}
-
-/**
- * WASM Specific Functions
- */
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script"), wasm_bindgen)]
-impl Script {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toASMString))]
-    pub fn to_asm_string(&self) -> String {
-        Script::to_asm_string_impl(&self, false)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toExtendedASMString))]
-    pub fn to_extended_asm_string(&self) -> String {
-        Script::to_asm_string_impl(&self, true)
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex: &str) -> Result<Script, JsValue> {
-        match Script::from_hex_impl(hex) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Script, JsValue> {
-        match Script::from_bytes_impl(bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromASMString))]
-    pub fn from_asm_string(asm_string: &str) -> Result<Script, JsValue> {
-        match Script::from_asm_string_impl(asm_string) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encodePushData))]
-    pub fn encode_pushdata(data_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
-        match Script::encode_pushdata_impl(data_bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Gets the OP_PUSHDATA prefix varint
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getPushDataBytes))]
-    pub fn get_pushdata_bytes(length: usize) -> Result<Vec<u8>, JsValue> {
-        match Script::get_pushdata_prefix_bytes_impl(length) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toScriptBits))]
-    pub fn to_script_bits(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(self) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(JsValue::from_str(&e.to_string())),
-        }
     }
 }

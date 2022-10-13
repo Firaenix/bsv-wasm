@@ -1,10 +1,7 @@
 use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str};
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecoveryInfo {
     is_y_odd: bool,
@@ -12,7 +9,6 @@ pub struct RecoveryInfo {
     is_pubkey_compressed: bool,
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
 impl RecoveryInfo {
     pub fn new(is_y_odd: bool, is_x_reduced: bool, is_pubkey_compressed: bool) -> RecoveryInfo {
         RecoveryInfo {
@@ -39,7 +35,6 @@ impl RecoveryInfo {
     }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Signature {
     pub(crate) sig: k256::ecdsa::Signature,
@@ -66,7 +61,7 @@ impl Signature {
         Signature::from_der_impl(&bytes)
     }
 
-    pub(crate) fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
+    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         let recovery = match &self.recovery {
             Some(v) => v,
             None => {
@@ -89,12 +84,12 @@ impl Signature {
             }
         };
 
-        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes().to_vec())?;
+        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes())?;
 
         Ok(pub_key)
     }
 
-    pub(crate) fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
+    pub fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
         let (recovery, is_compressed) = match (compact_bytes[0] - 27) as i8 - 4 {
@@ -119,10 +114,9 @@ impl Signature {
     }
 }
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
 impl Signature {
     /// DER representation of signature, does not contain any recovery information, so cannot be used for BSM
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toHex))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toHex))]
     pub fn to_der_hex(&self) -> String {
         let bytes = self.sig.to_der();
 
@@ -130,7 +124,7 @@ impl Signature {
     }
 
     /// DER representation of signature, does not contain any recovery information, so cannot be used for BSM
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toBytes))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toBytes))]
     pub fn to_der_bytes(&self) -> Vec<u8> {
         let bytes = self.sig.to_der();
 
@@ -138,7 +132,7 @@ impl Signature {
     }
 
     /// NOTE: Provide recovery info if the current signature object doesnt contain it.
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toCompactBytes))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toCompactBytes))]
     pub fn to_compact_bytes(&self, recovery_info: Option<RecoveryInfo>) -> Vec<u8> {
         // TODO: Test Compact Bytes length vs DER only
         let RecoveryInfo {
@@ -163,13 +157,33 @@ impl Signature {
         compact_buf
     }
 
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = r))]
+    pub fn r(&self) -> Vec<u8> {
+        self.sig.r().to_bytes().to_vec()
+    }
+
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = rHex))]
+    pub fn r_hex(&self) -> String {
+        hex::encode(self.r())
+    }
+
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = s))]
+    pub fn s(&self) -> Vec<u8> {
+        self.sig.s().to_bytes().to_vec()
+    }
+
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = sHex))]
+    pub fn s_hex(&self) -> String {
+        hex::encode(self.s())
+    }
+
     /// NOTE: Provide recovery info if the current signature object doesnt contain it.
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toCompactHex))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = toCompactHex))]
     pub fn to_compact_hex(&self, recovery_info: Option<RecoveryInfo>) -> String {
         hex::encode(self.to_compact_bytes(recovery_info))
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = verifyMessage))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(&self, message: &[u8], pub_key: &PublicKey) -> bool {
         ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256).is_ok()
     }
@@ -178,50 +192,38 @@ impl Signature {
 /**
  * WASM Exported Methods
  */
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
-impl Signature {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromDER))]
-    pub fn from_der(bytes: &[u8]) -> Result<Signature, JsValue> {
-        Signature::from_der_impl(bytes).map_err(|e| throw_str(&e.to_string()))
-    }
+// #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen)]
+// #[cfg(feature = "wasm-bindgen-signature")]
+// impl Signature {
+//     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromDER))]
+//     pub fn from_der(bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
+//         Ok(Signature::from_der_impl(bytes)?)
+//     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromHexDER))]
-    pub fn from_hex_der(hex: &str) -> Result<Signature, JsValue> {
-        match Signature::from_hex_der_impl(hex) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromHexDER))]
+//     pub fn from_hex_der(hex: &str) -> Result<Signature, wasm_bindgen::JsError> {
+//         Ok(Signature::from_hex_der_impl(hex)?)
+//     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromCompactBytes))]
-    pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, JsValue> {
-        match Signature::from_compact_impl(compact_bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
+//     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = fromCompactBytes))]
+//     pub fn from_compact_bytes(compact_bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
+//         Ok(Signature::from_compact_impl(compact_bytes)?)
+//     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = recoverPublicKey))]
-    pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, JsValue> {
-        match Signature::get_public_key(&self, &message, hash_algo) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-}
+//     #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = recoverPublicKey))]
+//     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, wasm_bindgen::JsError> {
+//         Ok(Signature::get_public_key(&self, &message, hash_algo)?)
+//     }
+// }
 
 /**
  * Native Exported Methods
  */
-#[cfg(not(target_arch = "wasm32"))]
 impl Signature {
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_der(bytes: &[u8]) -> Result<Signature, BSVErrors> {
         Signature::from_der_impl(bytes)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn from_hex_der(hex: &str) -> Result<Signature, BSVErrors> {
         Signature::from_hex_der_impl(hex)
     }
@@ -230,7 +232,6 @@ impl Signature {
         Signature::from_compact_impl(compact_bytes)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         Signature::get_public_key(self, message, hash_algo)
     }

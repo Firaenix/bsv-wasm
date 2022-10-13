@@ -1,12 +1,8 @@
 #[cfg(test)]
 mod bitcoin_signed_message_tests {
-    use bsv_wasm::{PrivateKey, Signature, BSM};
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
+    use bsv::{PrivateKey, Signature, BSM};
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn sign_and_verify_message() {
         let priv_key = PrivateKey::from_wif("L17y3TE8AgM6fiWFP4HsbaLnvuBJsQcFKYRoJoZULpTzeTCr2nEC").unwrap();
 
@@ -24,7 +20,6 @@ mod bitcoin_signed_message_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn rehydrate_signature_and_verify() {
         for _ in 0..100 {
             let priv_key = PrivateKey::from_random();
@@ -47,7 +42,6 @@ mod bitcoin_signed_message_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn rehydrate_compact_signature_and_verify() {
         for _ in 0..100 {
             let priv_key = PrivateKey::from_random();

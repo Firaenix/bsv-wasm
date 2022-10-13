@@ -7,8 +7,6 @@ use crate::VarIntReader;
 use crate::VarIntWriter;
 use byteorder::*;
 use serde::{Deserialize, Serialize};
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str, JsValue};
 
 mod match_criteria;
 mod sighash;
@@ -20,8 +18,7 @@ pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
 
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Transaction {
     pub(super) version: u32,
     pub(super) inputs: Vec<TxIn>,
@@ -223,39 +220,38 @@ impl Transaction {
  * Platform Agnostic Functions
  * ie. Don't need Result<T, E>
  */
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 impl Transaction {
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getVersion))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getVersion))]
     pub fn get_version(&self) -> u32 {
         self.version
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInputsCount))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInputsCount))]
     pub fn get_ninputs(&self) -> usize {
         self.inputs.len()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutputsCount))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutputsCount))]
     pub fn get_noutputs(&self) -> usize {
         self.outputs.len()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getInput))]
     pub fn get_input(&self, index: usize) -> Option<TxIn> {
         self.inputs.get(index).cloned()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getOutput))]
     pub fn get_output(&self, index: usize) -> Option<TxOut> {
         self.outputs.get(index).cloned()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktime))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktime))]
     pub fn get_n_locktime(&self) -> u32 {
         self.n_locktime
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktimeAsBytes))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getNLocktimeAsBytes))]
     pub fn get_n_locktime_as_bytes(&self) -> Vec<u8> {
         self.n_locktime.to_be_bytes().to_vec()
     }
@@ -264,29 +260,29 @@ impl Transaction {
      * Creates a new empty transaction where you need to add inputs and outputs
      * Transaction.add_input(TxIn) and Transaction.add_output(TxOut)
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(constructor))]
     pub fn new(version: u32, n_locktime: u32) -> Transaction {
         Transaction::new_impl(version, vec![], vec![], n_locktime)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
     pub fn default() -> Transaction {
         Transaction::new_impl(2, vec![], vec![], 0)
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVersion))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVersion))]
     pub fn set_version(&mut self, version: u32) -> Transaction {
         self.version = version;
         self.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setNLocktime))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setNLocktime))]
     pub fn set_nlocktime(&mut self, n_locktime: u32) -> Transaction {
         self.n_locktime = n_locktime;
         self.clone()
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addInput))]
     pub fn add_input(&mut self, input: &TxIn) {
         self.inputs.push(input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -294,7 +290,7 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependInput))]
     pub fn prepend_input(&mut self, input: &TxIn) {
         self.inputs.insert(0, input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -302,7 +298,7 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertInput))]
     pub fn insert_input(&mut self, index: usize, input: &TxIn) {
         self.inputs.insert(index, input.clone());
         // Transaction has been changed, need to recalculate inputs hashes
@@ -310,35 +306,42 @@ impl Transaction {
         self.hash_cache.hash_sequence = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = addOutput))]
     pub fn add_output(&mut self, output: &TxOut) {
         self.outputs.push(output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = prependOutput))]
     pub fn prepend_output(&mut self, output: &TxOut) {
         self.outputs.insert(0, output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = insertOutput))]
     pub fn insert_output(&mut self, index: usize, output: &TxOut) {
         self.outputs.insert(index, output.clone());
         // Transaction has been changed, need to recalculate outputs hashes
         self.hash_cache.hash_outputs = None;
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setInput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setInput))]
     pub fn set_input(&mut self, index: usize, input: &TxIn) {
         self.inputs[index] = input.clone();
     }
 
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setOutput))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setOutput))]
     pub fn set_output(&mut self, index: usize, output: &TxOut) {
         self.outputs[index] = output.clone();
+    }
+
+    pub fn is_coinbase_impl(&self) -> bool {
+        match (self.get_ninputs(), self.get_input(0)) {
+            (1, Some(x)) => x.is_coinbase_impl(),
+            _ => false,
+        }
     }
 
     /**
@@ -346,7 +349,7 @@ impl Transaction {
      * Returns the combined sum of all input satoshis.
      * If any of the inputs dont have satoshis defined, this returns None or null
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisIn))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisIn))]
     pub fn satoshis_in(&self) -> Option<u64> {
         self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
             if a == None || b == None {
@@ -360,202 +363,15 @@ impl Transaction {
     /**
      * Returns the combined sum of all output satoshis.
      */
-    #[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisOut))]
+    // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisOut))]
     pub fn satoshis_out(&self) -> u64 {
         self.outputs.iter().map(|x| x.value).sum()
     }
 }
 
 /**
- * WASM Specific Functions
- */
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-impl Transaction {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromHex))]
-    pub fn from_hex(hex_str: &str) -> Result<Transaction, JsValue> {
-        return match Transaction::from_hex_impl(hex_str) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        };
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(tx_bytes: &[u8]) -> Result<Transaction, JsValue> {
-        return match Transaction::from_bytes_impl(tx_bytes) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        };
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toString))]
-    pub fn to_json_string(&self) -> Result<String, JsValue> {
-        match Transaction::to_json_string_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromJsonString))]
-    pub fn from_json_string(json_string: &str) -> Result<Transaction, JsValue> {
-        match Transaction::from_json_string_impl(json_string) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toJSON))]
-    pub fn to_json(&self) -> Result<JsValue, JsValue> {
-        match JsValue::from_serde(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match Transaction::to_bytes_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toHex))]
-    pub fn to_hex(&self) -> Result<String, JsValue> {
-        match Transaction::to_hex_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Get size of current serialised Transaction object
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getSize))]
-    pub fn get_size(&self) -> Result<usize, JsValue> {
-        match Transaction::get_size_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Adds an array of TxIn's to the transaction
-     * @param {TxIn[]} tx_ins
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addInputs))]
-    pub fn add_inputs(&mut self, tx_ins: Box<[JsValue]>) {
-        let js_value = &*tx_ins.to_vec();
-
-        for elem in js_value {
-            let input = elem.into_serde().unwrap();
-
-            self.add_input(&input);
-        }
-    }
-
-    /**
-     * Returns all outpoints from this transaction as a 2D array of 36 byte buffers.
-     *
-     * @returns {Uint8Array[]} outpoint_array
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getOutpoints))]
-    pub fn get_outpoints(&mut self) -> Result<JsValue, JsValue> {
-        let outpoints = self.get_outpoints_impl();
-        match JsValue::from_serde(&outpoints) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Adds an array of TxOuts to the transaction
-     * @param {TxOut[]} tx_outs
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = addOutputs))]
-    pub fn add_outputs(&mut self, tx_outs: Box<[JsValue]>) {
-        let js_value = &*tx_outs.to_vec();
-
-        for elem in js_value {
-            let output = elem.into_serde().unwrap();
-
-            self.add_output(&output);
-        }
-    }
-
-    /**
-     * Gets the ID of the current transaction as a hex string.
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getIdHex))]
-    pub fn get_id_hex(&self) -> Result<String, JsValue> {
-        match self.get_id_impl() {
-            Ok(v) => Ok(v.to_hex()),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Gets the ID of the current transaction as a Uint8Array.
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = getIdBytes))]
-    pub fn get_id_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match self.get_id_impl() {
-            Ok(v) => Ok(v.to_bytes()),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Serialises this entire transaction to CBOR, preserving all fields from the standard Transaction format + TX+
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactBytes))]
-    pub fn to_compact_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        match self.to_compact_bytes_impl() {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toCompactHex))]
-    pub fn to_compact_hex(&self) -> Result<String, JsValue> {
-        match Transaction::to_compact_hex_impl(&self) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Deserialises the provided CBOR buffer to the TX+ format
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactBytes))]
-    pub fn from_compact_bytes(compact_buffer: &[u8]) -> Result<Transaction, JsValue> {
-        match Transaction::from_compact_bytes_impl(compact_buffer) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-
-    /**
-     * Deserialises the provided CBOR buffer to the TX+ format
-     */
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromCompactHex))]
-    pub fn from_compact_hex(compact_hex: String) -> Result<Transaction, JsValue> {
-        let compact_buffer = match hex::decode(compact_hex) {
-            Ok(v) => v,
-            Err(e) => throw_str(&e.to_string()),
-        };
-
-        match Transaction::from_compact_bytes_impl(&compact_buffer) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-}
-
-/**
  * Native Specific Functions
  */
-#[cfg(not(all(target_arch = "wasm32", feature = "wasm-bindgen-transaction")))]
 impl Transaction {
     /**
      * Gets the ID of the current transaction as a hex string.
@@ -643,5 +459,9 @@ impl Transaction {
 
     pub fn from_compact_hex(compact_hex: &str) -> Result<Self, BSVErrors> {
         Transaction::from_compact_bytes_impl(&hex::decode(compact_hex)?)
+    }
+
+    pub fn is_coinbase(&self) -> bool {
+        self.is_coinbase_impl()
     }
 }

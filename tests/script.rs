@@ -1,10 +1,6 @@
 #[cfg(test)]
 mod script_tests {
-    use bsv_wasm::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::*;
-    wasm_bindgen_test::wasm_bindgen_test_configure!();
-
+    use bsv::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
     // #[test]
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn to_hex_string() {
@@ -15,7 +11,6 @@ mod script_tests {
     // }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn to_21e8_script_hex_debug() {
         let script = Script::from_hex("20d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a20221e8825479a87c7f758875ac").unwrap();
 
@@ -26,7 +21,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn to_21e8_script_hex() {
         let script = Script::from_hex("20d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a20221e8825479a87c7f758875ac").unwrap();
 
@@ -37,7 +31,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn to_asm_op_return_script() {
         let script = Script::from_hex("006a4cb47b227573657248616e646c65223a226c75636b787878222c226368616e6e656c223a226d61746368222c226368616e6e656c4964223a2264757374222c2277696e6e65724964223a2239383333323836362d636435372d343166332d393537632d636433376231666237643738222c2275736572496d616765223a2268747470733a2f2f636c6f75642e68616e64636173682e696f2f75736572732f70726f66696c65506963747572652f6c75636b787878227d").unwrap();
 
@@ -45,7 +38,19 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    fn twetch_op_return_script() {
+        let script = Script::from_asm_string("0 OP_RETURN 31394878696756345179427633744870515663554551797131707a5a56646f417574 676d 746578742f706c61696e 74657874 7477657463685f7477746578745f313634373533323430393832322e747874 7c 3150755161374b36324d694b43747373534c4b79316b683536575755374d74555235 534554 7477646174615f6a736f6e 6e756c6c 75726c 676d 636f6d6d656e74 6e756c6c 6d625f75736572 6e756c6c 7265706c79 6e756c6c 74797065 706f7374 74696d657374616d70 6e756c6c 617070 747765746368 696e766f696365 64373935653432622d323462342d343938372d386562382d353665343733316637636237 7c 313550636948473232534e4c514a584d6f5355615756693757537163376843667661 424954434f494e5f4543445341 314a4d6f6456736e376d7248643273646447645742566d324d4d7039517338565146 4834384e5336544d7977496c6a527662615849743041546b4246514b2b5431444b2f504f562b496f59326d53616c6576526b3562644232424876654d5a736a64422f4b3333577071484d5037717a79493958626d332b773d").unwrap();
+        assert_eq!(script.to_hex(), "006a2231394878696756345179427633744870515663554551797131707a5a56646f41757402676d0a746578742f706c61696e04746578741f7477657463685f7477746578745f313634373533323430393832322e747874017c223150755161374b36324d694b43747373534c4b79316b683536575755374d74555235035345540b7477646174615f6a736f6e046e756c6c0375726c02676d07636f6d6d656e74046e756c6c076d625f75736572046e756c6c057265706c79046e756c6c047479706504706f73740974696d657374616d70046e756c6c036170700674776574636807696e766f6963652464373935653432622d323462342d343938372d386562382d353665343733316637636237017c22313550636948473232534e4c514a584d6f53556157566937575371633768436676610d424954434f494e5f454344534122314a4d6f6456736e376d7248643273646447645742566d324d4d70395173385651464c584834384e5336544d7977496c6a527662615849743041546b4246514b2b5431444b2f504f562b496f59326d53616c6576526b3562644232424876654d5a736a64422f4b3333577071484d5037717a79493958626d332b773d".to_string());
+        assert_eq!(script.to_asm_string(), "0 OP_RETURN 31394878696756345179427633744870515663554551797131707a5a56646f417574 676d 746578742f706c61696e 74657874 7477657463685f7477746578745f313634373533323430393832322e747874 7c 3150755161374b36324d694b43747373534c4b79316b683536575755374d74555235 534554 7477646174615f6a736f6e 6e756c6c 75726c 676d 636f6d6d656e74 6e756c6c 6d625f75736572 6e756c6c 7265706c79 6e756c6c 74797065 706f7374 74696d657374616d70 6e756c6c 617070 747765746368 696e766f696365 64373935653432622d323462342d343938372d386562382d353665343733316637636237 7c 313550636948473232534e4c514a584d6f5355615756693757537163376843667661 424954434f494e5f4543445341 314a4d6f6456736e376d7248643273646447645742566d324d4d7039517338565146 4834384e5336544d7977496c6a527662615849743041546b4246514b2b5431444b2f504f562b496f59326d53616c6576526b3562644232424876654d5a736a64422f4b3333577071484d5037717a79493958626d332b773d".to_string());
+
+        // assert_eq!(script.to_hex(), script1.to_hex());
+        //  "006a2231394878696756345179427633744870515663554551797131707a5a56646f41757402676d0a746578742f706c61696e04746578741f7477657463685f7477746578745f313634373533333130393339372e747874017c223150755161374b36324d694b43747373534c4b79316b683536575755374d74555235035345540b7477646174615f6a736f6e046e756c6c0375726c02676d07636f6d6d656e74046e756c6c076d625f75736572046e756c6c057265706c79046e756c6c047479706504706f73740974696d657374616d70046e756c6c036170700674776574636807696e766f6963652464646438633964642d653164632d343435622d396533312d353466316130333136663733017c22313550636948473232534e4c514a584d6f53556157566937575371633768436676610d424954434f494e5f454344534122314a4d6f6456736e376d7248643273646447645742566d324d4d70395173385651464c58494d525777484632796b676a56532f7a582b52467a717a76446d726a6a6935316e5378626d4d562f53356757555535673872454842465a79544d76726c64787245573766757354334d7142374f5076784b464147434f303d");
+        // println!("{}", script.to_asm_string());
+        // assert_eq!(script.to_asm_string(), script1.to_asm_string());
+        //  "0 OP_RETURN 31394878696756345179427633744870515663554551797131707a5a56646f417574 676d 746578742f706c61696e 74657874 7477657463685f7477746578745f313634373533323430393832322e747874 7c 3150755161374b36324d694b43747373534c4b79316b683536575755374d74555235 534554 7477646174615f6a736f6e 6e756c6c 75726c 676d 636f6d6d656e74 6e756c6c 6d625f75736572 6e756c6c 7265706c79 6e756c6c 74797065 706f7374 74696d657374616d70 6e756c6c 617070 747765746368 696e766f696365 64373935653432622d323462342d343938372d386562382d353665343733316637636237 7c 313550636948473232534e4c514a584d6f5355615756693757537163376843667661 424954434f494e5f4543445341 314a4d6f6456736e376d7248643273646447645742566d324d4d7039517338565146 4834384e5336544d7977496c6a527662615849743041546b4246514b2b5431444b2f504f562b496f59326d53616c6576526b3562644232424876654d5a736a64422f4b3333577071484d5037717a79493958626d332b773d");
+    }
+
+    #[test]
     fn from_21e8_asm_string() {
         let script =
             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
@@ -62,7 +67,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_op_return_asm_string() {
         let script = Script::from_asm_string("0 OP_RETURN 7b227573657248616e646c65223a226c75636b787878222c226368616e6e656c223a226d61746368222c226368616e6e656c4964223a2264757374222c2277696e6e65724964223a2239383333323836362d636435372d343166332d393537632d636433376231666237643738222c2275736572496d616765223a2268747470733a2f2f636c6f75642e68616e64636173682e696f2f75736572732f70726f66696c65506963747572652f6c75636b787878227d").unwrap();
 
@@ -70,7 +74,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_custom_asm_string() {
         let script = Script::from_asm_string("OP_NOP OP_0 ff OP_0 OP_PICK OP_2 OP_ROLL OP_DROP OP_1 OP_ROLL OP_DROP OP_NOP OP_1 OP_PICK OP_0 OP_EQUAL OP_IF OP_2 OP_PICK OP_1 OP_PICK OP_NUMEQUAL OP_NIP OP_NIP OP_NIP OP_ELSE OP_1 OP_PICK OP_1 OP_EQUAL OP_IF OP_2 OP_PICK OP_1 OP_PICK OP_LESSTHAN OP_NIP OP_NIP OP_NIP OP_ELSE OP_1 OP_PICK OP_2 OP_EQUAL OP_IF OP_2 OP_PICK OP_1 OP_PICK OP_GREATERTHAN OP_NIP OP_NIP OP_NIP OP_ELSE OP_0 OP_ENDIF OP_ENDIF OP_ENDIF").unwrap();
 
@@ -79,7 +82,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_p2pkh_asm_string() {
         let script = Script::from_asm_string("OP_DUP OP_HASH160 6fa5502ea094d59576898b490d866b32a61b89f6 OP_EQUALVERIFY OP_CHECKSIG").unwrap();
 
@@ -87,7 +89,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_problematic_asm_string() {
         let script = Script::from_asm_string("OP_RETURN 026d02 0568656c6c6f").unwrap();
 
@@ -102,7 +103,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_standard_21e8_asm_format() {
         let script =
             Script::from_asm_string("0a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e75846144 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
@@ -115,7 +115,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn another_hex_21e8_script() {
         let script = Script::from_hex("200a40eda5ff94de646c3928e4a8eff097feeb283d124b0e871b24962e758461440221e8825479a87c7f758875ac").unwrap();
 
@@ -126,7 +125,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encode_pushdata_test() {
         let test_data: Vec<u8> = vec![0; 11];
 
@@ -135,7 +133,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn encode_pushdata_2_test() {
         let test_data: Vec<u8> = vec![0; 1024];
 
@@ -154,7 +151,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn from_op_return_asm_string_long_buffer() {
         let script = Script::from_asm_string("0 OP_RETURN 7b227469746c65223a22547572626f20466f7820233633222c226465736372697074696f6e223a225765206c696b652074686520666f78222c226e756d626572223a36332c22736572696573223a36392c22696d616765223a22623a2f2f33376136636339636639613461613662356632316534333331363935666666613466323039363335366239633636336436393636333962336363303765376531222c2261747472696275746573223a5b7b2274726169745f74797065223a22436f6c6f72222c2276616c7565223a22426c61636b227d2c7b2274726169745f74797065223a22446975726e616c697479222c2276616c7565223a22446179227d5d7d").unwrap();
 
@@ -166,7 +162,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn long_zero_buffer() {
         let script = Script::from_asm_string("0000000000000000000000000000000000000000000000000000000000000000").unwrap();
 
@@ -174,7 +169,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn read_p2pkh_address_to_script() {
         let address = P2PKHAddress::from_string("1PnDKikz2eGJY3F36ALD2zvpgh8G2HKpAR").unwrap();
 
@@ -240,7 +234,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn if_statement_script() {
         let script = Script::from_asm_string(
             r#"21e8
@@ -259,14 +252,43 @@ mod script_tests {
                 ScriptBit::If {
                     code: OpCodes::OP_IF,
                     pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                    fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                 }
             ]
         );
     }
 
+    //     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    //     #[cfg(target_arch = "wasm32")]
+    //     fn if_statement_script() {
+    //         let script = Script::from_asm_string(
+    //             r#"21e8
+    //             OP_IF
+    //                 OP_1 OP_RETURN
+    //             OP_ELSE
+    //                 OP_0 OP_RETURN
+    //             OP_ENDIF"#,
+    //         )
+    //         .unwrap();
+
+    //         assert_eq!(
+    //             format!("{:?}", &script.to_script_bits().unwrap()),
+    //             format!(
+    //                 "{:?}",
+    //                 &serde_wasm_bindgen::to_value(&[
+    //                     ScriptBit::Push(hex::decode("21e8").unwrap()),
+    //                     ScriptBit::If {
+    //                         code: OpCodes::OP_IF,
+    //                         pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+    //                         fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+    //                     }
+    //                 ])
+    //                 .unwrap()
+    //             )
+    //         );
+    //     }
+
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn double_nested_if_statement_script() {
         let script = Script::from_asm_string(
             r#"
@@ -300,24 +322,23 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn double_nested_verif_statement_script() {
         let script = Script::from_asm_string(
             r#"
@@ -351,24 +372,23 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn unterminated_else_if_statement_fails() {
         let script = Script::from_asm_string(
             r#"21e8
@@ -379,7 +399,6 @@ mod script_tests {
     }
 
     #[test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn unterminated_endif_if_statement_fails() {
         let script = Script::from_asm_string(
             r#"21e8
@@ -390,5 +409,88 @@ mod script_tests {
         );
 
         assert!(script.is_err())
+    }
+
+    #[test]
+    fn op_if_without_else_statement_script() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_0 
+            OP_IF 
+                OP_2 OP_RETURN
+            OP_ENDIF
+            OP_1 OP_RETURN
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: None,
+                },
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::OpCode(OpCodes::OP_RETURN)
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "0 OP_IF OP_2 OP_RETURN OP_ENDIF OP_1 OP_RETURN")
+    }
+
+    #[test]
+    fn empty_op_if_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF 
+            OP_ELSE
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: Some(vec![]),
+                },
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ELSE OP_ENDIF")
+    }
+
+    #[test]
+    fn empty_op_endif_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: None,
+                },
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ENDIF")
     }
 }

@@ -1,14 +1,13 @@
-#![cfg_attr(not(target_arch = "wasm32"), allow(dead_code, unused_imports))]
-
 #[macro_use]
 extern crate num_derive;
 
-pub mod keypair;
+pub mod chainparams;
+pub use chainparams::*;
 
+pub mod keypair;
 pub use keypair::*;
 
 pub mod signature;
-
 pub use signature::*;
 
 pub mod traits;
@@ -46,3 +45,6 @@ pub use bsm::*;
 
 pub mod ecies;
 pub use ecies::*;
+
+mod interpreter;
+pub use interpreter::*;

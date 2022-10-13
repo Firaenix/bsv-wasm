@@ -1,21 +1,21 @@
 [package]
-name = "bsv-wasm"
-version = "1.3.0-beta.4"
+name = "bsv"
+version = "2.0.0"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
-description = "A Bitcoin SV library with WASM in mind."
+description = "A Bitcoin stdlib"
 repository = "https://github.com/Firaenix/bsv-wasm"
 license = "MIT"
 categories = ["api-bindings", "cryptography::cryptocurrencies", "network-programming", "wasm"]
-keywords = ["bitcoin", "bsv", "blockchain"]
+keywords = ["bitcoin", "bsv", "blockchain", "bitcoin-cash"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.10.0", features = ["ecdsa", "ecdh", "digest", "arithmetic", "sha256"] }
-ecdsa = { version = "0.13.3", features = ["sign"] }
-elliptic-curve = { version = "0.11.6", features = ["dev", "ecdh"] }
+k256 = { version = "0.10.2", features = ["ecdsa", "ecdh", "digest", "arithmetic", "sha256"] }
+ecdsa = { version = "0.13.4", features = ["sign"] }
+elliptic-curve = { version = "0.11.12", features = ["dev", "ecdh"] }
 hex = "^0.4"
 bs58 = "^0.4.0"
 thiserror = "^1.0"
@@ -35,10 +35,7 @@ sha2 = "^0.9.5"
 hmac = "^0.11.0"
 ripemd160 = "^0.9.1"
 digest = "^0.9.0"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
-console_error_panic_hook = { version = "^0.1", optional = true }
+num-bigint = "0.4"
 
 [dependencies.rand_core]
 version = "^0.6"
@@ -46,45 +43,11 @@ features = ["getrandom"]
 
 [dependencies.getrandom]
 version = "^0.2"
-features = ["js"]
+# features = ["js"]
 
 [dev-dependencies]
-wasm-bindgen-test = "^0.3"
-
-[features]
-wasm-bindgen-exports = [
-    'wasm-bindgen-script-template', 
-    'wasm-bindgen-script',
-    'wasm-bindgen-opcodes',
-    'wasm-bindgen-transaction',
-    'wasm-bindgen-ecdh',
-    'wasm-bindgen-ecdsa',
-    'wasm-bindgen-bsm',
-    'wasm-bindgen-ecies',
-    'wasm-bindgen-keypair',
-    'wasm-bindgen-address',
-    'wasm-bindgen-signature',
-    'wasm-bindgen-kdf',
-    'wasm-bindgen-hash',
-    'wasm-bindgen-encryption'
-]
-wasm-bindgen-script-template = ['wasm-bindgen-script']
-wasm-bindgen-script = ['wasm-bindgen-opcodes']
-wasm-bindgen-opcodes = []
-wasm-bindgen-transaction = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-wasm-bindgen-ecdh = ['wasm-bindgen-ecdsa', 'wasm-bindgen-keypair']
-wasm-bindgen-ecdsa = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
-wasm-bindgen-bsm = ['wasm-bindgen-signature', 'wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-wasm-bindgen-ecies = ['wasm-bindgen-keypair', 'wasm-bindgen-ecdsa']
-wasm-bindgen-keypair = ['wasm-bindgen-address', 'wasm-bindgen-ecies']
-wasm-bindgen-address = ['wasm-bindgen-signature', 'wasm-bindgen-keypair']
-wasm-bindgen-signature = ['wasm-bindgen-keypair']
-wasm-bindgen-kdf = ['wasm-bindgen-hash']
-wasm-bindgen-hash = []
-wasm-bindgen-encryption = []
-
-[patch.crates-io]
-wasm-bindgen = { git = "https://github.com/bsvwasm/wasm-bindgen", branch = "universal-ui64-patch" }
+# wasm-bindgen-test = "^0.3"
+rayon = "1.5"
 
 [build]
 rustflags = ["-C", "target-feature=+simd128"]

@@ -8,9 +8,6 @@ use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use thiserror::Error;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{prelude::*, throw_str, JsValue};
-
 #[derive(Debug, Error)]
 pub enum ScriptTemplateErrors {
     #[error("Script did not match template at index {0}. {2} is not equal to {1:?}. Error: {3:?}")]
@@ -30,7 +27,6 @@ pub enum ScriptTemplateErrors {
     ),
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone, Display)]
 pub enum DataLengthConstraints {
     Equals,
@@ -55,7 +51,6 @@ pub enum MatchToken {
     PublicKeyHash,
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone, Display, Serialize, Deserialize)]
 pub enum MatchDataTypes {
     Data,
@@ -64,7 +59,6 @@ pub enum MatchDataTypes {
     PublicKeyHash,
 }
 
-#[cfg_attr(all(target_arch = "wasm32"), wasm_bindgen)]
 #[derive(Debug, Clone)]
 pub struct ScriptTemplate(Vec<MatchToken>);
 
@@ -104,19 +98,19 @@ impl ScriptTemplate {
             }
 
             // Match on =
-            if let Some((_, length_str)) = code.split_once("=") {
+            if let Some((_, length_str)) = code.split_once('=') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::Equals));
             }
 
             // Match on >
-            if let Some((_, length_str)) = code.split_once(">") {
+            if let Some((_, length_str)) = code.split_once('>') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::GreaterThan));
             }
 
             // Match on <
-            if let Some((_, length_str)) = code.split_once("<") {
+            if let Some((_, length_str)) = code.split_once('<') {
                 let len = usize::from_str(length_str).map_err(|e| ScriptTemplateErrors::OpDataParse(code.to_string(), e.to_string()))?;
                 return Ok(MatchToken::Data(len, DataLengthConstraints::LessThan));
             }
@@ -143,7 +137,6 @@ impl ScriptTemplate {
     }
 }
 
-#[cfg(not(feature = "wasm-bindgen-script-template"))]
 impl ScriptTemplate {
     pub fn from_script(script: &Script) -> Result<ScriptTemplate, ScriptTemplateErrors> {
         ScriptTemplate::from_script_impl(script)
@@ -154,23 +147,17 @@ impl ScriptTemplate {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
-impl ScriptTemplate {
-    pub fn from_script(script: &Script) -> Result<ScriptTemplate, JsValue> {
-        match ScriptTemplate::from_script_impl(script) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
+// #[cfg(all(feature = "wasm-bindgen-script-template"))]
+// #[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+// impl ScriptTemplate {
+//     pub fn from_script(script: &Script) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
+//         Ok(ScriptTemplate::from_script_impl(script)?)
+//     }
 
-    pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, JsValue> {
-        match ScriptTemplate::from_asm_string_impl(asm) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
-}
+//     pub fn from_asm_string(asm: &str) -> Result<ScriptTemplate, wasm_bindgen::JsError> {
+//         Ok(ScriptTemplate::from_asm_string_impl(asm)?)
+//     }
+// }
 
 /**
  * Script Template
@@ -186,7 +173,7 @@ impl Script {
         for (i, (template, script)) in script_template.0.iter().zip(self.0.iter()).enumerate() {
             let is_match = match (template, script) {
                 (MatchToken::OpCode(tmpl_code), ScriptBit::OpCode(op_code)) => Ok(tmpl_code == op_code),
-                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(tmpl_data == data),
+                (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(*tmpl_data == *data),
                 (MatchToken::PushData(tmpl_op, tmpl_data), ScriptBit::PushData(op, data)) => Ok(tmpl_op == op && tmpl_data == data),
 
                 (MatchToken::Data(len, constraint), ScriptBit::PushData(_, data) | ScriptBit::Push(data)) => match constraint {
@@ -210,7 +197,15 @@ impl Script {
             };
 
             match is_match {
-                Ok(_) => (),
+                Ok(true) => (),
+                Ok(false) => {
+                    return Err(ScriptTemplateErrors::MatchFailure(
+                        i,
+                        template.clone(),
+                        script.clone(),
+                        BSVErrors::GenericError(format!("{} != {}", template, script)),
+                    ));
+                }
                 Err(e) => {
                     return Err(ScriptTemplateErrors::MatchFailure(i, template.clone(), script.clone(), e));
                 }
@@ -240,7 +235,6 @@ impl Script {
     }
 }
 
-#[cfg(not(feature = "wasm-bindgen-script-template"))]
 impl Script {
     /// Matches the Script against the provided ScriptTemplate.
     ///
@@ -248,7 +242,7 @@ impl Script {
     ///
     /// # Example
     /// ```
-    /// use bsv_wasm::{ Script, MatchDataTypes, ScriptTemplate };
+    /// use bsv::{ Script, MatchDataTypes, ScriptTemplate };
     ///
     /// let script = Script::from_asm_string("OP_HASH160 b8bcb07f6344b42ab04250c86a6e8b75d3fdbbc6 OP_EQUALVERIFY OP_DUP OP_HASH160 f9dfc5a4ae5256e5938c2d819738f7b57e4d7b46 OP_EQUALVERIFY OP_CHECKSIG OP_RETURN 21e8").unwrap();
     /// let script_template = ScriptTemplate::from_asm_string("OP_HASH160 OP_DATA=20 OP_EQUALVERIFY OP_DUP OP_HASH160 OP_PUBKEYHASH OP_EQUALVERIFY OP_CHECKSIG OP_RETURN OP_DATA").unwrap();
@@ -276,30 +270,24 @@ impl Script {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"))]
-#[cfg_attr(all(target_arch = "wasm32", feature = "wasm-bindgen-script-template"), wasm_bindgen)]
-impl Script {
-    /// Matches the Script against the provided ScriptTemplate.
-    ///
-    /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
-    /// @returns {[string, Uint8Array][]}
-    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, JsValue> {
-        let matches = match self.match_impl(script_template) {
-            Ok(v) => v,
-            Err(e) => throw_str(&e.to_string()),
-        };
+//#[cfg(all(feature = "wasm-bindgen-script-template"))]
+//#[cfg_attr(all(feature = "wasm-bindgen-script-template"), wasm_bindgen)]
+//impl Script {
+//    /// Matches the Script against the provided ScriptTemplate.
+//    ///
+//    /// If any data can be gleaned from the Script (ie. OP_DATA, OP_PUBKEY, OP_SIG, etc.), it will return it in a `Vec<Match>`
+//    /// @returns {[string, Uint8Array][]}
+//    pub fn matches(&self, script_template: &ScriptTemplate) -> Result<JsValue, wasm_bindgen::JsError> {
+//        let matches = self.match_impl(script_template)?;
 
-        match JsValue::from_serde(&matches) {
-            Ok(v) => Ok(v),
-            Err(e) => throw_str(&e.to_string()),
-        }
-    }
+//        Ok(serde_wasm_bindgen::to_value(&matches)?)
+//    }
 
-    /// Matches the Script against the provided ScriptTemplate.
-    ///
-    /// Returns `true` if the Script matches the ScriptTemplate.
-    /// #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
-    pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
-        self.test_impl(script_template)
-    }
-}
+//    /// Matches the Script against the provided ScriptTemplate.
+//    ///
+//    /// Returns `true` if the Script matches the ScriptTemplate.
+//    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = isMatch))]
+//    pub fn is_match(&self, script_template: &ScriptTemplate) -> bool {
+//        self.test_impl(script_template)
+//    }
+//}

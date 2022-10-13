@@ -1,4 +1,4 @@
-import { AES, AESAlgorithms } from '../../../pkg/node/bsv_wasm';
+import { AES, AESAlgorithms } from '../../../packages/bsv-wasm/pkg/node/bsv_wasm';
 import { assert, util } from 'chai';
 import { Aescbc } from "bsv";
 import crypto from 'crypto';
