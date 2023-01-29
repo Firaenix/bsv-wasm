@@ -73,7 +73,6 @@ impl ECIESCiphertext {
     }
 }
 
-
 // #[cfg_attr(all(feature = "wasm-bindgen-ecies"), wasm_bindgen)]
 // #[cfg(feature = "wasm-bindgen-ecies")]
 // impl ECIESCiphertext {

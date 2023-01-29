@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod xpub_tests {
     use bsv::{hash::Hash, keypair::*};
-        #[test]
+    #[test]
     fn xpriv_to_xpub() {
         let key = ExtendedPrivateKey::from_string("xprv9tuogRdb5YTgcL3P8Waj7REqDuQx4sXcodQaWTtEVFEp6yRKh1CjrWfXChnhgHeLDuXxo2auDZegMiVMGGxwxcrb2PmiGyCngLxvLeGsZRq").unwrap();
         let pub_key = ExtendedPublicKey::from_xpriv(&key);

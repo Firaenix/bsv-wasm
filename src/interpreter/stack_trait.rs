@@ -1,6 +1,6 @@
 use num_bigint::{BigInt, Sign};
 
-use super::{errors::InterpreterError};
+use super::errors::InterpreterError;
 
 pub trait ScriptStack {
     fn push_bytes(&mut self, data: Vec<u8>);
@@ -19,7 +19,7 @@ pub fn to_bigint(data: &[u8]) -> Result<BigInt, InterpreterError> {
     let length = data.len();
 
     if length == 0 {
-        return Ok(BigInt::from(0_usize))
+        return Ok(BigInt::from(0_usize));
     }
 
     let mut sign = Sign::Plus;
@@ -36,12 +36,12 @@ impl ScriptStack for Vec<Vec<u8>> {
     }
 
     fn pop_bytes(&mut self) -> Result<Vec<u8>, InterpreterError> {
-        Ok(self.pop().ok_or_else(|| InterpreterError::EmptyStack)?)
+        self.pop().ok_or(InterpreterError::EmptyStack)
     }
 
     fn push_number(&mut self, val: i64) -> Result<(), InterpreterError> {
         // Range: [-2^31+1, 2^31-1]
-        if val > i32::MAX as i64 || val < i32::MIN  as i64 {
+        if val > i32::MAX as i64 || val < i32::MIN as i64 {
             return Err(InterpreterError::NumberOutOfRange);
         }
         let (posval, negmask) = if val < 0 { (-val, 128) } else { (val, 0) };
@@ -50,20 +50,11 @@ impl ScriptStack for Vec<Vec<u8>> {
         } else if posval < 128 {
             self.push(vec![(posval as u8) | negmask])
         } else if posval < 32768 {
-            self.push(vec![(posval >> 0) as u8, ((posval >> 8) as u8) | negmask])
+            self.push(vec![posval as u8, ((posval >> 8) as u8) | negmask])
         } else if posval < 8388608 {
-            self.push(vec![
-                (posval >> 0) as u8,
-                (posval >> 8) as u8,
-                ((posval >> 16) as u8) | negmask,
-            ])
+            self.push(vec![posval as u8, (posval >> 8) as u8, ((posval >> 16) as u8) | negmask])
         } else {
-            self.push(vec![
-                (posval >> 0) as u8,
-                (posval >> 8) as u8,
-                (posval >> 16) as u8,
-                ((posval >> 24) as u8) | negmask,
-            ])
+            self.push(vec![posval as u8, (posval >> 8) as u8, (posval >> 16) as u8, ((posval >> 24) as u8) | negmask])
         }
 
         Ok(())
@@ -90,12 +81,12 @@ impl ScriptStack for Vec<Vec<u8>> {
     }
 
     fn pop_bigint(&mut self) -> Result<BigInt, InterpreterError> {
-        let data = self.pop().ok_or_else(|| InterpreterError::EmptyStack)?;
+        let data = self.pop().ok_or(InterpreterError::EmptyStack)?;
         to_bigint(&data)
-    } 
+    }
 
     fn pop_bool(&mut self) -> Result<bool, InterpreterError> {
-        let data = self.pop().ok_or_else(|| InterpreterError::EmptyStack)?;
+        let data = self.pop().ok_or(InterpreterError::EmptyStack)?;
 
         if data.len() > 4 {
             return Err(InterpreterError::TooLongForBool);
@@ -122,31 +113,23 @@ impl ScriptStack for Vec<Vec<u8>> {
             // let msg = format!("Cannot pop num, len too long {}", top.len());
             return Err(InterpreterError::NumberOutOfRange);
         }
-        
+
         let mut val = match bytes.len() {
             0 => return Ok(0),
             1 => (bytes[0] & 127) as i64,
-            2 => (((bytes[1] & 127) as i64) << 8) + ((bytes[0] as i64) << 0),
-            3 => (((bytes[2] & 127) as i64) << 16) + ((bytes[1] as i64) << 8) + ((bytes[0] as i64) << 0),
-            4 => {
-                (((bytes[3] & 127) as i64) << 24)
-                    + ((bytes[2] as i64) << 16)
-                    + ((bytes[1] as i64) << 8)
-                    + ((bytes[0] as i64) << 0)
-            }
+            2 => (((bytes[1] & 127) as i64) << 8) + (bytes[0] as i64),
+            3 => (((bytes[2] & 127) as i64) << 16) + ((bytes[1] as i64) << 8) + (bytes[0] as i64),
+            4 => (((bytes[3] & 127) as i64) << 24) + ((bytes[2] as i64) << 16) + ((bytes[1] as i64) << 8) + (bytes[0] as i64),
             _ => {
-                for i in 4..bytes.len() - 1 {
-                    if bytes[i] != 0 {
+                for byte in &bytes {
+                    if byte != &0 {
                         return Err(InterpreterError::NumberOutOfRange);
                     }
                 }
                 if bytes[bytes.len() - 1] & 127 != 0 {
                     return Err(InterpreterError::NumberOutOfRange);
                 }
-                ((bytes[3] as i64) << 24)
-                    + ((bytes[2] as i64) << 16)
-                    + ((bytes[1] as i64) << 8)
-                    + ((bytes[0] as i64) << 0)
+                ((bytes[3] as i64) << 24) + ((bytes[2] as i64) << 16) + ((bytes[1] as i64) << 8) + (bytes[0] as i64)
             }
         };
         if bytes[bytes.len() - 1] & 128 != 0 {

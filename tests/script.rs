@@ -252,7 +252,7 @@ mod script_tests {
                 ScriptBit::If {
                     code: OpCodes::OP_IF,
                     pass: vec![ScriptBit::OpCode(OpCodes::OP_1), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                    fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                 }
             ]
         );
@@ -322,17 +322,17 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_IF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
@@ -372,17 +372,17 @@ mod script_tests {
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
                     ],
-                    fail: vec![
+                    fail: Some(vec![
                         ScriptBit::OpCode(OpCodes::OP_1),
                         ScriptBit::If {
                             code: OpCodes::OP_VERIF,
                             pass: vec![ScriptBit::OpCode(OpCodes::OP_3), ScriptBit::OpCode(OpCodes::OP_RETURN)],
-                            fail: vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                            fail: Some(vec![ScriptBit::OpCode(OpCodes::OP_0), ScriptBit::OpCode(OpCodes::OP_RETURN)]),
                         }
-                    ],
+                    ]),
                 }
             ]
         );
@@ -416,5 +416,87 @@ mod script_tests {
         let script = Script::from_hex(&"0000".to_string()).unwrap();
 
         assert_eq!(script.to_asm_string(), "0000");
+    }
+
+    fn op_if_without_else_statement_script() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_0 
+            OP_IF 
+                OP_2 OP_RETURN
+            OP_ENDIF
+            OP_1 OP_RETURN
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![ScriptBit::OpCode(OpCodes::OP_2), ScriptBit::OpCode(OpCodes::OP_RETURN)],
+                    fail: None,
+                },
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::OpCode(OpCodes::OP_RETURN)
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "0 OP_IF OP_2 OP_RETURN OP_ENDIF OP_1 OP_RETURN")
+    }
+
+    #[test]
+    fn empty_op_if_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF 
+            OP_ELSE
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: Some(vec![]),
+                },
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ELSE OP_ENDIF")
+    }
+
+    #[test]
+    fn empty_op_endif_branches() {
+        let script = Script::from_asm_string(
+            r#"
+            OP_1
+            OP_IF
+            OP_ENDIF
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_1),
+                ScriptBit::If {
+                    code: OpCodes::OP_IF,
+                    pass: vec![],
+                    fail: None,
+                },
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ENDIF")
     }
 }

@@ -18,7 +18,7 @@ pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Transaction {
     pub(super) version: u32,
     pub(super) inputs: Vec<TxIn>,

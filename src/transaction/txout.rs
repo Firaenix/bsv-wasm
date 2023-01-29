@@ -1,8 +1,8 @@
 use crate::{BSVErrors, Script, VarIntReader, VarIntWriter};
+use byteorder::*;
 use serde::*;
 use std::io::Read;
 use std::io::{Cursor, Write};
-use byteorder::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TxOut {
@@ -105,7 +105,6 @@ impl TxOut {
         self.script_pub_key.to_hex()
     }
 }
-
 
 // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
 // #[cfg(feature = "wasm-bindgen-transaction")]

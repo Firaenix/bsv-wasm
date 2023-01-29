@@ -1,8 +1,8 @@
+use crate::PrivateKey;
 use crate::{BSVErrors, ECIESCiphertext, P2PKHAddress, Signature, SigningHash, ECDSA, ECIES};
 use elliptic_curve::{sec1::*, subtle::Choice};
 use k256::{AffinePoint, Secp256k1};
-use serde::{Deserializer, Deserialize, Serializer, Serialize};
-use crate::PrivateKey;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PublicKey {

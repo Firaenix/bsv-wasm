@@ -1,0 +1,16 @@
+{
+  "name": "twetch-sdk-wasm",
+  "collaborators": [
+    "utxo detective"
+  ],
+  "version": "0.0.1",
+  "files": [
+    "twetch_sdk_wasm_bg.wasm",
+    "twetch_sdk_wasm_bg.js",
+    "twetch_sdk_wasm_bg.js",
+    "twetch_sdk_wasm.d.ts"
+  ],
+  "module": "twetch_sdk_wasm_bg.js",
+  "types": "twetch_sdk_wasm.d.ts",
+  "sideEffects": false
+}

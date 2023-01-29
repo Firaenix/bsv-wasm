@@ -1,11 +1,13 @@
 [package]
 name = "bsv"
-version = "1.4.0-beta.2"
+version = "2.0.0"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
-description = "A Bitcoin SV stdlib"
+description = "A Bitcoin stdlib"
+repository = "https://github.com/Firaenix/bsv-wasm"
 license = "MIT"
-categories = ['no-std', 'bitcoin', 'bsv', 'wasm', 'crypto', 'bitcoin', 'bcash', 'bitcoin-cash', 'bch', 'btc', 'bitcoin-core']
+categories = ["api-bindings", "cryptography::cryptocurrencies", "network-programming", "wasm"]
+keywords = ["bitcoin", "bsv", "blockchain", "bitcoin-cash"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

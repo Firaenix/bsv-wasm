@@ -23,33 +23,33 @@ impl Interpreter {
         Ok(match bit {
             ScriptBit::OpCode(o) => match Interpreter::match_opcode(self.script_index, o, &mut self.state.clone(), self.tx_script.clone()) {
                 Ok(mut next_state) => {
-                    next_state.executed_opcodes.push(o.clone());
+                    next_state.executed_opcodes.push(*o);
                     next_state
                 }
                 Err(e) => {
-                    self.state.executed_opcodes.push(o.clone());
+                    self.state.executed_opcodes.push(*o);
                     return Err(e);
                 }
             },
             ScriptBit::Push(v) => {
-                self.state.stack.push(v.clone().into());
+                self.state.stack.push(v.clone());
                 self.state.executed_opcodes.push(OpCodes::OP_DATA);
                 self.state.clone()
             }
             ScriptBit::PushData(size, v) => {
-                self.state.stack.push(v.clone().into());
-                self.state.executed_opcodes.push(size.clone());
+                self.state.stack.push(v.clone());
+                self.state.executed_opcodes.push(*size);
                 self.state.clone()
             }
             ScriptBit::If { code, pass, fail } => {
                 let predicate = self.state.stack.pop_bool()?;
-                self.state.executed_opcodes.push(code.clone());
+                self.state.executed_opcodes.push(*code);
 
                 if predicate {
                     let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, pass.clone()).collect();
                     // println!("Removed items: {:?}", removed);
                 } else {
-                    let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, fail.clone()).collect();
+                    let _removed: Vec<ScriptBit> = self.script_bits.splice(self.script_index + 1..self.script_index + 1, fail.clone().unwrap_or_default()).collect();
                     // println!("Removed items: {:?}", removed);
                 }
 
@@ -139,12 +139,12 @@ impl Interpreter {
             }
             OpCodes::OP_OVER => {
                 let index = state.stack.len() - 2;
-                let second_last = state.stack.get(index).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let second_last = state.stack.get(index).cloned().ok_or(InterpreterError::NumberOutOfRange)?;
                 state.stack.push_bytes(second_last);
             }
             OpCodes::OP_PICK => {
                 let index = state.stack.pop_number()?;
-                let selected_item = state.stack.get((state.stack.len() - 1) - index as usize).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let selected_item = state.stack.get((state.stack.len() - 1) - index as usize).cloned().ok_or(InterpreterError::NumberOutOfRange)?;
                 state.stack.push_bytes(selected_item);
             }
             OpCodes::OP_ROLL => {
@@ -154,7 +154,7 @@ impl Interpreter {
             }
             OpCodes::OP_ROT => {
                 let len = state.stack.len();
-                let third = state.stack.remove(len - 3).clone();
+                let third = state.stack.remove(len - 3);
 
                 state.stack.push_bytes(third);
             }
@@ -163,7 +163,7 @@ impl Interpreter {
                 state.stack.swap(len - 1, len - 2);
             }
             OpCodes::OP_TUCK => {
-                let selected_item = state.stack.last().cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let selected_item = state.stack.last().cloned().ok_or(InterpreterError::NumberOutOfRange)?;
                 state.stack.insert(state.stack.len() - 2, selected_item);
             }
             OpCodes::OP_2DROP => {
@@ -171,16 +171,16 @@ impl Interpreter {
                 state.stack.pop_bytes()?;
             }
             OpCodes::OP_2DUP => {
-                let first = state.stack.get(state.stack.len() - 1).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
-                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let first = state.stack.last().cloned().ok_or(InterpreterError::NumberOutOfRange)?;
+                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or(InterpreterError::NumberOutOfRange)?;
 
                 state.stack.push_bytes(first);
                 state.stack.push_bytes(second);
             }
             OpCodes::OP_3DUP => {
-                let first = state.stack.get(state.stack.len() - 1).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
-                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
-                let third = state.stack.get(state.stack.len() - 3).cloned().ok_or_else(|| InterpreterError::NumberOutOfRange)?;
+                let first = state.stack.last().cloned().ok_or(InterpreterError::NumberOutOfRange)?;
+                let second = state.stack.get(state.stack.len() - 2).cloned().ok_or(InterpreterError::NumberOutOfRange)?;
+                let third = state.stack.get(state.stack.len() - 3).cloned().ok_or(InterpreterError::NumberOutOfRange)?;
 
                 state.stack.push_bytes(first);
                 state.stack.push_bytes(second);
@@ -234,12 +234,9 @@ impl Interpreter {
                 state.stack.push_number(len as i64)?;
             }
             OpCodes::OP_INVERT => {
-                let mut a = state.stack.pop_bytes()?;
+                let inverted_bytes = state.stack.pop_bytes()?.iter().map(|x| !x).collect();
 
-                for i in 0..a.len() {
-                    a[i] = !a[i];
-                }
-                state.stack.push(a.into());
+                state.stack.push(inverted_bytes);
             }
             OpCodes::OP_AND => {
                 let a = state.stack.pop_bytes()?;
@@ -327,7 +324,7 @@ impl Interpreter {
                 let b = state.stack.pop_bigint()?;
 
                 let sum = a + b;
-                state.stack.push(sum.to_signed_bytes_le().into());
+                state.stack.push(sum.to_signed_bytes_le());
             }
             OpCodes::OP_SUB => {
                 let a = state.stack.pop_bigint()?;
@@ -369,13 +366,13 @@ impl Interpreter {
                 let a = state.stack.pop_bool()?;
                 let b = state.stack.pop_bool()?;
 
-                state.stack.push_bool(a != false && b != false)?;
+                state.stack.push_bool(a && b)?;
             }
             OpCodes::OP_BOOLOR => {
                 let a = state.stack.pop_bool()?;
                 let b = state.stack.pop_bool()?;
 
-                state.stack.push_bool(a != false || b != false)?;
+                state.stack.push_bool(a || b)?;
             }
             OpCodes::OP_NUMEQUAL => {
                 let a = state.stack.pop_bigint()?;
@@ -452,7 +449,7 @@ impl Interpreter {
                 let length = state.stack.pop_number()?;
                 let bytes = state.stack.pop_bytes()?;
 
-                if length < 1 || length < bytes.len() as i32 || length > i32::MAX {
+                if length < 1 || length < bytes.len() as i32 {
                     return Err(InterpreterError::InvalidStackOperation("OP_NUM2BIN failed, provide length was out of range"));
                 }
 
@@ -482,31 +479,31 @@ impl Interpreter {
                 let data = state.stack.pop_bytes()?;
 
                 let result = Hash::ripemd_160(&data);
-                state.stack.push(result.to_bytes().into());
+                state.stack.push(result.to_bytes());
             }
             OpCodes::OP_SHA1 => {
                 let data = state.stack.pop_bytes()?;
 
                 let result = Hash::sha_1(&data);
-                state.stack.push(result.to_bytes().into());
+                state.stack.push(result.to_bytes());
             }
             OpCodes::OP_SHA256 => {
                 let data = state.stack.pop_bytes()?;
 
                 let result = Hash::sha_256(&data);
-                state.stack.push(result.to_bytes().into());
+                state.stack.push(result.to_bytes());
             }
             OpCodes::OP_HASH160 => {
                 let data = state.stack.pop_bytes()?;
 
                 let result = Hash::hash_160(&data);
-                state.stack.push(result.to_bytes().into());
+                state.stack.push(result.to_bytes());
             }
             OpCodes::OP_HASH256 => {
                 let data = state.stack.pop_bytes()?;
 
                 let result = Hash::sha_256d(&data);
-                state.stack.push(result.to_bytes().into());
+                state.stack.push(result.to_bytes());
             }
             OpCodes::OP_CODESEPARATOR => state.codeseparator_offset = script_index + 1,
             OpCodes::OP_CHECKSIG => {
@@ -575,7 +572,7 @@ impl Interpreter {
                 state.stack.push_bigint(a / 2)?;
             }
 
-            _ => return Err(InterpreterError::InvalidOpcode(opcode.clone())),
+            _ => return Err(InterpreterError::InvalidOpcode(*opcode)),
         };
 
         Ok(state.clone())
@@ -645,8 +642,8 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
 }
 
 fn verify_tx_signature(preimage: &[u8], txscript: &mut TxScript, signature: &[u8], public_key: &[u8]) -> Result<bool, InterpreterError> {
-    let sighash_sig = SighashSignature::from_bytes_impl(&signature, &preimage)?;
-    let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(&public_key)?, &sighash_sig);
+    let sighash_sig = SighashSignature::from_bytes_impl(signature, preimage)?;
+    let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig);
     Ok(is_signature_valid)
 }
 
@@ -657,7 +654,7 @@ fn calculate_sighash_preimage(txscript: &mut TxScript, sighash: SigHash, codesep
     };
 
     let unlock_script_len = txin.get_unlocking_script().to_script_bits().len();
-    let script_offset = codeseparator_offset.checked_sub(unlock_script_len).unwrap_or(0);
+    let script_offset = codeseparator_offset.saturating_sub(unlock_script_len);
     let unsigned_script = match txin.get_locking_script() {
         Some(v) => Script::from_script_bits(v.to_script_bits()[script_offset..].to_vec()),
         None => return Err(InterpreterError::InvalidStackOperation("TxIn at given index does not have locking script provided")),

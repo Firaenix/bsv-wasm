@@ -8,7 +8,6 @@ use std::{
     vec,
 };
 
-
 use crate::{hash::Hash, PrivateKey, PublicKey};
 
 pub struct ExtendedPrivateKey {
@@ -266,7 +265,6 @@ impl ExtendedPrivateKey {
         self.index
     }
 }
-
 
 // #[cfg_attr(all(feature = "wasm-bindgen-keypair"), wasm_bindgen)]
 // #[cfg(feature = "wasm-bindgen-keypair")]

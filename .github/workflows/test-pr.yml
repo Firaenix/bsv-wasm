@@ -23,16 +23,8 @@ jobs:
       with:
           cache-on-failure: true
 
-    - name: Install wasm-pack
-      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-    - name: Install wasm-bindgen-cli Custom
-      run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
-
     - name: Run tests
       run: cargo test --verbose
-    - name: Run WASM tests
-      run: make wasm-tests
 
   node-test:
       runs-on: ubuntu-latest
@@ -51,8 +43,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Install wasm-bindgen-cli Custom
-        run: cargo install --git https://github.com/bsvwasm/wasm-bindgen --branch universal-ui64-patch wasm-bindgen-cli
-        
+        run: cargo install -f wasm-bindgen-cli        
       - uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
@@ -63,6 +54,8 @@ jobs:
           cache-on-failure: true
 
       - run: make build-nodejs
+        working-directory: packages/bsv-wasm
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:

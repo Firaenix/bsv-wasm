@@ -109,9 +109,6 @@ impl ECIES {
     }
 }
 
-
-
-
 impl ECIES {
     pub fn encrypt(message: &[u8], sender_priv_key: &PrivateKey, recipient_pub_key: &PublicKey, exclude_pub_key: bool) -> Result<ECIESCiphertext, BSVErrors> {
         ECIES::encrypt_impl(message, sender_priv_key, recipient_pub_key, exclude_pub_key)

@@ -462,7 +462,6 @@ impl ECDSA {
     }
 }
 
-
 impl ECDSA {
     pub fn private_key_from_signature_k(signature: &Signature, public_key: &PublicKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<PrivateKey, BSVErrors> {
         ECDSA::private_key_from_signature_k_impl(signature, public_key, ephemeral_key, preimage, hash_algo)
