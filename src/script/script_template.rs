@@ -65,11 +65,13 @@ pub struct ScriptTemplate(Vec<MatchToken>);
 impl ScriptTemplate {
     fn map_string_to_match_token(code: &str) -> Result<MatchToken, ScriptTemplateErrors> {
         // Number OP_CODES
-        if let Ok(num_code) = u8::from_str(code) {
-            match num_code {
-                0 => return Ok(MatchToken::OpCode(OP_0)),
-                v @ 1..=16 => return Ok(MatchToken::OpCode(OpCodes::from_u8(v + 80).unwrap())),
-                _ => (),
+        if code.len() <3 {
+            if let Ok(num_code) = u8::from_str(code) {
+                match num_code {
+                    0 => return Ok(MatchToken::OpCode(OP_0)),
+                    v @ 1..=16 => return Ok(MatchToken::OpCode(OpCodes::from_u8(v + 80).unwrap())),
+                    _ => (),
+                }
             }
         }
 
