@@ -41,6 +41,19 @@ pub struct TxIn {
     pub(crate) satoshis: Option<u64>,
 }
 
+impl Default for TxIn {
+    fn default() -> TxIn {
+        TxIn {
+            prev_tx_id: vec![],
+            satoshis: None,
+            unlocking_script: Script::default(),
+            sequence: u32::MAX,
+            locking_script: None,
+            vout: 0,
+        }
+    }
+}
+
 impl TxIn {
     pub(crate) fn get_finalised_script_impl(&self) -> Result<Script, BSVErrors> {
         match self.locking_script.as_ref() {
@@ -221,16 +234,6 @@ impl TxIn {
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-    pub fn default() -> TxIn {
-        TxIn {
-            prev_tx_id: vec![],
-            satoshis: None,
-            unlocking_script: Script::default(),
-            sequence: u32::MAX,
-            locking_script: None,
-            vout: 0,
-        }
-    }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = getPrevTxId))]
     pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {

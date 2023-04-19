@@ -10,9 +10,8 @@ pub struct ChainParams {
     pub magic: u32,
 }
 
-impl ChainParams {
-    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(constructor))]
-    pub fn default() -> ChainParams {
+impl Default for ChainParams {
+    fn default() -> ChainParams {
         ChainParams {
             p2pkh: 0x00,
             p2sh: 0x05,
@@ -22,7 +21,10 @@ impl ChainParams {
             magic: 0xe3e1f3e8,
         }
     }
+}
 
+impl ChainParams {
+    // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(constructor))]
     pub fn new(p2pkh: u8, p2sh: u8, privkey: u8, xpub: u32, xpriv: u32, magic: u32) -> ChainParams {
         ChainParams {
             p2pkh,

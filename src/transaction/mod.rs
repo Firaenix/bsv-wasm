@@ -18,7 +18,7 @@ pub use sighash::*;
 pub use txin::*;
 pub use txout::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Transaction {
     pub(super) version: u32,
     pub(super) inputs: Vec<TxIn>,
@@ -26,6 +26,12 @@ pub struct Transaction {
     pub(super) n_locktime: u32,
     #[serde(skip)]
     pub(super) hash_cache: HashCache,
+}
+
+impl Default for Transaction {
+    fn default() -> Transaction {
+        Transaction::new_impl(2, vec![], vec![], 0)
+    }
 }
 
 impl Transaction {
@@ -266,9 +272,6 @@ impl Transaction {
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen)]
-    pub fn default() -> Transaction {
-        Transaction::new_impl(2, vec![], vec![], 0)
-    }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = setVersion))]
     pub fn set_version(&mut self, version: u32) -> Transaction {

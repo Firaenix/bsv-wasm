@@ -2,7 +2,7 @@ use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RecoveryInfo {
     is_y_odd: bool,
     is_x_reduced: bool,
@@ -23,14 +23,6 @@ impl RecoveryInfo {
             is_x_reduced: (recovery_byte & 0b10) != 0,
             is_y_odd: (recovery_byte & 1) != 0,
             is_pubkey_compressed,
-        }
-    }
-
-    pub fn default() -> RecoveryInfo {
-        RecoveryInfo {
-            is_y_odd: false,
-            is_x_reduced: false,
-            is_pubkey_compressed: false,
         }
     }
 }
@@ -139,7 +131,7 @@ impl Signature {
             is_y_odd,
             is_x_reduced,
             is_pubkey_compressed,
-        } = recovery_info.or_else(|| self.recovery.clone()).unwrap_or_else(RecoveryInfo::default);
+        } = recovery_info.or_else(|| self.recovery.clone()).unwrap_or_default();
 
         let mut recovery = ((is_x_reduced as u8) << 1 | (is_y_odd as u8)) + 27 + 4;
 

@@ -15,15 +15,12 @@ pub mod state;
 pub use state::*;
 mod script_matching;
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Status {
     #[default]
     Running,
     Finished,
 }
-
-
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TxScript {
