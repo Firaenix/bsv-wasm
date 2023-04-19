@@ -1,6 +1,6 @@
 [package]
 name = "bsv"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
 description = "A Bitcoin stdlib"
@@ -13,14 +13,23 @@ keywords = ["bitcoin", "bsv", "blockchain", "bitcoin-cash"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-k256 = { version = "0.10.2", features = ["ecdsa", "ecdh", "digest", "arithmetic", "sha256"] }
+k256 = { version = "0.10.2", features = [
+  "ecdsa",
+  "ecdh",
+  "digest",
+  "arithmetic",
+  "sha256",
+] }
 ecdsa = { version = "0.13.4", features = ["sign"] }
 elliptic-curve = { version = "0.11.12", features = ["dev", "ecdh"] }
 hex = "^0.4"
 bs58 = "^0.4.0"
 thiserror = "^1.0"
 byteorder = "^1.4.3"
-serde = { version = "^1.0", default-features = false, features = ["alloc", "derive"] }
+serde = { version = "^1.0", default-features = false, features = [
+  "alloc",
+  "derive",
+] }
 serde_json = "^1.0"
 ciborium = "0.2.0"
 strum = "0.23.0"

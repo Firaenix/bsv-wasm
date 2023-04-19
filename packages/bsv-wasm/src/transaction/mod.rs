@@ -275,4 +275,8 @@ impl Transaction {
     pub fn sighash_preimage(&mut self, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<Vec<u8>, wasm_bindgen::JsError> {
         Ok(self.0.sighash_preimage(sighash.into(), n_tx_in, &unsigned_script.0, value)?)
     }
+
+    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
+        self.0.verify(pub_key, sig)
+    }
 }
