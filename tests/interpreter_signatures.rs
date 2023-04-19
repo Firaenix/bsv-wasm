@@ -42,10 +42,10 @@ mod interpreter_signature_tests {
         let pubkey = private_key.to_public_key().unwrap();
         let mut tx = Transaction::new(2, 0);
 
-        let final_locking_script = Script::from_asm_string(&"OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG".to_string()).unwrap();
-        let third_locking_script = Script::from_asm_string(&"OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG".to_string()).unwrap();
-        let second_locking_script = Script::from_asm_string(&"OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG".to_string()).unwrap();
-        let first_locking_script = Script::from_asm_string(&"OP_CHECKSIG".to_string()).unwrap();
+        let final_locking_script = Script::from_asm_string("OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG").unwrap();
+        let third_locking_script = Script::from_asm_string("OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG").unwrap();
+        let second_locking_script = Script::from_asm_string("OP_CHECKSIGVERIFY OP_CODESEPARATOR OP_CHECKSIG").unwrap();
+        let first_locking_script = Script::from_asm_string("OP_CHECKSIG").unwrap();
 
         let mut txin = TxIn::default();
         txin.set_satoshis(0);

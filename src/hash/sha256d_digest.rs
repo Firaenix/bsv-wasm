@@ -43,7 +43,7 @@ impl FixedOutput for Sha256d {
             finished_hash.reverse()
         }
 
-        out.copy_from_slice(&*finished_hash)
+        out.copy_from_slice(&finished_hash)
     }
 
     fn finalize_into_reset(&mut self, out: &mut digest::generic_array::GenericArray<u8, Self::OutputSize>) {

@@ -156,7 +156,7 @@ impl TxIn {
     }
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
-        Ok(hex::encode(&self.to_bytes_impl()?))
+        Ok(hex::encode(self.to_bytes_impl()?))
     }
 
     pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {

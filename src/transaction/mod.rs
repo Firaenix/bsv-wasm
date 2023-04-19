@@ -125,7 +125,7 @@ impl Transaction {
 
         // Outputs
         for i in 0..self.get_noutputs() {
-            let output = &self.outputs[i as usize];
+            let output = &self.outputs[i];
             let output_bytes = output.to_bytes_impl()?;
 
             if let Err(e) = buffer.write_all(&output_bytes) {
@@ -165,11 +165,11 @@ impl Transaction {
     }
 
     pub(crate) fn to_hex_impl(&self) -> Result<String, BSVErrors> {
-        Ok(hex::encode(&self.to_bytes_impl()?))
+        Ok(hex::encode(self.to_bytes_impl()?))
     }
 
     pub(crate) fn to_compact_hex_impl(&self) -> Result<String, BSVErrors> {
-        Ok(hex::encode(&self.to_compact_bytes_impl()?))
+        Ok(hex::encode(self.to_compact_bytes_impl()?))
     }
 
     pub(crate) fn to_json_string_impl(&self) -> Result<String, BSVErrors> {
@@ -352,7 +352,7 @@ impl Transaction {
     // #[cfg_attr(all(feature = "wasm-bindgen-transaction"), wasm_bindgen(js_name = satoshisIn))]
     pub fn satoshis_in(&self) -> Option<u64> {
         self.inputs.iter().map(|x| x.satoshis).reduce(|a, b| {
-            if a == None || b == None {
+            if a.is_none() || b.is_none() {
                 return None;
             }
 

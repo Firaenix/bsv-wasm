@@ -16,16 +16,14 @@ pub use state::*;
 mod script_matching;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Status {
+    #[default]
     Running,
     Finished,
 }
 
-impl Default for Status {
-    fn default() -> Self {
-        Status::Running
-    }
-}
+
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TxScript {
@@ -116,7 +114,7 @@ impl Interpreter {
     }
 
     pub fn from_transaction(tx: &Transaction, txin: usize) -> Result<Interpreter, InterpreterError> {
-        let script_bits = tx.get_input(txin as usize).unwrap().get_finalised_script_impl()?.to_script_bits();
+        let script_bits = tx.get_input(txin).unwrap().get_finalised_script_impl()?.to_script_bits();
         Ok(Interpreter::from_transaction_and_script_bits(tx.clone(), txin, script_bits))
     }
 

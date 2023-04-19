@@ -54,7 +54,7 @@ impl VarInt {
             push2
         } else {
             let mut push4 = vec![0xff];
-            push4.extend((length as u64).to_le_bytes());
+            push4.extend(length.to_le_bytes());
             push4
         }
     }

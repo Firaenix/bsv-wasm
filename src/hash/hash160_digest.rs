@@ -47,7 +47,7 @@ impl FixedOutputDirty for Hash160 {
 
     fn finalize_into_dirty(&mut self, out: &mut digest::Output<Self>) {
         let first_hash = self.clone().engine.finalize();
-        let finished_hash = &mut *Ripemd160::digest(&*first_hash);
+        let finished_hash = &mut *Ripemd160::digest(&first_hash);
         if self.reverse {
             finished_hash.reverse()
         }

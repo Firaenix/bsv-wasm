@@ -10,6 +10,7 @@ use crate::{
     keypair::private_key::PrivateKey,
     script::Script,
     sighash::{SigHash, SighashSignature},
+    PublicKey,
 };
 
 #[wasm_bindgen]
@@ -277,6 +278,6 @@ impl Transaction {
     }
 
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
-        self.0.verify(pub_key, sig)
+        self.0.verify(&pub_key.0, &sig.0)
     }
 }

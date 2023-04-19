@@ -270,7 +270,7 @@ impl Transaction {
         match sighash {
             // Only sign the output at the same index as the given txin
             SigHash::SINGLE | SigHash::InputOutput | SigHash::Legacy_InputOutput | SigHash::InputsOutput => {
-                if n_tx_in > self.get_noutputs() as usize {
+                if n_tx_in > self.get_noutputs() {
                     return Err(BSVErrors::OutOfBounds("Cannot sign with SIGHASH_SINGLE given input index greater than number of outputs".into()));
                 }
 

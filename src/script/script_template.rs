@@ -65,7 +65,7 @@ pub struct ScriptTemplate(Vec<MatchToken>);
 impl ScriptTemplate {
     fn map_string_to_match_token(code: &str) -> Result<MatchToken, ScriptTemplateErrors> {
         // Number OP_CODES
-        if code.len() <3 {
+        if code.len() < 3 {
             if let Ok(num_code) = u8::from_str(code) {
                 match num_code {
                     0 => return Ok(MatchToken::OpCode(OP_0)),
