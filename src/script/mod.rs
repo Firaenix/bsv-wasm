@@ -130,12 +130,15 @@ impl Script {
         let mut bit_accumulator = vec![];
         while let Ok(byte) = cursor.read_u8() {
             if (0x01..=0x4b).contains(&byte) {
-                let mut data = vec![0; byte as usize];
-                if let Err(e) = cursor.read(&mut data) {
+                let mut data: Vec<u8> = vec![0; byte as usize];
+                let result = cursor.read(&mut data);
+
+                if let Ok(_len) = result {
+                    bit_accumulator.push(ScriptBit::Push(data[.._len].to_vec()));
+                } else if let Err(e) = result {
                     return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e)));
                 }
 
-                bit_accumulator.push(ScriptBit::Push(data));
                 continue;
             }
 
