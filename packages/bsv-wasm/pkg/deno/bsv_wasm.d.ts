@@ -2,72 +2,86 @@
 /* eslint-disable */
 /**
 */
+export enum SigningHash {
+  Sha256 = 0,
+  Sha256d = 1,
+}
+/**
+*/
 export enum SigHash {
-  FORKID,
-  ALL,
-  NONE,
-  SINGLE,
-  ANYONECANPAY,
+  FORKID = 64,
+  ALL = 1,
+  NONE = 2,
+  SINGLE = 3,
+  ANYONECANPAY = 128,
 /**
 *
 *     * ALL | FORKID
 *     
 */
-  InputsOutputs,
+  InputsOutputs = 65,
 /**
 *
 *     * NONE | FORKID
 *     
 */
-  Inputs,
+  Inputs = 66,
 /**
 *
 *     * SINGLE | FORKID
 *     
 */
-  InputsOutput,
+  InputsOutput = 67,
 /**
 *
 *     * ALL | ANYONECANPAY | FORKID
 *     
 */
-  InputOutputs,
+  InputOutputs = 193,
 /**
 *
 *     * NONE | ANYONECANPAY | FORKID
 *     
 */
-  Input,
+  Input = 194,
 /**
 *
 *     * SINGLE | ANYONECANPAY | FORKID
 *     
 */
-  InputOutput,
+  InputOutput = 195,
 /**
 *
 *     * ALL | ANYONECANPAY
 *     
 */
-  Legacy_InputOutputs,
+  Legacy_InputOutputs = 129,
 /**
 *
 *     * NONE | ANYONECANPAY
 *     
 */
-  Legacy_Input,
+  Legacy_Input = 130,
 /**
 *
 *     * SINGLE | ANYONECANPAY
 *     
 */
-  Legacy_InputOutput,
+  Legacy_InputOutput = 131,
 }
 /**
 */
 export enum Status {
-  Running,
-  Finished,
+  Running = 0,
+  Finished = 1,
+}
+/**
+*/
+export enum AESAlgorithms {
+  AES128_CBC = 0,
+  AES256_CBC = 1,
+  AES128_CTR = 2,
+  AES256_CTR = 3,
 }
 /**
 */
@@ -75,494 +89,480 @@ export enum OpCodes {
 /**
 * Pushes 0 onto the stack
 */
-  OP_0,
+  OP_0 = 0,
 /**
 * Pushes 0 onto the stack
 * The next byte sets the number of bytes to push onto the stack
 */
-  OP_PUSHDATA1,
+  OP_PUSHDATA1 = 76,
 /**
 * The next two bytes sets the number of bytes to push onto the stack
 */
-  OP_PUSHDATA2,
+  OP_PUSHDATA2 = 77,
 /**
 * The next four bytes sets the number of bytes to push onto the stack
 */
-  OP_PUSHDATA4,
+  OP_PUSHDATA4 = 78,
 /**
 * Pushes -1 onto the stack
 */
-  OP_1NEGATE,
+  OP_1NEGATE = 79,
 /**
 * Pushes 1 onto the stack
 */
-  OP_1,
+  OP_1 = 81,
 /**
 * Pushes 1 onto the stack
 * Pushes 2 onto the stack
 */
-  OP_2,
+  OP_2 = 82,
 /**
 * Pushes 3 onto the stack
 */
-  OP_3,
+  OP_3 = 83,
 /**
 * Pushes 4 onto the stack
 */
-  OP_4,
+  OP_4 = 84,
 /**
 * Pushes 5 onto the stack
 */
-  OP_5,
+  OP_5 = 85,
 /**
 * Pushes 6 onto the stack
 */
-  OP_6,
+  OP_6 = 86,
 /**
 * Pushes 7 onto the stack
 */
-  OP_7,
+  OP_7 = 87,
 /**
 * Pushes 8 onto the stack
 */
-  OP_8,
+  OP_8 = 88,
 /**
 * Pushes 9 onto the stack
 */
-  OP_9,
+  OP_9 = 89,
 /**
 * Pushes 10 onto the stack
 */
-  OP_10,
+  OP_10 = 90,
 /**
 * Pushes 11 onto the stack
 */
-  OP_11,
+  OP_11 = 91,
 /**
 * Pushes 12 onto the stack
 */
-  OP_12,
+  OP_12 = 92,
 /**
 * Pushes 13 onto the stack
 */
-  OP_13,
+  OP_13 = 93,
 /**
 * Pushes 14 onto the stack
 */
-  OP_14,
+  OP_14 = 94,
 /**
 * Pushes 15 onto the stack
 */
-  OP_15,
+  OP_15 = 95,
 /**
 * Pushes 16 onto the stack
 */
-  OP_16,
+  OP_16 = 96,
 /**
 * Does nothing
 */
-  OP_NOP,
+  OP_NOP = 97,
 /**
 * If the top stack is true, statements are executed. Top stack value is removed.
 */
-  OP_IF,
+  OP_IF = 99,
 /**
 * If the top stack is false, statements are executed. Top stack value is removed.
 */
-  OP_NOTIF,
+  OP_NOTIF = 100,
 /**
 * If the preceding OP_IF or OP_NOTIF statemetns were not executed, then statements are executed.
 */
-  OP_ELSE,
+  OP_ELSE = 103,
 /**
 * Ends an if-else block
 */
-  OP_ENDIF,
+  OP_ENDIF = 104,
 /**
 * Marks a statement as invalid if the top stack value is false. Top stack value is removed.
 */
-  OP_VERIFY,
+  OP_VERIFY = 105,
 /**
 * Marks a statements as invalid
 */
-  OP_RETURN,
+  OP_RETURN = 106,
 /**
 * Moves the top item on the main stack to the alt stack
 */
-  OP_TOALTSTACK,
+  OP_TOALTSTACK = 107,
 /**
 * Moves the top item on the alt stack to the main stack
 */
-  OP_FROMALTSTACK,
+  OP_FROMALTSTACK = 108,
 /**
 * Duplicates the top stack value if it is not zero
 */
-  OP_IFDUP,
+  OP_IFDUP = 115,
 /**
 * Puts the number of stack items onto the stack
 */
-  OP_DEPTH,
+  OP_DEPTH = 116,
 /**
 * Drops the top stack value
 */
-  OP_DROP,
+  OP_DROP = 117,
 /**
 * Duplicates the top stack item
 */
-  OP_DUP,
+  OP_DUP = 118,
 /**
 * Removes the second-to-top stack item
 */
-  OP_NIP,
+  OP_NIP = 119,
 /**
 * Copies the second-to-top stack item to the top
 */
-  OP_OVER,
+  OP_OVER = 120,
 /**
 * The item n back in the stack is copied to the top
 */
-  OP_PICK,
+  OP_PICK = 121,
 /**
 * The item n back in the stack is moved to the top
 */
-  OP_ROLL,
+  OP_ROLL = 122,
 /**
 * The top three items on the stack are rotated to the left
 */
-  OP_ROT,
+  OP_ROT = 123,
 /**
 * The top two items on the stack are swapped
 */
-  OP_SWAP,
+  OP_SWAP = 124,
 /**
 * The item at the top of the stack is copied and inserted before the second-to-top item
 */
-  OP_TUCK,
+  OP_TUCK = 125,
 /**
 * Removes the top two items from the stack
 */
-  OP_2DROP,
+  OP_2DROP = 109,
 /**
 * Duplicates the top two stack items
 */
-  OP_2DUP,
+  OP_2DUP = 110,
 /**
 * Duplicates the top three stack items
 */
-  OP_3DUP,
+  OP_3DUP = 111,
 /**
 * Copies the pair of items two spaces back to the front
 */
-  OP_2OVER,
+  OP_2OVER = 112,
 /**
 * The fifth and sixth items back are moved to the top of the stack
 */
-  OP_2ROT,
+  OP_2ROT = 113,
 /**
 * Swaps the top two pairs of items
 */
-  OP_2SWAP,
+  OP_2SWAP = 114,
 /**
 * Concatenates two byte sequences
 */
-  OP_CAT,
+  OP_CAT = 126,
 /**
 * Splits the byte sequence at position n
 */
-  OP_SPLIT,
+  OP_SPLIT = 127,
 /**
 * Pushes the byte sequence length of the top stack item without popping it
 */
-  OP_SIZE,
+  OP_SIZE = 130,
 /**
 * Flips all of the bits in the input
 */
-  OP_INVERT,
+  OP_INVERT = 131,
 /**
 * Boolean and between each bit in the inputs
 */
-  OP_AND,
+  OP_AND = 132,
 /**
 * Boolean or between each bit in the inputs
 */
-  OP_OR,
+  OP_OR = 133,
 /**
 * Boolean exclusive or between each bit in the inputs
 */
-  OP_XOR,
+  OP_XOR = 134,
 /**
 * Returns 1 if the inputs are exactly equal, 0 otherwise
 */
-  OP_EQUAL,
+  OP_EQUAL = 135,
 /**
 * Same as OP_EQUAL, but runs OP_VERIFY afterward
 */
-  OP_EQUALVERIFY,
+  OP_EQUALVERIFY = 136,
 /**
 * Adds 1 to the input
 */
-  OP_1ADD,
+  OP_1ADD = 139,
 /**
 * Subtracts 1 from the input
 */
-  OP_1SUB,
+  OP_1SUB = 140,
 /**
 * The sign of the input is flipped
 */
-  OP_NEGATE,
+  OP_NEGATE = 143,
 /**
 * The input is made positive
 */
-  OP_ABS,
+  OP_ABS = 144,
 /**
 * If the input is 0 or 1, it is flipped. Otherwise, the output will be 0.
 */
-  OP_NOT,
+  OP_NOT = 145,
 /**
 * Returns 0 if the input is 0. 1 otherwise.
 */
-  OP_0NOTEQUAL,
+  OP_0NOTEQUAL = 146,
 /**
 * Adds a to b
 */
-  OP_ADD,
+  OP_ADD = 147,
 /**
 * Subtracts b from a
 */
-  OP_SUB,
+  OP_SUB = 148,
 /**
 * Multiplies a by b
 */
-  OP_MUL,
+  OP_MUL = 149,
 /**
 * Divides a by b
 */
-  OP_DIV,
+  OP_DIV = 150,
 /**
 * Returns the remainder after dividing a by b
 */
-  OP_MOD,
+  OP_MOD = 151,
 /**
 * Shifts a left b bits, preserving sign
 */
-  OP_LSHIFT,
+  OP_LSHIFT = 152,
 /**
 * Shifts a right b bits, preserving sign
 */
-  OP_RSHIFT,
+  OP_RSHIFT = 153,
 /**
 * If both a and b are not empty, the output is 1. Otherwise, 0.
 */
-  OP_BOOLAND,
+  OP_BOOLAND = 154,
 /**
 * If a or b is not empty, the output is 1. Otherwise, 0.
 */
-  OP_BOOLOR,
+  OP_BOOLOR = 155,
 /**
 * Returns 1 if the numbers are equal. Otherwise, 0.
 */
-  OP_NUMEQUAL,
+  OP_NUMEQUAL = 156,
 /**
 * Same as OP_NUMEQUAL, but runs OP_VERIFY afterward
 */
-  OP_NUMEQUALVERIFY,
+  OP_NUMEQUALVERIFY = 157,
 /**
 * Returns 1 if the numbers are not equal. Otherwise, 0.
 */
-  OP_NUMNOTEQUAL,
+  OP_NUMNOTEQUAL = 158,
 /**
 * Returns 1 if a is less than b. Otherwise, 0.
 */
-  OP_LESSTHAN,
+  OP_LESSTHAN = 159,
 /**
 * Returns 1 if a is greater than b. Otherwise, 0.
 */
-  OP_GREATERTHAN,
+  OP_GREATERTHAN = 160,
 /**
 * Returns 1 if a is less than or equal to b. Otherwise, 0.
 */
-  OP_LESSTHANOREQUAL,
+  OP_LESSTHANOREQUAL = 161,
 /**
 * Returns 1 if a is greater than or equal to b. Otherwise, 0.
 */
-  OP_GREATERTHANOREQUAL,
+  OP_GREATERTHANOREQUAL = 162,
 /**
 * Returns the smaller of a and b
 */
-  OP_MIN,
+  OP_MIN = 163,
 /**
 * Returns the larger of a and b
 */
-  OP_MAX,
+  OP_MAX = 164,
 /**
 * Returns 1 if x is within the specified range, left inclusive. Otherwise, 0.
 */
-  OP_WITHIN,
+  OP_WITHIN = 165,
 /**
 * Converts numeric value a into a byte sequence of length b
 */
-  OP_NUM2BIN,
+  OP_NUM2BIN = 128,
 /**
 * Converts byte sequence x into a numeric value
 */
-  OP_BIN2NUM,
+  OP_BIN2NUM = 129,
 /**
 * The input is hashed using RIPEMD-160
 */
-  OP_RIPEMD160,
+  OP_RIPEMD160 = 166,
 /**
 * The input is hashed using SHA-1
 */
-  OP_SHA1,
+  OP_SHA1 = 167,
 /**
 * The input is hashed using SHA-256
 */
-  OP_SHA256,
+  OP_SHA256 = 168,
 /**
 * The input is hashed twice: first with SHA-256 and then with RIPEMD-160
 */
-  OP_HASH160,
+  OP_HASH160 = 169,
 /**
 * The input is hashed two times with SHA-256
 */
-  OP_HASH256,
+  OP_HASH256 = 170,
 /**
 * Marks the part of the script after which the signature will begin matching
 */
-  OP_CODESEPARATOR,
+  OP_CODESEPARATOR = 171,
 /**
 * Puts 1 on the stack if the signature authorizes the public key and transaction hash. Otherwise 0.
 */
-  OP_CHECKSIG,
+  OP_CHECKSIG = 172,
 /**
 * Same as OP_CHECKSIG, but OP_VERIFY is executed afterward
 */
-  OP_CHECKSIGVERIFY,
+  OP_CHECKSIGVERIFY = 173,
 /**
 * Puts 1 on the stack if m of n signatures authorize the public key and transaction hash. Otherwise 0.
 */
-  OP_CHECKMULTISIG,
+  OP_CHECKMULTISIG = 174,
 /**
 * Same as OP_CHECKMULTISIG, but OP_VERIFY is executed afterward
 */
-  OP_CHECKMULTISIGVERIFY,
+  OP_CHECKMULTISIGVERIFY = 175,
 /**
 * Marks transaction as invalid if the top stack item is greater than the transaction's lock_time
 */
-  OP_CHECKLOCKTIMEVERIFY,
+  OP_CHECKLOCKTIMEVERIFY = 177,
 /**
 * Marks transaction as invalid if the top stack item is less than the transaction's sequence used for relative lock time
 */
-  OP_CHECKSEQUENCEVERIFY,
+  OP_CHECKSEQUENCEVERIFY = 178,
 /**
 * OP_DATA followed by a varint represents arbitrary data on chain. Used for matching Script Templates.
 */
-  OP_DATA,
+  OP_DATA = 251,
 /**
 * Represents a secp256k1 signature
 */
-  OP_SIG,
+  OP_SIG = 252,
 /**
 * Represents a public key hashed with OP_HASH160
 */
-  OP_PUBKEYHASH,
+  OP_PUBKEYHASH = 253,
 /**
 * Represents a public key compatible with OP_CHECKSIG
 */
-  OP_PUBKEY,
+  OP_PUBKEY = 254,
 /**
 * Matches any opcode that is not yet assigned
 */
-  OP_INVALIDOPCODE,
+  OP_INVALIDOPCODE = 255,
 /**
 * Transaction is invalid unless occuring in an unexecuted OP_IF branch
 */
-  OP_RESERVED,
+  OP_RESERVED = 80,
 /**
 * Transaction is invalid unless occuring in an unexecuted OP_IF branch
 */
-  OP_VER,
+  OP_VER = 98,
 /**
 * Transaction is invalid even when occuring in an unexecuted OP_IF branch
 */
-  OP_VERIF,
+  OP_VERIF = 101,
 /**
 * Transaction is invalid even when occuring in an unexecuted OP_IF branch
 */
-  OP_VERNOTIF,
+  OP_VERNOTIF = 102,
 /**
 * Transaction is invalid unless occuring in an unexecuted OP_IF branch
 */
-  OP_RESERVED1,
+  OP_RESERVED1 = 137,
 /**
 * Transaction is invalid unless occuring in an unexecuted OP_IF branch
 */
-  OP_RESERVED2,
+  OP_RESERVED2 = 138,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP1,
+  OP_NOP1 = 176,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP4,
+  OP_NOP4 = 179,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP5,
+  OP_NOP5 = 180,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP6,
+  OP_NOP6 = 181,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP7,
+  OP_NOP7 = 182,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP8,
+  OP_NOP8 = 183,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP9,
+  OP_NOP9 = 184,
 /**
 * The word is ignored. Does not mark transaction as invalid.
 */
-  OP_NOP10,
+  OP_NOP10 = 185,
 /**
 * Words at or above this number are invalid
 */
-  OP_INVALID_ABOVE,
+  OP_INVALID_ABOVE = 186,
 /**
 * The input is multiplied by 2
 */
-  OP_2MUL,
+  OP_2MUL = 141,
 /**
 * The input is divided by 2
 */
-  OP_2DIV,
-}
-/**
-*/
-export enum SigningHash {
-  Sha256,
-  Sha256d,
-}
-/**
-*/
-export enum AESAlgorithms {
-  AES128_CBC,
-  AES256_CBC,
-  AES128_CTR,
-  AES256_CTR,
+  OP_2DIV = 142,
 }
 /**
 */
 export enum PBKDF2Hashes {
-  SHA1,
-  SHA256,
-  SHA512,
+  SHA1 = 0,
+  SHA256 = 1,
+  SHA512 = 2,
 }
 /**
 */
@@ -1332,16 +1332,6 @@ export class SighashSignature {
 export class Signature {
   free(): void;
 /**
-* You should use to_der_hex() now
-* @returns {string}
-*/
-  to_hex(): string;
-/**
-* You should use to_der_bytes() now
-* @returns {Uint8Array}
-*/
-  to_bytes(): Uint8Array;
-/**
 * @param {Uint8Array} bytes
 * @returns {Signature}
 */
@@ -1672,6 +1662,12 @@ export class Transaction {
 * @returns {Uint8Array}
 */
   sighash_preimage(sighash: number, n_tx_in: number, unsigned_script: Script, value: bigint): Uint8Array;
+/**
+* @param {PublicKey} pub_key
+* @param {SighashSignature} sig
+* @returns {boolean}
+*/
+  verify(pub_key: PublicKey, sig: SighashSignature): boolean;
 }
 /**
 */
@@ -1887,6 +1883,96 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_extendedpublickey_free: (a: number) => void;
+  readonly extendedpublickey_get_public_key: (a: number) => number;
+  readonly extendedpublickey_from_xpriv: (a: number) => number;
+  readonly extendedpublickey_get_chain_code: (a: number, b: number) => void;
+  readonly extendedpublickey_get_depth: (a: number) => number;
+  readonly extendedpublickey_get_parent_fingerprint: (a: number, b: number) => void;
+  readonly extendedpublickey_get_index: (a: number) => number;
+  readonly extendedpublickey_derive: (a: number, b: number, c: number) => void;
+  readonly extendedpublickey_derive_from_path: (a: number, b: number, c: number, d: number) => void;
+  readonly extendedpublickey_from_seed: (a: number, b: number, c: number) => void;
+  readonly extendedpublickey_from_random: (a: number) => void;
+  readonly extendedpublickey_from_string: (a: number, b: number, c: number) => void;
+  readonly extendedpublickey_to_string: (a: number, b: number) => void;
+  readonly __wbg_script_free: (a: number) => void;
+  readonly script_to_asm_string: (a: number, b: number) => void;
+  readonly script_to_extended_asm_string: (a: number, b: number) => void;
+  readonly script_from_hex: (a: number, b: number, c: number) => void;
+  readonly script_from_bytes: (a: number, b: number, c: number) => void;
+  readonly script_from_asm_string: (a: number, b: number, c: number) => void;
+  readonly script_encode_pushdata: (a: number, b: number, c: number) => void;
+  readonly script_get_pushdata_bytes: (a: number, b: number) => void;
+  readonly script_to_script_bits: (a: number, b: number) => void;
+  readonly script_to_bytes: (a: number, b: number) => void;
+  readonly script_get_script_length: (a: number) => number;
+  readonly script_to_hex: (a: number, b: number) => void;
+  readonly script_remove_codeseparators: (a: number) => void;
+  readonly __wbg_p2pkhaddress_free: (a: number) => void;
+  readonly p2pkhaddress_from_pubkey_hash: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_from_pubkey: (a: number, b: number) => void;
+  readonly p2pkhaddress_set_chain_params: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_to_string: (a: number, b: number) => void;
+  readonly p2pkhaddress_from_string: (a: number, b: number, c: number) => void;
+  readonly p2pkhaddress_get_locking_script: (a: number, b: number) => void;
+  readonly p2pkhaddress_get_unlocking_script: (a: number, b: number, c: number, d: number) => void;
+  readonly p2pkhaddress_verify_bitcoin_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly bsm_is_valid_message: (a: number, b: number, c: number, d: number) => number;
+  readonly bsm_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly bsm_sign_message: (a: number, b: number, c: number, d: number) => void;
+  readonly bsm_sign_message_with_k: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly __wbg_bsm_free: (a: number) => void;
+  readonly ecdsa_private_key_from_signature_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly ecdsa_sign_with_random_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecdsa_sign_with_deterministic_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecdsa_sign_with_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecdsa_verify_digest: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly __wbg_sighashsignature_free: (a: number) => void;
+  readonly sighashsignature_new: (a: number, b: number, c: number, d: number) => number;
+  readonly sighashsignature_to_hex: (a: number, b: number) => void;
+  readonly sighashsignature_to_bytes: (a: number, b: number) => void;
+  readonly sighashsignature_from_bytes: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly __wbg_txout_free: (a: number) => void;
+  readonly txout_new: (a: number, b: number) => number;
+  readonly txout_get_satoshis: (a: number) => number;
+  readonly txout_get_satoshis_as_bytes: (a: number, b: number) => void;
+  readonly txout_get_script_pub_key_size: (a: number) => number;
+  readonly txout_get_script_pub_key: (a: number) => number;
+  readonly txout_get_script_pub_key_hex: (a: number, b: number) => void;
+  readonly txout_from_hex: (a: number, b: number, c: number) => void;
+  readonly txout_to_bytes: (a: number, b: number) => void;
+  readonly txout_to_hex: (a: number, b: number) => void;
+  readonly txout_to_json: (a: number, b: number) => void;
+  readonly txout_to_json_string: (a: number, b: number) => void;
+  readonly __wbg_ecdsa_free: (a: number) => void;
+  readonly ecies_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly ecies_encrypt_with_ephemeral_private_key: (a: number, b: number, c: number, d: number) => void;
+  readonly ecies_decrypt: (a: number, b: number, c: number, d: number) => void;
+  readonly ecies_derive_cipher_keys: (a: number, b: number, c: number) => void;
+  readonly __wbg_cipherkeys_free: (a: number) => void;
+  readonly cipherkeys_get_iv: (a: number, b: number) => void;
+  readonly cipherkeys_get_ke: (a: number, b: number) => void;
+  readonly cipherkeys_get_km: (a: number, b: number) => void;
+  readonly __wbg_eciesciphertext_free: (a: number) => void;
+  readonly eciesciphertext_get_ciphertext: (a: number, b: number) => void;
+  readonly eciesciphertext_get_hmac: (a: number, b: number) => void;
+  readonly eciesciphertext_get_cipher_keys: (a: number) => number;
+  readonly eciesciphertext_to_bytes: (a: number, b: number) => void;
+  readonly eciesciphertext_extract_public_key: (a: number, b: number) => void;
+  readonly eciesciphertext_from_bytes: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_interpreter_free: (a: number) => void;
+  readonly interpreter_from_transaction: (a: number, b: number, c: number) => void;
+  readonly interpreter_from_script: (a: number) => number;
+  readonly interpreter_run: (a: number, b: number) => void;
+  readonly interpreter_next: (a: number, b: number) => void;
+  readonly interpreter_get_state: (a: number) => number;
+  readonly __wbg_state_free: (a: number) => void;
+  readonly state_get_executed_script: (a: number, b: number) => void;
+  readonly state_get_stack: (a: number, b: number) => void;
+  readonly state_get_alt_stack: (a: number, b: number) => void;
+  readonly state_get_status: (a: number) => number;
+  readonly __wbg_ecies_free: (a: number) => void;
   readonly __wbg_transaction_free: (a: number) => void;
   readonly transaction_get_version: (a: number) => number;
   readonly transaction_get_ninputs: (a: number) => number;
@@ -1931,6 +2017,63 @@ export interface InitOutput {
   readonly transaction_sign: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly transaction_sign_with_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly transaction_sighash_preimage: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly transaction_verify: (a: number, b: number, c: number) => number;
+  readonly __wbg_publickey_free: (a: number) => void;
+  readonly publickey_to_address: (a: number, b: number) => void;
+  readonly publickey_from_hex: (a: number, b: number, c: number) => void;
+  readonly publickey_from_bytes: (a: number, b: number, c: number) => void;
+  readonly publickey_to_bytes: (a: number, b: number) => void;
+  readonly publickey_to_hex: (a: number, b: number) => void;
+  readonly publickey_from_private_key: (a: number) => number;
+  readonly publickey_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly publickey_to_compressed: (a: number, b: number) => void;
+  readonly publickey_to_decompressed: (a: number, b: number) => void;
+  readonly publickey_encrypt_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly publickey_is_valid_message: (a: number, b: number, c: number, d: number) => number;
+  readonly publickey_is_compressed: (a: number) => number;
+  readonly __wbg_signature_free: (a: number) => void;
+  readonly __wbg_recoveryinfo_free: (a: number) => void;
+  readonly recoveryinfo_new: (a: number, b: number, c: number) => number;
+  readonly recoveryinfo_from_byte: (a: number, b: number) => number;
+  readonly signature_from_der: (a: number, b: number, c: number) => void;
+  readonly signature_from_hex_der: (a: number, b: number, c: number) => void;
+  readonly signature_from_compact_bytes: (a: number, b: number, c: number) => void;
+  readonly signature_recover_public_key: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly signature_to_der_hex: (a: number, b: number) => void;
+  readonly signature_to_der_bytes: (a: number, b: number) => void;
+  readonly signature_to_compact_bytes: (a: number, b: number, c: number) => void;
+  readonly signature_r: (a: number, b: number) => void;
+  readonly signature_r_hex: (a: number, b: number) => void;
+  readonly signature_s: (a: number, b: number) => void;
+  readonly signature_s_hex: (a: number, b: number) => void;
+  readonly signature_to_compact_hex: (a: number, b: number, c: number) => void;
+  readonly signature_verify_message: (a: number, b: number, c: number, d: number) => number;
+  readonly publickey_to_p2pkh_address: (a: number, b: number) => void;
+  readonly __wbg_privatekey_free: (a: number) => void;
+  readonly privatekey_to_bytes: (a: number, b: number) => void;
+  readonly privatekey_to_hex: (a: number, b: number) => void;
+  readonly privatekey_from_random: () => number;
+  readonly privatekey_get_point: (a: number, b: number) => void;
+  readonly privatekey_compress_public_key: (a: number, b: number) => number;
+  readonly privatekey_from_wif: (a: number, b: number, c: number) => void;
+  readonly privatekey_from_hex: (a: number, b: number, c: number) => void;
+  readonly privatekey_sign_message: (a: number, b: number, c: number, d: number) => void;
+  readonly privatekey_to_wif: (a: number, b: number) => void;
+  readonly privatekey_from_bytes: (a: number, b: number, c: number) => void;
+  readonly privatekey_to_public_key: (a: number, b: number) => void;
+  readonly privatekey_encrypt_message: (a: number, b: number, c: number, d: number) => void;
+  readonly privatekey_decrypt_message: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_chainparams_free: (a: number) => void;
+  readonly chainparams_mainnet: () => number;
+  readonly chainparams_testnet: () => number;
+  readonly chainparams_regtest: () => number;
+  readonly chainparams_stn: () => number;
+  readonly ecdh_derive_shared_key: (a: number, b: number, c: number) => void;
+  readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly chainparams_new: () => number;
+  readonly __wbg_ecdh_free: (a: number) => void;
+  readonly __wbg_aes_free: (a: number) => void;
   readonly __wbg_extendedprivatekey_free: (a: number) => void;
   readonly extendedprivatekey_get_private_key: (a: number) => number;
   readonly extendedprivatekey_get_public_key: (a: number) => number;
@@ -1945,11 +2088,6 @@ export interface InitOutput {
   readonly extendedprivatekey_from_string: (a: number, b: number, c: number) => void;
   readonly extendedprivatekey_to_string: (a: number, b: number) => void;
   readonly extendedprivatekey_from_mnemonic: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly __wbg_sighashsignature_free: (a: number) => void;
-  readonly sighashsignature_new: (a: number, b: number, c: number, d: number) => number;
-  readonly sighashsignature_to_hex: (a: number, b: number) => void;
-  readonly sighashsignature_to_bytes: (a: number, b: number) => void;
-  readonly sighashsignature_from_bytes: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_hash_free: (a: number) => void;
   readonly hash_to_bytes: (a: number, b: number) => void;
   readonly hash_to_hex: (a: number, b: number) => void;
@@ -1963,136 +2101,12 @@ export interface InitOutput {
   readonly hash_sha_1_hmac: (a: number, b: number, c: number, d: number) => number;
   readonly hash_ripemd_160_hmac: (a: number, b: number, c: number, d: number) => number;
   readonly hash_hash_160_hmac: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbg_interpreter_free: (a: number) => void;
-  readonly interpreter_from_transaction: (a: number, b: number, c: number) => void;
-  readonly interpreter_from_script: (a: number) => number;
-  readonly interpreter_run: (a: number, b: number) => void;
-  readonly interpreter_next: (a: number, b: number) => void;
-  readonly interpreter_get_state: (a: number) => number;
-  readonly __wbg_state_free: (a: number) => void;
-  readonly state_get_executed_script: (a: number, b: number) => void;
-  readonly state_get_stack: (a: number, b: number) => void;
-  readonly state_get_alt_stack: (a: number, b: number) => void;
-  readonly state_get_status: (a: number) => number;
-  readonly hash_sha_512_hmac: (a: number, b: number, c: number, d: number) => number;
-  readonly hash_sha_256d_hmac: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbg_p2pkhaddress_free: (a: number) => void;
-  readonly p2pkhaddress_from_pubkey_hash: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_from_pubkey: (a: number, b: number) => void;
-  readonly p2pkhaddress_set_chain_params: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_to_string: (a: number, b: number) => void;
-  readonly p2pkhaddress_from_string: (a: number, b: number, c: number) => void;
-  readonly p2pkhaddress_get_locking_script: (a: number, b: number) => void;
-  readonly p2pkhaddress_get_unlocking_script: (a: number, b: number, c: number, d: number) => void;
-  readonly p2pkhaddress_verify_bitcoin_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly __wbg_extendedpublickey_free: (a: number) => void;
-  readonly extendedpublickey_get_public_key: (a: number) => number;
-  readonly extendedpublickey_from_xpriv: (a: number) => number;
-  readonly extendedpublickey_get_chain_code: (a: number, b: number) => void;
-  readonly extendedpublickey_get_depth: (a: number) => number;
-  readonly extendedpublickey_get_parent_fingerprint: (a: number, b: number) => void;
-  readonly extendedpublickey_get_index: (a: number) => number;
-  readonly extendedpublickey_derive: (a: number, b: number, c: number) => void;
-  readonly extendedpublickey_derive_from_path: (a: number, b: number, c: number, d: number) => void;
-  readonly extendedpublickey_from_seed: (a: number, b: number, c: number) => void;
-  readonly extendedpublickey_from_random: (a: number) => void;
-  readonly extendedpublickey_from_string: (a: number, b: number, c: number) => void;
-  readonly extendedpublickey_to_string: (a: number, b: number) => void;
-  readonly ecdh_derive_shared_key: (a: number, b: number, c: number) => void;
-  readonly __wbg_script_free: (a: number) => void;
-  readonly script_to_asm_string: (a: number, b: number) => void;
-  readonly script_to_extended_asm_string: (a: number, b: number) => void;
-  readonly script_from_hex: (a: number, b: number, c: number) => void;
-  readonly script_from_bytes: (a: number, b: number, c: number) => void;
-  readonly script_from_asm_string: (a: number, b: number, c: number) => void;
-  readonly script_encode_pushdata: (a: number, b: number, c: number) => void;
-  readonly script_get_pushdata_bytes: (a: number, b: number) => void;
-  readonly script_to_script_bits: (a: number, b: number) => void;
-  readonly script_to_bytes: (a: number, b: number) => void;
-  readonly script_get_script_length: (a: number) => number;
-  readonly script_to_hex: (a: number, b: number) => void;
-  readonly script_remove_codeseparators: (a: number) => void;
-  readonly __wbg_ecdh_free: (a: number) => void;
-  readonly ecdsa_private_key_from_signature_k: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly ecdsa_sign_with_random_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecdsa_sign_with_deterministic_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecdsa_sign_with_k: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecdsa_verify_digest: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly aes_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly aes_decrypt: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly __wbg_ecdsa_free: (a: number) => void;
-  readonly __wbg_aes_free: (a: number) => void;
   readonly __wbg_kdf_free: (a: number) => void;
   readonly kdf_get_hash: (a: number) => number;
   readonly kdf_get_salt: (a: number, b: number) => void;
   readonly kdf_pbkdf2: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
-  readonly __wbg_signature_free: (a: number) => void;
-  readonly __wbg_recoveryinfo_free: (a: number) => void;
-  readonly recoveryinfo_new: (a: number, b: number, c: number) => number;
-  readonly recoveryinfo_from_byte: (a: number, b: number) => number;
-  readonly signature_to_bytes: (a: number, b: number) => void;
-  readonly signature_from_der: (a: number, b: number, c: number) => void;
-  readonly signature_from_hex_der: (a: number, b: number, c: number) => void;
-  readonly signature_from_compact_bytes: (a: number, b: number, c: number) => void;
-  readonly signature_recover_public_key: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly signature_to_der_hex: (a: number, b: number) => void;
-  readonly signature_to_compact_bytes: (a: number, b: number, c: number) => void;
-  readonly signature_r: (a: number, b: number) => void;
-  readonly signature_r_hex: (a: number, b: number) => void;
-  readonly signature_s: (a: number, b: number) => void;
-  readonly signature_s_hex: (a: number, b: number) => void;
-  readonly signature_to_compact_hex: (a: number, b: number, c: number) => void;
-  readonly signature_verify_message: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbg_txout_free: (a: number) => void;
-  readonly txout_new: (a: number, b: number) => number;
-  readonly txout_get_satoshis: (a: number) => number;
-  readonly txout_get_satoshis_as_bytes: (a: number, b: number) => void;
-  readonly txout_get_script_pub_key_size: (a: number) => number;
-  readonly txout_get_script_pub_key: (a: number) => number;
-  readonly txout_get_script_pub_key_hex: (a: number, b: number) => void;
-  readonly txout_from_hex: (a: number, b: number, c: number) => void;
-  readonly txout_to_bytes: (a: number, b: number) => void;
-  readonly txout_to_hex: (a: number, b: number) => void;
-  readonly txout_to_json: (a: number, b: number) => void;
-  readonly txout_to_json_string: (a: number, b: number) => void;
-  readonly signature_to_hex: (a: number, b: number) => void;
-  readonly signature_to_der_bytes: (a: number, b: number) => void;
-  readonly ecies_encrypt: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly ecies_encrypt_with_ephemeral_private_key: (a: number, b: number, c: number, d: number) => void;
-  readonly ecies_decrypt: (a: number, b: number, c: number, d: number) => void;
-  readonly ecies_derive_cipher_keys: (a: number, b: number, c: number) => void;
-  readonly __wbg_cipherkeys_free: (a: number) => void;
-  readonly cipherkeys_get_iv: (a: number, b: number) => void;
-  readonly cipherkeys_get_ke: (a: number, b: number) => void;
-  readonly cipherkeys_get_km: (a: number, b: number) => void;
-  readonly __wbg_eciesciphertext_free: (a: number) => void;
-  readonly eciesciphertext_get_ciphertext: (a: number, b: number) => void;
-  readonly eciesciphertext_get_hmac: (a: number, b: number) => void;
-  readonly eciesciphertext_get_cipher_keys: (a: number) => number;
-  readonly eciesciphertext_to_bytes: (a: number, b: number) => void;
-  readonly eciesciphertext_extract_public_key: (a: number, b: number) => void;
-  readonly eciesciphertext_from_bytes: (a: number, b: number, c: number, d: number) => void;
-  readonly __wbg_ecies_free: (a: number) => void;
-  readonly __wbg_chainparams_free: (a: number) => void;
-  readonly chainparams_mainnet: () => number;
-  readonly chainparams_testnet: () => number;
-  readonly chainparams_regtest: () => number;
-  readonly chainparams_stn: () => number;
-  readonly chainparams_new: () => number;
-  readonly __wbg_publickey_free: (a: number) => void;
-  readonly publickey_to_address: (a: number, b: number) => void;
-  readonly publickey_from_hex: (a: number, b: number, c: number) => void;
-  readonly publickey_from_bytes: (a: number, b: number, c: number) => void;
-  readonly publickey_to_bytes: (a: number, b: number) => void;
-  readonly publickey_to_hex: (a: number, b: number) => void;
-  readonly publickey_from_private_key: (a: number) => number;
-  readonly publickey_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly publickey_to_compressed: (a: number, b: number) => void;
-  readonly publickey_to_decompressed: (a: number, b: number) => void;
-  readonly publickey_encrypt_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly publickey_is_valid_message: (a: number, b: number, c: number, d: number) => number;
-  readonly publickey_is_compressed: (a: number) => number;
-  readonly publickey_to_p2pkh_address: (a: number, b: number) => void;
+  readonly hash_sha_512_hmac: (a: number, b: number, c: number, d: number) => number;
+  readonly hash_sha_256d_hmac: (a: number, b: number, c: number, d: number) => number;
   readonly __wbg_txin_free: (a: number) => void;
   readonly txin_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly txin_default: () => number;
@@ -2127,29 +2141,10 @@ export interface InitOutput {
   readonly txin_from_compact_hex: (a: number, b: number, c: number) => void;
   readonly txin_get_finalised_script: (a: number, b: number) => void;
   readonly txin_is_coinbase: (a: number) => number;
-  readonly bsm_is_valid_message: (a: number, b: number, c: number, d: number) => number;
-  readonly bsm_verify_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly bsm_sign_message: (a: number, b: number, c: number, d: number) => void;
-  readonly bsm_sign_message_with_k: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly __wbg_privatekey_free: (a: number) => void;
-  readonly privatekey_to_bytes: (a: number, b: number) => void;
-  readonly privatekey_to_hex: (a: number, b: number) => void;
-  readonly privatekey_from_random: () => number;
-  readonly privatekey_get_point: (a: number, b: number) => void;
-  readonly privatekey_compress_public_key: (a: number, b: number) => number;
-  readonly privatekey_from_wif: (a: number, b: number, c: number) => void;
-  readonly privatekey_from_hex: (a: number, b: number, c: number) => void;
-  readonly privatekey_sign_message: (a: number, b: number, c: number, d: number) => void;
-  readonly privatekey_to_wif: (a: number, b: number) => void;
-  readonly privatekey_from_bytes: (a: number, b: number, c: number) => void;
-  readonly privatekey_to_public_key: (a: number, b: number) => void;
-  readonly privatekey_encrypt_message: (a: number, b: number, c: number, d: number) => void;
-  readonly privatekey_decrypt_message: (a: number, b: number, c: number, d: number) => void;
-  readonly __wbg_bsm_free: (a: number) => void;
-  readonly __wbindgen_malloc: (a: number) => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
+  readonly __wbindgen_malloc: (a: number, b: number) => number;
+  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
-  readonly __wbindgen_free: (a: number, b: number) => void;
+  readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
 
@@ -2172,4 +2167,4 @@ export function initSync(module: SyncInitInput): InitOutput;
 *
 * @returns {Promise<InitOutput>}
 */
-export default function init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
+export default function __wbg_init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;

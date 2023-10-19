@@ -40,18 +40,6 @@ impl RecoveryInfo {
 
 #[wasm_bindgen]
 impl Signature {
-    #[deprecated]
-    /// You should use to_der_hex() now
-    pub fn to_hex(&self) -> String {
-        BSVSignature::to_der_hex(&self.0)
-    }
-
-    #[deprecated]
-    /// You should use to_der_bytes() now
-    pub fn to_bytes(&self) -> Vec<u8> {
-        BSVSignature::to_der_bytes(&self.0)
-    }
-
     pub fn from_der(bytes: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
         Ok(Signature(BSVSignature::from_der(bytes)?))
     }

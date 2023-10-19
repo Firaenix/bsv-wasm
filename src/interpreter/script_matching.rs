@@ -59,8 +59,9 @@ impl Interpreter {
         })
     }
 
+    #[allow(unused_mut)]
     pub(crate) fn match_opcode(script_index: usize, opcode: &OpCodes, state: &mut State, tx: Option<TxScript>) -> Result<State, InterpreterError> {
-        let mut state = state;
+        let mut state: &mut State = state;
         match opcode {
             OpCodes::OP_0 => state.stack.push_number(0)?,
             OpCodes::OP_1NEGATE => state.stack.push_number(-1)?,
