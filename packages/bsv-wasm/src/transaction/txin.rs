@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 use crate::script::Script;
 
 #[wasm_bindgen]
+#[derive(Default)]
 pub struct TxIn(pub(crate) BSVTxIn);
 
 impl From<BSVTxIn> for TxIn {
@@ -23,6 +24,10 @@ impl TxIn {
     #[wasm_bindgen(constructor)]
     pub fn new(prev_tx_id: &[u8], vout: u32, unlocking_script: &Script, sequence: Option<u32>) -> TxIn {
         TxIn(BSVTxIn::new(prev_tx_id, vout, &unlocking_script.0, sequence))
+    }
+
+    pub fn empty() -> TxIn {
+        TxIn::default()
     }
 
     pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {

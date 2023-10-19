@@ -54,8 +54,7 @@ describe("Interpreter Tests", function() {
     let tx = new Transaction(2, 0);
 
     let locking_script = Script.from_asm_string(`OP_DUP OP_HASH160 ${Hash.hash_160(pub_key.to_bytes()).to_hex()} OP_EQUALVERIFY OP_CHECKSIG`)
-
-    let txin = TxIn.default();
+    let txin = TxIn.empty();
     txin.set_satoshis(0n);
     txin.set_locking_script(locking_script);
     tx.add_input(txin);

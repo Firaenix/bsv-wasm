@@ -22,7 +22,7 @@ build-wasm:
 	make build-web ; make build-bundler ; make build-nodejs
 
 test-node:
-	make build-nodejs && pushd ./examples/node-test && yarn test ; popd
+	make build-nodejs && pushd ../../examples/node-test && yarn test ; popd
 
 wasm-tests:
 	wasm-pack test --node --  --features wasm-bindgen-exports
