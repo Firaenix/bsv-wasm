@@ -2,6 +2,7 @@ use bsv::chainparams::ChainParams as BSVChainParams;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+#[derive(Default)]
 pub struct ChainParams(pub(crate) BSVChainParams);
 
 impl From<BSVChainParams> for ChainParams {

@@ -169,7 +169,7 @@ impl Transaction {
      * Adds an array of TxIn's to the transaction
      * @param {TxIn[]} tx_ins
      */
-    pub fn add_inputs(&mut self, tx_ins: Box<[JsValue]>) {
+    pub fn add_inputs(&mut self, tx_ins: Vec<JsValue>) {
         let js_value = &*tx_ins.to_vec();
 
         for elem in js_value {
@@ -193,7 +193,7 @@ impl Transaction {
      * Adds an array of TxOuts to the transaction
      * @param {TxOut[]} tx_outs
      */
-    pub fn add_outputs(&mut self, tx_outs: Box<[JsValue]>) {
+    pub fn add_outputs(&mut self, tx_outs: Vec<JsValue>) {
         let js_value = &*tx_outs.to_vec();
 
         for elem in js_value {

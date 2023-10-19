@@ -31,7 +31,8 @@ impl Interpreter {
         Ok(self.0.run()?)
     }
 
-    pub fn next(&mut self) -> Result<Option<State>, JsError> {
+    #[wasm_bindgen(js_name = "next")]
+    pub fn step(&mut self) -> Result<Option<State>, JsError> {
         let state = match self.0.next() {
             Some(v) => v?,
             None => return Ok(None),

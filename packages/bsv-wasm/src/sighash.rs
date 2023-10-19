@@ -113,7 +113,7 @@ impl From<bsv::SigHash> for SigHash {
 //}
 //}
 
-#[wasm_bindgen(constructor)]
+#[wasm_bindgen]
 impl SighashSignature {
     #[wasm_bindgen(constructor)]
     pub fn new(signature: &Signature, sighash_type: SigHash, sighash_buffer: &[u8]) -> SighashSignature {

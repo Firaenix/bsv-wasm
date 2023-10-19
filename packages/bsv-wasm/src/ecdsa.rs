@@ -13,9 +13,9 @@ pub enum SigningHash {
     Sha256d,
 }
 
-impl Into<bsv::SigningHash> for SigningHash {
-    fn into(self) -> bsv::SigningHash {
-        match self {
+impl From<SigningHash> for bsv::SigningHash {
+    fn from(item: SigningHash) -> Self {
+        match item {
             SigningHash::Sha256 => bsv::SigningHash::Sha256,
             SigningHash::Sha256d => bsv::SigningHash::Sha256d,
         }

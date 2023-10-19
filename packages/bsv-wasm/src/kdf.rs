@@ -1,5 +1,4 @@
 use crate::hash::Hash;
-use bsv::PBKDF2Hashes as BSVPBKDF2Hashes;
 use bsv::KDF as BSVKDF;
 use wasm_bindgen::prelude::*;
 
@@ -11,12 +10,12 @@ pub enum PBKDF2Hashes {
     SHA512,
 }
 
-impl Into<BSVPBKDF2Hashes> for PBKDF2Hashes {
-    fn into(self) -> bsv::PBKDF2Hashes {
-        match self {
-            PBKDF2Hashes::SHA1 => BSVPBKDF2Hashes::SHA1,
-            PBKDF2Hashes::SHA256 => BSVPBKDF2Hashes::SHA256,
-            PBKDF2Hashes::SHA512 => BSVPBKDF2Hashes::SHA512,
+impl From<PBKDF2Hashes> for bsv::PBKDF2Hashes {
+    fn from(item: PBKDF2Hashes) -> Self {
+        match item {
+            PBKDF2Hashes::SHA1 => bsv::PBKDF2Hashes::SHA1,
+            PBKDF2Hashes::SHA256 => bsv::PBKDF2Hashes::SHA256,
+            PBKDF2Hashes::SHA512 => bsv::PBKDF2Hashes::SHA512,
         }
     }
 }
