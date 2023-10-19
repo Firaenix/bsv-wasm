@@ -493,4 +493,30 @@ mod script_tests {
 
         assert_eq!(&script.to_asm_string(), "OP_1 OP_IF OP_ENDIF")
     }
+
+    #[test]
+    fn scrypt_stateful_contract() {
+        let script = Script::from_hex("6a00010100010001000100010001000100010001001400000000").unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_RETURN),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("01").unwrap()),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00000000").unwrap()),
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 00000000")
+    }
 }
