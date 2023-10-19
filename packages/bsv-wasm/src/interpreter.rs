@@ -34,7 +34,7 @@ impl Interpreter {
     pub fn next(&mut self) -> Result<Option<State>, JsError> {
         let state = match self.0.next() {
             Some(v) => v?,
-            None => return Ok(None)
+            None => return Ok(None),
         };
 
         let js_state = State(state);
@@ -74,7 +74,7 @@ impl From<bsv::Status> for JsStatus {
 impl State {
     pub fn get_executed_script(&self) -> Result<Script, JsError> {
         let asm_string: String = self.0.executed_opcodes.iter().map(|x| x.to_string()).fold(String::new(), |acc, x| format!("{} {}", acc, x));
-        Ok(Script::from_asm_string(&asm_string)?)
+        Script::from_asm_string(&asm_string)
     }
 
     pub fn get_stack(&self) -> Result<JsValue, JsError> {

@@ -1,5 +1,5 @@
-use wasm_bindgen::prelude::*;
 use bsv::ECDH as BSVECDH;
+use wasm_bindgen::prelude::*;
 
 use crate::keypair::{private_key::PrivateKey, public_key::PublicKey};
 

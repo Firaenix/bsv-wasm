@@ -25,10 +25,6 @@ impl TxIn {
         TxIn(BSVTxIn::new(prev_tx_id, vout, &unlocking_script.0, sequence))
     }
 
-    pub fn default() -> TxIn {
-        TxIn(BSVTxIn::default())
-    }
-
     pub fn get_prev_tx_id(&self, little_endian: Option<bool>) -> Vec<u8> {
         self.0.get_prev_tx_id(little_endian)
     }
@@ -98,7 +94,7 @@ impl TxIn {
     }
 
     pub fn get_locking_script(&self) -> Option<Script> {
-        self.0.get_locking_script().map(|x| Script(x))
+        self.0.get_locking_script().map(Script)
     }
 
     pub fn get_locking_script_bytes(&self) -> Option<Vec<u8>> {

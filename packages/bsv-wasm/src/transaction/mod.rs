@@ -43,11 +43,11 @@ impl Transaction {
     }
 
     pub fn get_input(&self, index: usize) -> Option<TxIn> {
-        self.0.get_input(index).map(|txin| TxIn(txin))
+        self.0.get_input(index).map(TxIn)
     }
 
     pub fn get_output(&self, index: usize) -> Option<TxOut> {
-        self.0.get_output(index).map(|txout| TxOut(txout))
+        self.0.get_output(index).map(TxOut)
     }
 
     pub fn get_n_locktime(&self) -> u32 {
@@ -65,10 +65,6 @@ impl Transaction {
     #[wasm_bindgen(constructor)]
     pub fn new(version: u32, n_locktime: u32) -> Transaction {
         Transaction(BSVTransaction::new(version, n_locktime))
-    }
-
-    pub fn default() -> Transaction {
-        Transaction(BSVTransaction::default())
     }
 
     pub fn set_version(&mut self, version: u32) -> Transaction {

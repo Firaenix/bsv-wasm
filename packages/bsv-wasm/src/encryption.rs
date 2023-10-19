@@ -1,6 +1,6 @@
-use wasm_bindgen::prelude::*;
 use bsv::AESAlgorithms as BSVAESAlgorithms;
 use bsv::AES as BSVAES;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[allow(non_camel_case_types)]
@@ -17,12 +17,11 @@ impl Into<BSVAESAlgorithms> for AESAlgorithms {
         match self {
             AESAlgorithms::AES128_CBC => BSVAESAlgorithms::AES128_CBC,
             AESAlgorithms::AES256_CBC => BSVAESAlgorithms::AES256_CBC,
-            AESAlgorithms::AES128_CTR => BSVAESAlgorithms::AES128_CTR ,
+            AESAlgorithms::AES128_CTR => BSVAESAlgorithms::AES128_CTR,
             AESAlgorithms::AES256_CTR => BSVAESAlgorithms::AES256_CTR,
         }
     }
 }
-
 
 #[wasm_bindgen]
 pub struct AES;
