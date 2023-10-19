@@ -133,7 +133,7 @@ impl Script {
                 let mut data: Vec<u8> = vec![0; byte as usize];
                 match cursor.read(&mut data) {
                     Ok(len) => bit_accumulator.push(ScriptBit::Push(data[..len].to_vec())),
-                    Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e)))
+                    Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
                 }
                 continue;
             }
