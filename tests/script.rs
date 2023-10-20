@@ -495,7 +495,7 @@ mod script_tests {
     }
 
     #[test]
-    fn scrypt_stateful_contract() {
+    fn scrypt_stateful_contract_push() {
         let script = Script::from_hex("6a00010100010001000100010001000100010001001400000000").unwrap();
 
         assert_eq!(
@@ -513,10 +513,92 @@ mod script_tests {
                 ScriptBit::Push(hex::decode("00").unwrap()),
                 ScriptBit::Push(hex::decode("00").unwrap()),
                 ScriptBit::Push(hex::decode("00").unwrap()),
-                ScriptBit::Push(hex::decode("00000000").unwrap()),
+                ScriptBit::RawData(None, 20, hex::decode("00000000").unwrap()),
             ]
         );
 
-        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 00000000")
+        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 00000000");
+        assert_eq!(&script.to_hex(), "6a00010100010001000100010001000100010001001400000000");
+    }
+
+    #[test]
+    fn scrypt_stateful_contract_op_pushdata1() {
+        let script = Script::from_hex("6a00010100010001000100010001000100010001004c1f000000").unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_RETURN),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("01").unwrap()),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::RawData(Some(OpCodes::OP_PUSHDATA1), 31, hex::decode("000000").unwrap()),
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 000000");
+        assert_eq!(&script.to_hex(), "6a00010100010001000100010001000100010001004c1f000000");
+    }
+
+    #[test]
+    fn scrypt_stateful_contract_op_pushdata2() {
+        let script = Script::from_hex("6a00010100010001000100010001000100010001004d1f000000").unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_RETURN),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("01").unwrap()),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::RawData(Some(OpCodes::OP_PUSHDATA2), 31, hex::decode("0000").unwrap()),
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 0000");
+        assert_eq!(&script.to_hex(), "6a00010100010001000100010001000100010001004d1f000000");
+    }
+
+    #[test]
+    fn scrypt_stateful_contract_op_pushdata4() {
+        let script = Script::from_hex("6a00010100010001000100010001000100010001004e1f000000ff").unwrap();
+
+        assert_eq!(
+            &script.to_script_bits(),
+            &[
+                ScriptBit::OpCode(OpCodes::OP_RETURN),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("01").unwrap()),
+                ScriptBit::OpCode(OpCodes::OP_0),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::Push(hex::decode("00").unwrap()),
+                ScriptBit::RawData(Some(OpCodes::OP_PUSHDATA4), 31, hex::decode("ff").unwrap()),
+            ]
+        );
+
+        assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 ff");
+        assert_eq!(&script.to_hex(), "6a00010100010001000100010001000100010001004e1f000000ff");
     }
 }

@@ -45,6 +45,13 @@ impl Script {
                     true => format!("{} {} {}", code, bytes.len(), hex::encode(bytes)),
                     false => hex::encode(bytes),
                 },
+                ScriptBit::RawData(code, len, bytes) => match extended {
+                    true => match code {
+                        Some(c) => format!("{} {} {}", c, len, hex::encode(bytes)),
+                        None => format!("OP_PUSH {} {}", len, hex::encode(bytes)),
+                    },
+                    false => hex::encode(bytes),
+                },
                 ScriptBit::OpCode(code) => code.to_string(),
                 ScriptBit::If { code, pass, fail } => {
                     let mut string_parts = vec![];
@@ -96,6 +103,24 @@ impl Script {
                     pushbytes.extend(bytes);
                     pushbytes
                 }
+                ScriptBit::RawData(code, len, bytes) => {
+                    let mut pushbytes = match code {
+                        Some(c) => vec![*c as u8],
+                        None => vec![],
+                    };
+
+                    let length_bytes = match code {
+                        Some(OpCodes::OP_PUSHDATA1) => (*len as u8).to_le_bytes().to_vec(),
+                        Some(OpCodes::OP_PUSHDATA2) => (*len as u16).to_le_bytes().to_vec(),
+                        Some(OpCodes::OP_PUSHDATA4) => (*len as u32).to_le_bytes().to_vec(),
+                        Some(_) => vec![],
+                        None => (*len as u8).to_le_bytes().to_vec(),
+                    };
+
+                    pushbytes.extend(length_bytes);
+                    pushbytes.extend(bytes);
+                    pushbytes
+                }
                 ScriptBit::If { code, pass, fail } => {
                     let mut bytes = vec![*code as u8];
 
@@ -132,7 +157,13 @@ impl Script {
             if byte.ne(&(OpCodes::OP_0 as u8)) && byte.lt(&(OpCodes::OP_PUSHDATA1 as u8)) {
                 let mut data: Vec<u8> = vec![0; byte as usize];
                 match cursor.read(&mut data) {
-                    Ok(len) => bit_accumulator.push(ScriptBit::Push(data[..len].to_vec())),
+                    Ok(len) => {
+                        if len == byte as usize {
+                            bit_accumulator.push(ScriptBit::Push(data));
+                        } else {
+                            bit_accumulator.push(ScriptBit::RawData(None, byte as usize, data[..len].to_vec()));
+                        }
+                    }
                     Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
                 }
                 continue;
@@ -147,11 +178,18 @@ impl Script {
                     };
 
                     let mut data = vec![0; data_length];
-                    if let Err(e) = cursor.read(&mut data) {
-                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e)));
-                    }
 
-                    ScriptBit::PushData(v, data)
+                    match cursor.read(&mut data) {
+                        Ok(len) => {
+                            if len == data_length as usize {
+                                ScriptBit::PushData(v, data)
+                            } else {
+                                println!("data_length {}, len {}", data_length, len);
+                                ScriptBit::RawData(Some(v), data_length, data[..len].to_vec())
+                            }
+                        }
+                        Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
+                    }
                 }
                 Some(v) => ScriptBit::OpCode(v),
                 None => return Err(BSVErrors::DeserialiseScript(format!("Unknown opcode {}", byte))),

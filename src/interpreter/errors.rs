@@ -8,6 +8,9 @@ pub enum InterpreterError {
     #[error("Stack is empty")]
     EmptyStack,
 
+    #[error("RawData can not be pushed")]
+    RawDataStack,
+
     #[error("Invalid OpCode: {0}")]
     InvalidOpcode(OpCodes),
 
