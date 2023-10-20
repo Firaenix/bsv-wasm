@@ -184,7 +184,6 @@ impl Script {
                             if len == data_length as usize {
                                 ScriptBit::PushData(v, data)
                             } else {
-                                println!("data_length {}, len {}", data_length, len);
                                 ScriptBit::RawData(Some(v), data_length, data[..len].to_vec())
                             }
                         }
