@@ -30,6 +30,7 @@ pub struct Script(pub(crate) Vec<ScriptBit>);
  */
 impl Script {
     fn script_bits_to_asm_string(codes: &[ScriptBit], extended: bool) -> String {
+        Script::check_script_bits(codes);
         codes
             .iter()
             .map(|x| match x {
@@ -82,6 +83,7 @@ impl Script {
     }
 
     pub fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
+        Script::check_script_bits(codes);
         let bytes = codes
             .iter()
             .flat_map(|x| match x {
@@ -139,6 +141,27 @@ impl Script {
             .collect();
 
         bytes
+    }
+
+    fn check_script_bits(codes: &[ScriptBit]) -> () {
+        match codes.len() {
+            0 => (),
+            len => {
+                let raw_data = codes.iter().position(|x| match x {
+                    ScriptBit::RawData(_, _, _) => true,
+                    _ => false,
+                });
+
+                match raw_data {
+                    None => (),
+                    Some(i) => {
+                        if i != len - 1 {
+                            panic!("RawData can only appear at the end of the script!");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn to_asm_string_impl(&self, extended: bool) -> String {
@@ -369,6 +392,7 @@ impl Script {
     }
 
     pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
+        Script::check_script_bits(&bits);
         Script(bits)
     }
 
