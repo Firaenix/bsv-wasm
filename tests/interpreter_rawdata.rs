@@ -5,8 +5,7 @@ mod interpreter_rawdata_tests {
 
     #[test]
     fn true_opreturn() {
-        let script = Script::from_hex("516a")
-        .unwrap();
+        let script = Script::from_hex("516a").unwrap();
 
         let mut interpreter = Interpreter::from_script(&script);
         interpreter.run().unwrap();
@@ -16,7 +15,7 @@ mod interpreter_rawdata_tests {
 
     #[test]
     fn true_opreturn_false() {
-        
+
         // let script = Script::from_hex("516a00")
         // .unwrap();
 
@@ -28,12 +27,10 @@ mod interpreter_rawdata_tests {
 
     #[test]
     fn false_opreturn() {
-        let script = Script::from_hex("006a")
-        .unwrap();
+        let script = Script::from_hex("006a").unwrap();
 
         let mut interpreter = Interpreter::from_script(&script);
         interpreter.run().unwrap();
-
 
         let empty: Vec<u8> = vec![];
         assert_eq!(interpreter.state().stack().last().unwrap(), &empty);
@@ -47,12 +44,9 @@ mod interpreter_rawdata_tests {
         // let mut interpreter = Interpreter::from_script(&script);
         // interpreter.run().unwrap();
 
-
         // let empty: Vec<u8> = vec![];
         // assert_eq!(interpreter.state().stack().last().unwrap(), &empty);
     }
 
     // The current implementation of the interpreter is incomplete and I cannot add tests for rawdata
-
-
 }
