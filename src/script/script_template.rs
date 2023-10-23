@@ -19,6 +19,9 @@ pub enum ScriptTemplateErrors {
     #[error("Script Template and Script lengths do not match.")]
     LengthsDiffer,
 
+    #[error("Script Template includes invalid non-script-data.")]
+    InvalidNonScriptData,
+
     #[error("{0}")]
     MalformedHex(
         #[from]
@@ -63,7 +66,7 @@ pub enum MatchDataTypes {
 pub struct ScriptTemplate(Vec<MatchToken>);
 
 impl ScriptTemplate {
-    fn map_string_to_match_token(code: &str) -> Result<MatchToken, ScriptTemplateErrors> {
+    fn map_string_to_match_token(code: &str, allowed_non_script_data: bool) -> Result<MatchToken, ScriptTemplateErrors> {
         // Number OP_CODES
         if code.len() < 3 {
             if let Ok(num_code) = u8::from_str(code) {
@@ -84,6 +87,14 @@ impl ScriptTemplate {
 
             Ok(v) => return Ok(MatchToken::OpCode(v)),
             Err(_) => (),
+        }
+
+        if code.starts_with("non-script-data:") {
+            if allowed_non_script_data {
+                return Ok(MatchToken::AnyData);
+            } else {
+                return Err(ScriptTemplateErrors::InvalidNonScriptData);
+            }
         }
 
         if code.starts_with(&OpCodes::OP_DATA.to_string()) {
@@ -133,7 +144,33 @@ impl ScriptTemplate {
     }
 
     pub fn from_asm_string_impl(asm: &str) -> Result<ScriptTemplate, ScriptTemplateErrors> {
-        let tokens: Result<Vec<_>, _> = asm.split(' ').map(ScriptTemplate::map_string_to_match_token).collect();
+        let mut scope_level = 0;
+
+        let mut allowed_non_script_data = false;
+
+        let tokens: Result<Vec<_>, _> = asm
+            .split(' ')
+            .map(|x| match ScriptTemplate::map_string_to_match_token(x, allowed_non_script_data) {
+                Ok(bit) => {
+                    match bit {
+                        MatchToken::OpCode(_v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => {
+                            scope_level += 1;
+                        }
+                        MatchToken::OpCode(OpCodes::OP_ENDIF) => {
+                            scope_level -= 1;
+                        }
+                        MatchToken::OpCode(OpCodes::OP_RETURN) => {
+                            if scope_level == 0 {
+                                allowed_non_script_data = true;
+                            }
+                        }
+                        _ => (),
+                    }
+                    Ok(bit)
+                }
+                Err(e) => Err(e),
+            })
+            .collect();
 
         Ok(ScriptTemplate(tokens?))
     }
@@ -188,7 +225,7 @@ impl Script {
 
                 (MatchToken::AnyData, ScriptBit::Push(_)) => Ok(true),
                 (MatchToken::AnyData, ScriptBit::PushData(_, _)) => Ok(true),
-
+                (MatchToken::AnyData, ScriptBit::NonScriptData(_)) => Ok(true),
                 (MatchToken::Signature, ScriptBit::Push(sig_buf)) => Signature::from_der_impl(sig_buf).map(|_| true),
 
                 (MatchToken::PublicKey, ScriptBit::Push(pubkey_buf)) => PublicKey::from_bytes_impl(pubkey_buf).map(|_| true),
@@ -219,7 +256,7 @@ impl Script {
 
                 (MatchToken::AnyData, ScriptBit::Push(data)) => matches.push((MatchDataTypes::Data, data.clone())),
                 (MatchToken::AnyData, ScriptBit::PushData(_, data)) => matches.push((MatchDataTypes::Data, data.clone())),
-
+                (MatchToken::AnyData, ScriptBit::NonScriptData(data)) => matches.push((MatchDataTypes::Data, data.clone())),
                 (MatchToken::Signature, ScriptBit::Push(data)) => matches.push((MatchDataTypes::Signature, data.clone())),
 
                 (MatchToken::PublicKey, ScriptBit::Push(data)) => matches.push((MatchDataTypes::PublicKey, data.clone())),
