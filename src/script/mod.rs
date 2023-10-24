@@ -240,13 +240,6 @@ impl Script {
     fn map_string_to_script_bit(code: &str, is_non_script_data: bool) -> Result<ScriptBit, BSVErrors> {
         let code = code.trim();
 
-        if is_non_script_data {
-            if code.starts_with("non-script-data:") {
-                let non_script_data = hex::decode(code.trim_start_matches("non-script-data:"))?;
-                return Ok(ScriptBit::NonScriptData(non_script_data));
-            }
-        }
-
         // Number OP_CODES
         match code {
             "0" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
@@ -272,6 +265,15 @@ impl Script {
         // Standard OP_CODES
         if let Ok(opcode) = OpCodes::from_str(code) {
             return Ok(ScriptBit::OpCode(opcode));
+        }
+
+        if code.starts_with("non-script-data:") {
+            if is_non_script_data {
+                let non_script_data = hex::decode(code.trim_start_matches("non-script-data:"))?;
+                return Ok(ScriptBit::NonScriptData(non_script_data));
+            } else {
+                return Err(BSVErrors::InvalidNonScriptData());
+            }
         }
 
         // PUSHDATA OP_CODES
@@ -340,7 +342,7 @@ impl Script {
     }
 
     /**
-     * Ordinary ASM, (for example, OP_RETURN 01 01) does not contain ScriptBit::NonScriptData after being converted into ScriptBit. 
+     * Ordinary ASM, (for example, OP_RETURN 01 01) does not contain ScriptBit::NonScriptData after being converted into ScriptBit.
      * This function wraps all ScriptBit after OP_RETURN with ScriptBit::NonScriptData.
      */
     fn wrap_with_non_script_data(bits_iter: &mut Iter<ScriptBit>, non_script_data_index: usize) -> Vec<ScriptBit> {

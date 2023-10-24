@@ -158,6 +158,9 @@ pub enum BSVErrors {
     #[error("Error deserialising TxOut field {0}: {1}")]
     DeserialiseTxOut(String, #[source] std::io::Error),
 
+    #[error("NonScriptData can only appear after an OP_RETURN that is not in a branch block!")]
+    InvalidNonScriptData(),
+
     #[error("Error serialising TxOut field {0}: {1}")]
     SerialiseTxOut(String, #[source] std::io::Error),
 

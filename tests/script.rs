@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod script_tests {
-    use bsv::{Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
+    use bsv::{BSVErrors, Hash, OpCodes, P2PKHAddress, Script, ScriptBit};
     // #[test]
     // #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     // fn to_hex_string() {
@@ -540,7 +540,6 @@ mod script_tests {
         assert_eq!(&script.to_hex(), "006a0051");
     }
 
-
     #[test]
     fn non_script_data_asm() {
         let script = Script::from_asm_string("0 OP_RETURN 01 0102").unwrap();
@@ -554,4 +553,14 @@ mod script_tests {
         assert_eq!(&script.to_hex(), "006a0101020102");
     }
 
+    #[test]
+    fn invalid_non_script_data() {
+        let result = Script::from_asm_string("0 non-script-data:0101020102 01 0102 OP_RETURN");
+
+        assert!(matches!(result, Err(BSVErrors::InvalidNonScriptData())));
+
+        let result = Script::from_asm_string("OP_1 OP_IF OP_1 OP_RETURN non-script-data:0101020102 01 0102 OP_ENDIF OP_1");
+
+        assert!(matches!(result, Err(BSVErrors::InvalidNonScriptData())));
+    }
 }
