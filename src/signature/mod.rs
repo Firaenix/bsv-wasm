@@ -176,8 +176,8 @@ impl Signature {
     }
 
     // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = verifyMessage))]
-    pub fn verify_message(&self, message: &[u8], pub_key: &PublicKey) -> bool {
-        ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256).is_ok()
+    pub fn verify_message(&self, message: &[u8], pub_key: &PublicKey, reverse_k: bool) -> bool {
+        ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256, reverse_k).is_ok()
     }
 }
 

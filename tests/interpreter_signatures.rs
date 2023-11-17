@@ -16,7 +16,7 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let signature = tx.sign(&private_key, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let signature = tx.sign(&private_key, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
         let script = Script::from_asm_string(&format!(
             "
             {} {}",
@@ -53,9 +53,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&final_locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &first_locking_script, 0).unwrap();
-        let sig2 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &second_locking_script, 0).unwrap();
-        let sig3 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &third_locking_script, 0).unwrap();
+        let sig1 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &first_locking_script, 0, false).unwrap();
+        let sig2 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &second_locking_script, 0, false).unwrap();
+        let sig3 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &third_locking_script, 0, false).unwrap();
 
         let script = Script::from_asm_string(&format!(
             "
@@ -86,14 +86,15 @@ mod interpreter_signature_tests {
     fn multisig_equal_amount_pubkeys_test() {
         let mut tx = Transaction::new(2, 0);
         let pk1 = PrivateKey::from_wif("L2WAdy8C19GHNtZDSkbsVBJrBaF9XHpPLTgmnc2N5aGyguhJf7zh").unwrap();
-        let pk2 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
-        let pk3 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+
+        let pk2 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+        let pk3 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
 
         let locking_script = Script::from_asm_string(&format!(
             "{} {} {} OP_3 OP_CHECKMULTISIG",
             &pk1.to_public_key().unwrap().to_hex().unwrap(),
             &pk2.to_public_key().unwrap().to_hex().unwrap(),
-            &pk3.to_public_key().unwrap().to_hex().unwrap()
+            &pk3.to_public_key().unwrap().to_hex().unwrap(),
         ))
         .unwrap();
 
@@ -102,9 +103,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
+        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} {} OP_3", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(), sig3.to_hex().unwrap())).unwrap();
 
@@ -123,8 +124,8 @@ mod interpreter_signature_tests {
     fn multisig_not_enough_pubkeys_test() {
         let mut tx = Transaction::new(2, 0);
         let pk1 = PrivateKey::from_wif("L2WAdy8C19GHNtZDSkbsVBJrBaF9XHpPLTgmnc2N5aGyguhJf7zh").unwrap();
-        let pk2 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
-        let pk3 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+        let pk2 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+        let pk3 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
 
         let locking_script = Script::from_asm_string(&format!(
             "{} {} OP_2 OP_CHECKMULTISIG",
@@ -138,9 +139,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
+        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} {} OP_3", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(), sig3.to_hex().unwrap())).unwrap();
 
@@ -157,8 +158,8 @@ mod interpreter_signature_tests {
     fn multisig_extra_pubkeys_test() {
         let mut tx = Transaction::new(2, 0);
         let pk1 = PrivateKey::from_wif("L2WAdy8C19GHNtZDSkbsVBJrBaF9XHpPLTgmnc2N5aGyguhJf7zh").unwrap();
-        let pk2 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
-        let pk3 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+        let pk2 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
+        let pk3 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
 
         let locking_script = Script::from_asm_string(&format!(
             "{} {} {} OP_3 OP_CHECKMULTISIG",
@@ -173,8 +174,8 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, false).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} OP_2", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(),)).unwrap();
 
