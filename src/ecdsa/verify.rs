@@ -15,11 +15,6 @@ impl ECDSA {
             true => key.verify_digest(digest.reverse(), &signature.sig)?,
             false => key.verify_digest(digest, &signature.sig)?,
         }
-        // or we can always check both to avoid the reverse_k flag
-        // key.verify_digest(digest, &signature.sig).or_else(|_| {
-        //     let digest = get_hash_digest(hash_algo, message);
-        //     key.verify_digest(digest.reverse(), &signature.sig)
-        // })?;
         Ok(true)
     }
 }
