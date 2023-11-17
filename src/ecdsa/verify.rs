@@ -11,17 +11,14 @@ impl ECDSA {
         let point = EncodedPoint::from_bytes(pub_key_bytes).map_err(|e| BSVErrors::CustomECDSAError(e.to_string()))?;
         let key = VerifyingKey::from_encoded_point(&point)?;
         let digest = get_hash_digest(hash_algo, message);
-        if reverse_k {
-            digest.reverse();
-            key.verify_digest(digest, &signature.sig)?;
-        } else {
-            key.verify_digest(digest, &signature.sig)?;
+        match reverse_k {
+            true => key.verify_digest(digest.reverse(), &signature.sig)?,
+            false => key.verify_digest(digest, &signature.sig)?,
         }
-        // or we can always check the reverse digest when the first verification fails to avoid the reverse_k flags
+        // or we can always check both to avoid the reverse_k flag
         // key.verify_digest(digest, &signature.sig).or_else(|_| {
-        //     let rev: Vec<u8> = message.iter().rev().copied().collect();
-        //     let reversed = get_hash_digest(hash_algo, &rev);
-        //     key.verify_digest(reversed, &signature.sig)
+        //     let digest = get_hash_digest(hash_algo, message);
+        //     key.verify_digest(digest.reverse(), &signature.sig)
         // })?;
         Ok(true)
     }
