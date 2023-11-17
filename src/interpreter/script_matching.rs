@@ -508,21 +508,21 @@ impl Interpreter {
             }
             OpCodes::OP_CODESEPARATOR => state.codeseparator_offset = script_index + 1,
             OpCodes::OP_CHECKSIG => {
-                let txscript = match tx {
+                let mut txscript = match tx {
                     Some(x) => x,
                     None => return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKSIG)),
                 };
 
-                let is_signature_valid = checksig(state, txscript)?;
+                let is_signature_valid = checksig(state, &mut txscript)?;
                 state.stack.push_bool(is_signature_valid)?;
             }
             OpCodes::OP_CHECKSIGVERIFY => {
-                let txscript = match tx {
+                let mut txscript = match tx {
                     Some(x) => x,
                     None => return Err(InterpreterError::RequiresTransaction(&OpCodes::OP_CHECKSIGVERIFY)),
                 };
 
-                let is_signature_valid = checksig(state, txscript)?;
+                let is_signature_valid = checksig(state, &mut txscript)?;
                 Interpreter::verify(is_signature_valid)?
             }
             OpCodes::OP_CHECKMULTISIG => {
@@ -580,7 +580,7 @@ impl Interpreter {
     }
 }
 
-fn checksig(state: &mut State, mut txscript: TxScript) -> Result<bool, InterpreterError> {
+fn checksig(state: &mut State, mut txscript: &mut TxScript) -> Result<bool, InterpreterError> {
     let public_key = state.stack.pop_bytes()?;
     let signature = state.stack.pop_bytes()?;
     let sighash_byte = signature.last().cloned();
@@ -590,7 +590,7 @@ fn checksig(state: &mut State, mut txscript: TxScript) -> Result<bool, Interpret
         None => return Err(InterpreterError::InvalidStackOperation("could not read Sighash flag from signature")),
     };
     let preimage = calculate_sighash_preimage(&mut txscript, sighash, state.codeseparator_offset)?;
-    let is_signature_valid = verify_tx_signature(&preimage, &mut txscript, &signature, &public_key, false)?;
+    let is_signature_valid = verify_tx_signature(&preimage, txscript, &signature, &public_key, false)? || verify_tx_signature(&preimage, txscript, &signature, &public_key, true)?;
     Ok(is_signature_valid)
 }
 
@@ -632,7 +632,7 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
 
         // Pop each pubkey because they are only to be compared against once.
         while let Some(public_key) = pubkeys.pop() {
-            let is_signature_valid = verify_tx_signature(&preimage, txscript, &sig, &public_key, false)?;
+            let is_signature_valid = verify_tx_signature(&preimage, txscript, &sig, &public_key, false)? || verify_tx_signature(&preimage, txscript, &sig, &public_key, true)?;
             if is_signature_valid {
                 successes += 1;
                 break;
