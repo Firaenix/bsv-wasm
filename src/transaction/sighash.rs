@@ -364,7 +364,8 @@ impl SighashSignature {
     }
 
     pub(crate) fn from_bytes_impl(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
-        let signature = Signature::from_der_impl(&bytes[..bytes.len() - 1])?;
+        let der_bytes = if bytes.len() <= 72 { bytes } else { &bytes[..bytes.len() - 1] };
+        let signature = Signature::from_der_impl(der_bytes)?;
         let sighash_type: SigHash = bytes
             .last()
             .cloned()
