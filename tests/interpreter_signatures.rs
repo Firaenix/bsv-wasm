@@ -86,7 +86,6 @@ mod interpreter_signature_tests {
     fn multisig_equal_amount_pubkeys_test() {
         let mut tx = Transaction::new(2, 0);
         let pk1 = PrivateKey::from_wif("L2WAdy8C19GHNtZDSkbsVBJrBaF9XHpPLTgmnc2N5aGyguhJf7zh").unwrap();
-
         let pk2 = PrivateKey::from_wif("KxQZuMUEecRFubLb52hmfzK4q1Mq4Wi2FfaEs7ZXHkF2cuJqjK16").unwrap();
         let pk3 = PrivateKey::from_wif("Kz859spUJBWUBTYqesPMbW1kmFZ7BisBSJckSVYthvvFZ8cRnaPd").unwrap();
 
