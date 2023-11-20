@@ -89,8 +89,8 @@ impl PublicKey {
     /**
      * Standard ECDSA Message Verification
      */
-    pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature, reverse_k: bool) -> Result<bool, BSVErrors> {
-        ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256, reverse_k)
+    pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
+        ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256, false)
     }
 
     pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress, BSVErrors> {
@@ -106,8 +106,8 @@ impl PublicKey {
 }
 
 impl PublicKey {
-    pub fn is_valid_message(&self, message: &[u8], signature: &Signature, reverse_k: bool) -> bool {
-        self.verify_message_impl(message, signature, reverse_k).is_ok()
+    pub fn is_valid_message(&self, message: &[u8], signature: &Signature) -> bool {
+        self.verify_message_impl(message, signature).is_ok()
     }
 
     pub fn is_compressed(&self) -> bool {
@@ -139,8 +139,8 @@ impl PublicKey {
         PublicKey::from_private_key_impl(priv_key)
     }
 
-    pub fn verify_message(&self, message: &[u8], signature: &Signature, reverse_k: bool) -> Result<bool, BSVErrors> {
-        self.verify_message_impl(message, signature, reverse_k)
+    pub fn verify_message(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
+        self.verify_message_impl(message, signature)
     }
 
     pub fn to_p2pkh_address(&self) -> Result<P2PKHAddress, BSVErrors> {

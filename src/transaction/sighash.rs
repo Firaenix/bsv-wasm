@@ -1,4 +1,5 @@
 use crate::BSVErrors;
+use crate::DigestAction;
 use crate::ECDSA;
 use std::convert::TryFrom;
 use std::io::Write;
@@ -106,10 +107,18 @@ impl Transaction {
     /**
      * Calculates the SIGHASH buffer and then signs it
      */
-    pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64, reverse_k: bool) -> Result<SighashSignature, BSVErrors> {
+    pub(crate) fn sign_impl(
+        &mut self,
+        priv_key: &PrivateKey,
+        sighash: SigHash,
+        n_tx_in: usize,
+        unsigned_script: &Script,
+        value: u64,
+        reverse_digest: DigestAction,
+    ) -> Result<SighashSignature, BSVErrors> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
 
-        let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, reverse_k)?;
+        let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, reverse_digest)?;
 
         Ok(SighashSignature {
             signature,
@@ -322,14 +331,31 @@ impl Transaction {
 }
 
 impl Transaction {
-    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_k: bool) -> bool {
-        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, reverse_k).unwrap_or(false)
+    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
+        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, false).unwrap_or(false)
+    }
+
+    pub fn verify_legacy(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_digest: bool) -> bool {
+        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, reverse_digest).unwrap_or(false)
     }
 }
 
 impl Transaction {
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64, reverse_k: bool) -> Result<SighashSignature, BSVErrors> {
-        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, reverse_k)
+    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, DigestAction::ReverseK)
+    }
+
+    /// Backwards compatible with `bsv.Transaction.sighash.sign` from the legacy bsv javascript library
+    pub fn sign_legacy(
+        &mut self,
+        priv_key: &PrivateKey,
+        sighash: SigHash,
+        n_tx_in: usize,
+        unsigned_script: &Script,
+        value: u64,
+        digest_action: Option<DigestAction>,
+    ) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, digest_action.unwrap_or(DigestAction::None))
     }
 
     pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {

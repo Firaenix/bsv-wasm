@@ -1,4 +1,5 @@
 use crate::BSVErrors;
+use crate::DigestAction;
 use crate::ECIESCiphertext;
 use crate::ECDSA;
 use crate::ECIES;
@@ -22,7 +23,7 @@ impl PrivateKey {
      * Standard ECDSA Message Signing
      */
     pub(crate) fn sign_message_impl(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
-        ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, false)
+        ECDSA::sign_with_deterministic_k_impl(self, msg, SigningHash::Sha256, DigestAction::None)
     }
 
     pub(crate) fn to_wif_impl(&self) -> Result<String, BSVErrors> {
@@ -184,7 +185,7 @@ impl PrivateKey {
     }
 
     /**
-     * Standard ECDSA Message Signing using SHA256 as the digestg
+     * Standard ECDSA Message Signing using SHA256 as the digest.
      */
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
         PrivateKey::sign_message_impl(self, msg)

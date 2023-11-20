@@ -14,13 +14,13 @@ mod sighash_tests {
         let sighash_buffer = tx.sighash_preimage(sighash, 0, &signing_script, 0).unwrap();
         assert_eq!(sighash_buffer.to_hex(), "010000008bf38a2d3f477a28aba2fe171260ffb0315c7371617ba6e39aea4ed97558c35800000000000000000000000000000000000000000000000000000000000000009e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f0000000002006a0000000000000000ffffffffc7732d98e887792b43e5dae92a159010d22e47d60ed48b88ba7b6c12a3c9e7560000000043000000", "Sighash preimages did not match");
 
-        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0, true).unwrap();
+        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0).unwrap();
         assert_eq!(
             sig.to_hex().unwrap(),
-            "30440220798bd19a0bb1fd5e1b3832e46ae69af687d87cbd179a81e60af719382860aee5022064e628ee1bde5f18dfbbc3940353494a57a7e40cfe80bbd8f6095e46357d109e43"
+            "30440220798bd19a0bb1fd5e1b3832e46ae69af687d87cbd179a81e60af719382860aee502206d849665f4010a54f40d9ac463629cbd758042745cebf7122818d9bfea2bce7043"
         );
 
-        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig, true));
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -36,13 +36,13 @@ mod sighash_tests {
             "01000000019e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f0000000002006affffffff000000000082000000"
         );
 
-        let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0, true).unwrap();
+        let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0).unwrap();
         assert_eq!(
             sig.to_hex().unwrap(),
-            "3045022100ff2ff02e9b30a6c8079ee90d24ce1e231a5e861fa7517ae8389aeddb9b7c4991022055d90f07647d0995f9f6be5d217b0a665ec6e9acc32cdf0653202b666f8b27b082"
+            "3045022100ff2ff02e9b30a6c8079ee90d24ce1e231a5e861fa7517ae8389aeddb9b7c499102202c7deb7a0a5f08dcd1179cc03098b45454d8f704589dd600632a17851a8daddf82"
         );
 
-        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig, true));
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -76,12 +76,12 @@ mod sighash_tests {
         let sighash_buffer = tx.sighash_preimage(sighash, 0, &signing_script, 0).unwrap();
         assert_eq!(sighash_buffer.to_hex(), "01000000029e8d016a7b0dc49a325922d05da1f916d1e4d4f0cb840c9727f3d22ce8d1363f0000000002006affffffffa3195e7a1ab665473ff717814f6881485dc8759bebe97e31c301ffe7933a656f020000000000000000000000000002000000");
 
-        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0, true).unwrap();
+        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0).unwrap();
         assert_eq!(
             sig.to_hex().unwrap(),
-            "304402200a154c40134341fba55cc0d30753de8a72559f196492976dd702d40babc53f8502206cb2f9eb59af78a281b900c73ec58fd5cca938e1c69d7a60002c90842b56223902"
+            "304402200a154c40134341fba55cc0d30753de8a72559f196492976dd702d40babc53f8502200bd904c0b73ea8bffd2b12d381450879f25105be85710dd056aa872afb897cd102"
         );
-        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig, true));
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -98,12 +98,12 @@ mod sighash_tests {
         assert_eq!(Transaction::from_bytes(&sighash_buffer).unwrap(), correct_tx);
         assert_eq!(sighash_buffer.to_hex(), desired_sighash);
 
-        let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0, true).unwrap();
+        let sig = tx.sign(&priv_key, SigHash::try_from(sighash).unwrap(), 0, &signing_script, 0).unwrap();
         assert_eq!(
             sig.to_hex().unwrap(),
-            "30450221008caaf83578ffa42caa22bf15b54e7bbf51645566f41e60de57e771c57752e1cb022014162a88f52f8995fa50d2e18149f5ef699fa545d7658e31e74462e40f454fc883"
+            "30450221008caaf83578ffa42caa22bf15b54e7bbf51645566f41e60de57e771c57752e1cb02204e22fe4a88d98c601e9b52ff05a8d955a24baaaae197c532ed2391149885822483"
         );
-        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig, true));
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 
     #[test]
@@ -119,12 +119,12 @@ mod sighash_tests {
         assert_eq!(Transaction::from_bytes(&sighash_buffer).unwrap(), correct_tx);
         assert_eq!(sighash_buffer.to_hex(), desired_sighash);
 
-        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0, true).unwrap();
+        let sig = tx.sign(&priv_key, sighash, 0, &signing_script, 0).unwrap();
         assert_eq!(
             sig.to_hex().unwrap(),
-            "3045022100e8789a42d6a124434a52b583404f5478be526a325a54e1ebd438a48eb30d007a02205a3571b598e6577f5dd3d850f53d88fcd29c3036bb2d4f7c10e2746ff35ded8f03"
+            "3045022100e8789a42d6a124434a52b583404f5478be526a325a54e1ebd438a48eb30d007a02206aa8339ecaaf217ef2d14677504d71b89fc4a3ede2003facae1f2d62d95f9c7a03"
         );
 
-        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig, true));
+        assert!(tx.verify(&PublicKey::from_private_key(&priv_key), &sig));
     }
 }

@@ -590,7 +590,7 @@ fn checksig(state: &mut State, mut txscript: &mut TxScript) -> Result<bool, Inte
         None => return Err(InterpreterError::InvalidStackOperation("could not read Sighash flag from signature")),
     };
     let preimage = calculate_sighash_preimage(&mut txscript, sighash, state.codeseparator_offset)?;
-    let is_signature_valid = verify_tx_signature(&preimage, txscript, &signature, &public_key, false)? || verify_tx_signature(&preimage, txscript, &signature, &public_key, true)?;
+    let is_signature_valid = verify_tx_signature(&preimage, txscript, &signature, &public_key)?;
     Ok(is_signature_valid)
 }
 
@@ -632,7 +632,7 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
 
         // Pop each pubkey because they are only to be compared against once.
         while let Some(public_key) = pubkeys.pop() {
-            let is_signature_valid = verify_tx_signature(&preimage, txscript, &sig, &public_key, false)? || verify_tx_signature(&preimage, txscript, &sig, &public_key, true)?;
+            let is_signature_valid = verify_tx_signature(&preimage, txscript, &sig, &public_key)?;
             if is_signature_valid {
                 successes += 1;
                 break;
@@ -642,9 +642,9 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
     Ok(successes == sig_count)
 }
 
-fn verify_tx_signature(preimage: &[u8], txscript: &mut TxScript, signature: &[u8], public_key: &[u8], reverse_k: bool) -> Result<bool, InterpreterError> {
+fn verify_tx_signature(preimage: &[u8], txscript: &mut TxScript, signature: &[u8], public_key: &[u8]) -> Result<bool, InterpreterError> {
     let sighash_sig = SighashSignature::from_bytes_impl(signature, preimage)?;
-    let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, reverse_k);
+    let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig) | txscript.tx.verify_legacy(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, false);
     Ok(is_signature_valid)
 }
 

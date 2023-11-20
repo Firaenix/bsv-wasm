@@ -149,7 +149,7 @@ impl P2PKHAddress {
      */
     // #[cfg_attr(all(feature = "wasm-bindgen-address"), wasm_bindgen(js_name = isValidBitcoinMessage))]
     pub fn is_valid_bitcoin_message(&self, message: &[u8], signature: &Signature) -> bool {
-        BSM::verify_message_impl(message, signature, self, false).is_ok()
+        BSM::verify_message_impl(message, signature, self).is_ok()
     }
 }
 
@@ -242,6 +242,6 @@ impl P2PKHAddress {
      * Returns a Result
      */
     pub fn verify_bitcoin_message(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
-        BSM::verify_message_impl(message, signature, self, false)
+        BSM::verify_message_impl(message, signature, self)
     }
 }

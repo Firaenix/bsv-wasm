@@ -1,4 +1,5 @@
 use crate::BSVErrors;
+use crate::DigestAction;
 use crate::VarIntWriter;
 use std::io::Write;
 
@@ -30,7 +31,7 @@ impl BSM {
     pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
-        ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)
+        ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, DigestAction::None)
     }
 
     /**
@@ -42,7 +43,7 @@ impl BSM {
         ECDSA::sign_with_k_impl(priv_key, ephemeral_key, &magic_message, SigningHash::Sha256d)
     }
 
-    pub(crate) fn verify_message_impl(message: &[u8], signature: &Signature, address: &P2PKHAddress, reverse_k: bool) -> Result<bool, BSVErrors> {
+    pub(crate) fn verify_message_impl(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
 
@@ -57,7 +58,7 @@ impl BSM {
                 address_string, verify_address
             )));
         }
-        ECDSA::verify_digest_impl(&magic_message, &public_key, signature, SigningHash::Sha256d, reverse_k)?;
+        ECDSA::verify_digest_impl(&magic_message, &public_key, signature, SigningHash::Sha256d, false)?;
         Ok(true)
     }
 }
@@ -70,13 +71,13 @@ impl BSM {
      * Returns boolean
      */
     pub fn is_valid_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> bool {
-        BSM::verify_message_impl(message, signature, address, false).is_ok()
+        BSM::verify_message_impl(message, signature, address).is_ok()
     }
 }
 
 impl BSM {
     pub fn verify_message(message: &[u8], signature: &Signature, address: &P2PKHAddress) -> Result<bool, BSVErrors> {
-        BSM::verify_message_impl(message, signature, address, false)
+        BSM::verify_message_impl(message, signature, address)
     }
 
     pub fn sign_message(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
