@@ -341,21 +341,8 @@ impl Transaction {
 }
 
 impl Transaction {
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
-        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, DigestAction::ReverseK)
-    }
-
-    /// Backwards compatible with `bsv.Transaction.sighash.sign` from the legacy bsv javascript library
-    pub fn sign_legacy(
-        &mut self,
-        priv_key: &PrivateKey,
-        sighash: SigHash,
-        n_tx_in: usize,
-        unsigned_script: &Script,
-        value: u64,
-        digest_action: Option<DigestAction>,
-    ) -> Result<SighashSignature, BSVErrors> {
-        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, digest_action.unwrap_or(DigestAction::None))
+    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64, digest_action: Option<DigestAction>) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, digest_action.unwrap_or(DigestAction::ReverseK))
     }
 
     pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
