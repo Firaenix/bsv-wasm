@@ -33,11 +33,11 @@ impl ECDSA {
 
         let k = rfc6979_generate_k::<_, D>(&priv_scalar, &k_digest, &[]);
 
-        let msg_digest = match matches!(digest_action, DigestAction::ReverseDigest | DigestAction::ReverseKAndDigest) {
+        let msg_scalar = match matches!(digest_action, DigestAction::ReverseDigest | DigestAction::ReverseKAndDigest) {
             true => <Scalar as Reduce<U256>>::from_le_bytes_reduced(final_digest),
             false => <Scalar as Reduce<U256>>::from_be_bytes_reduced(final_digest),
         };
-        let (signature, recid) = priv_scalar.try_sign_prehashed(**k, msg_digest)?;
+        let (signature, recid) = priv_scalar.try_sign_prehashed(**k, msg_scalar)?;
         let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
         let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;
 
