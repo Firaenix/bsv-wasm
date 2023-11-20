@@ -331,12 +331,8 @@ impl Transaction {
 }
 
 impl Transaction {
-    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
-        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, false).unwrap_or(false)
-    }
-
-    pub fn verify_legacy(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_digest: bool) -> bool {
-        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, reverse_digest).unwrap_or(false)
+    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_digest: Option<bool>) -> bool {
+        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, reverse_digest.unwrap_or(false)).unwrap_or(false)
     }
 }
 

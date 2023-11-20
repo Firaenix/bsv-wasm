@@ -16,7 +16,7 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let signature = tx.sign(&private_key, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let signature = tx.sign(&private_key, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
         let script = Script::from_asm_string(&format!(
             "
             {} {}",
@@ -53,9 +53,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&final_locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &first_locking_script, 0).unwrap();
-        let sig2 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &second_locking_script, 0).unwrap();
-        let sig3 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &third_locking_script, 0).unwrap();
+        let sig1 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &first_locking_script, 0, None).unwrap();
+        let sig2 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &second_locking_script, 0, None).unwrap();
+        let sig3 = tx.sign(&private_key, SigHash::InputsOutputs, 0, &third_locking_script, 0, None).unwrap();
 
         let script = Script::from_asm_string(&format!(
             "
@@ -102,9 +102,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
+        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} {} OP_3", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(), sig3.to_hex().unwrap())).unwrap();
 
@@ -138,9 +138,9 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
+        let sig3 = tx.sign(&pk3, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} {} OP_3", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(), sig3.to_hex().unwrap())).unwrap();
 
@@ -173,8 +173,8 @@ mod interpreter_signature_tests {
         txin.set_locking_script(&locking_script);
         tx.add_input(&txin);
 
-        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0).unwrap();
-        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0).unwrap();
+        let sig1 = tx.sign(&pk1, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
+        let sig2 = tx.sign(&pk2, SigHash::ALL, 0, &locking_script, 0, None).unwrap();
 
         let script = Script::from_asm_string(&format!("OP_1 {} {} OP_2", sig1.to_hex().unwrap(), sig2.to_hex().unwrap(),)).unwrap();
 

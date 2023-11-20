@@ -16,7 +16,6 @@ pub enum SigningHash {
     Sha256d,
 }
 
-#[allow(non_camel_case_types)]
 #[derive(PartialEq, Eq, Clone, Copy)]
 /// Change the byte order of the `k` digest or message digest when generating `ECDSA` signatures.
 pub enum DigestAction {
