@@ -1,4 +1,5 @@
-use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
+use crate::{get_hash_digest, BSVErrors, PublicKey, ReversibleDigest, SigHash, SigningHash, ECDSA};
+use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
 
@@ -53,7 +54,7 @@ impl Signature {
         Signature::from_der_impl(&bytes)
     }
 
-    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
+    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
         let recovery = match &self.recovery {
             Some(v) => v,
             None => {
@@ -68,7 +69,10 @@ impl Signature {
         let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
 
         let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
-        let message_digest = get_hash_digest(hash_algo, message);
+        let message_digest = match reverse_digest.unwrap_or(false) {
+            true => get_hash_digest(hash_algo, message).reverse(),
+            false => get_hash_digest(hash_algo, message),
+        };
         let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
             Ok(v) => v,
             Err(e) => {
@@ -76,7 +80,7 @@ impl Signature {
             }
         };
 
-        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes())?;
+        let pub_key = PublicKey::from_bytes(verify_key.to_encoded_point(recovery.is_pubkey_compressed).as_bytes())?;
 
         Ok(pub_key)
     }
@@ -224,7 +228,7 @@ impl Signature {
         Signature::from_compact_impl(compact_bytes)
     }
 
-    pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
-        Signature::get_public_key(self, message, hash_algo)
+    pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
+        Signature::get_public_key(self, message, hash_algo, reverse_digest)
     }
 }
