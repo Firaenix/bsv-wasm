@@ -16,8 +16,3 @@ pub fn get_hash_digest(hash_algo: SigningHash, preimage: &[u8]) -> impl HashDige
         SigningHash::Sha256d => Digest::chain(Sha256r::default(), Sha256r::digest(preimage)),
     }
 }
-
-/* pub fn get_hash_digest_bytes(hash_algo: SigningHash, preimage: &[u8]) -> HashBuffer {
-    get_hash_digest(hash_algo, preimage).finalize_fixed()
-}
- */

@@ -85,6 +85,37 @@ impl Signature {
         Ok(pub_key)
     }
 
+    pub fn get_public_key_from_digest(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
+        let recovery = match &self.recovery {
+            Some(v) => v,
+            None => {
+                return Err(BSVErrors::PublicKeyRecoveryError(
+                    "No recovery info is provided in this signature, unable to recover private key. Use compact byte serialisation instead.".into(),
+                    ecdsa::Error::new(),
+                ))
+            }
+        };
+
+        let id = ecdsa::RecoveryId::new(recovery.is_y_odd, recovery.is_x_reduced);
+        let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
+
+        let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
+        let message_digest = match reverse_digest.unwrap_or(false) {
+            true => get_hash_digest(hash_algo, message).reverse(),
+            false => get_hash_digest(hash_algo, message),
+        };
+        let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_der_hex(), recovery), e));
+            }
+        };
+
+        let pub_key = PublicKey::from_bytes(verify_key.to_encoded_point(recovery.is_pubkey_compressed).as_bytes())?;
+
+        Ok(pub_key)
+    }
+
     pub fn from_compact_impl(compact_bytes: &[u8]) -> Result<Signature, BSVErrors> {
         // 27-30: P2PKH uncompressed
         // 31-34: P2PKH compressed
