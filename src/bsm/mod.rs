@@ -1,5 +1,4 @@
 use crate::BSVErrors;
-use crate::DigestAction;
 use crate::VarIntWriter;
 use std::io::Write;
 
@@ -31,7 +30,7 @@ impl BSM {
     pub(crate) fn sign_impl(priv_key: &PrivateKey, message: &[u8]) -> Result<Signature, BSVErrors> {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
-        ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, DigestAction::None)
+        ECDSA::sign_with_deterministic_k_impl(priv_key, &magic_message, SigningHash::Sha256d, false)
     }
 
     /**
@@ -58,7 +57,7 @@ impl BSM {
                 address_string, verify_address
             )));
         }
-        ECDSA::verify_digest_impl(&magic_message, &public_key, signature, SigningHash::Sha256d, false)?;
+        ECDSA::verify_digest_impl(&magic_message, &public_key, signature, SigningHash::Sha256d)?;
         Ok(true)
     }
 }

@@ -90,7 +90,7 @@ impl PublicKey {
      * Standard ECDSA Message Verification
      */
     pub(crate) fn verify_message_impl(&self, message: &[u8], signature: &Signature) -> Result<bool, BSVErrors> {
-        ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256, false)
+        ECDSA::verify_digest_impl(message, self, signature, SigningHash::Sha256)
     }
 
     pub(crate) fn to_p2pkh_address_impl(&self) -> Result<P2PKHAddress, BSVErrors> {

@@ -1,11 +1,13 @@
+use crate::get_hash_digest;
 use crate::BSVErrors;
-use crate::DigestAction;
+use crate::ReversibleDigest;
 use crate::ECDSA;
 use std::convert::TryFrom;
 use std::io::Write;
 
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
+use digest::FixedOutput;
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumString;
@@ -107,18 +109,10 @@ impl Transaction {
     /**
      * Calculates the SIGHASH buffer and then signs it
      */
-    pub(crate) fn sign_impl(
-        &mut self,
-        priv_key: &PrivateKey,
-        sighash: SigHash,
-        n_tx_in: usize,
-        unsigned_script: &Script,
-        value: u64,
-        reverse_digest: DigestAction,
-    ) -> Result<SighashSignature, BSVErrors> {
+    pub(crate) fn sign_impl(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
         let buffer = self.sighash_preimage_impl(n_tx_in, sighash, unsigned_script, value)?;
 
-        let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, reverse_digest)?;
+        let signature = ECDSA::sign_with_deterministic_k_impl(priv_key, &buffer, crate::SigningHash::Sha256d, true)?;
 
         Ok(SighashSignature {
             signature,
@@ -331,14 +325,23 @@ impl Transaction {
 }
 
 impl Transaction {
-    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_digest: Option<bool>) -> bool {
-        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d, reverse_digest.unwrap_or(false)).unwrap_or(false)
+    pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
+        ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
+    }
+
+    pub fn _verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_k: bool) -> bool {
+        let digest = get_hash_digest(crate::SigningHash::Sha256d, &sig.sighash_buffer);
+        let hashbuf = match reverse_k {
+            true => digest.reverse().finalize_fixed(),
+            false => digest.finalize_fixed(),
+        };
+        ECDSA::verify_hashbuf_impl(hashbuf, pub_key, &sig.signature).unwrap_or(false)
     }
 }
 
 impl Transaction {
-    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64, digest_action: Option<DigestAction>) -> Result<SighashSignature, BSVErrors> {
-        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value, digest_action.unwrap_or(DigestAction::ReverseK))
+    pub fn sign(&mut self, priv_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {
+        Transaction::sign_impl(self, priv_key, sighash, n_tx_in, unsigned_script, value)
     }
 
     pub fn sign_with_k(&mut self, priv_key: &PrivateKey, ephemeral_key: &PrivateKey, sighash: SigHash, n_tx_in: usize, unsigned_script: &Script, value: u64) -> Result<SighashSignature, BSVErrors> {

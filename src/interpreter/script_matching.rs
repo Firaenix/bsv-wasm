@@ -644,7 +644,7 @@ fn multisig(state: &mut State, txscript: &mut TxScript) -> Result<bool, Interpre
 
 fn verify_tx_signature(preimage: &[u8], txscript: &mut TxScript, signature: &[u8], public_key: &[u8]) -> Result<bool, InterpreterError> {
     let sighash_sig = SighashSignature::from_bytes_impl(signature, preimage)?;
-    let is_signature_valid = txscript.tx.verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, None) | txscript.tx.verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, Some(true));
+    let is_signature_valid = txscript.tx._verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, false) | txscript.tx._verify(&PublicKey::from_bytes_impl(public_key)?, &sighash_sig, true);
     Ok(is_signature_valid)
 }
 

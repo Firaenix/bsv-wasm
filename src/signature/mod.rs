@@ -181,7 +181,7 @@ impl Signature {
 
     // #[cfg_attr(all(feature = "wasm-bindgen-signature"), wasm_bindgen(js_name = verifyMessage))]
     pub fn verify_message(&self, message: &[u8], pub_key: &PublicKey) -> bool {
-        ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256, false).is_ok()
+        ECDSA::verify_digest_impl(message, pub_key, self, SigningHash::Sha256).is_ok()
     }
 }
 
@@ -228,7 +228,11 @@ impl Signature {
         Signature::from_compact_impl(compact_bytes)
     }
 
-    pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
+    pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
+        Signature::get_public_key(self, message, hash_algo, Some(false))
+    }
+
+    pub fn _recover_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
         Signature::get_public_key(self, message, hash_algo, reverse_digest)
     }
 }

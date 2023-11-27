@@ -1,9 +1,11 @@
+pub mod digest_traits;
 pub mod digest_utils;
 pub mod hash160_digest;
 pub mod reverse_digest;
 pub mod sha256d_digest;
 pub mod sha256r_digest;
 
+pub use digest_traits::*;
 pub use digest_utils::*;
 pub use hash160_digest::*;
 pub use reverse_digest::*;

@@ -15,12 +15,3 @@ pub enum SigningHash {
     Sha256,
     Sha256d,
 }
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-/// Change the byte order of the `k` digest or message digest when generating `ECDSA` signatures.
-pub enum DigestAction {
-    None,
-    ReverseK,
-    ReverseDigest,
-    ReverseKAndDigest,
-}

@@ -65,7 +65,7 @@ mod tests {
         let is_verified = signature.verify_message(message, &pub_key);
         assert!(is_verified);
 
-        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256, None).unwrap();
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256).unwrap();
         assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
     }
 
@@ -75,12 +75,12 @@ mod tests {
 
         let message = b"Hello";
 
-        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, DigestAction::None).unwrap();
+        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, false).unwrap();
 
         //let signature = key.sign_message(message).unwrap();
         let pub_key = PublicKey::from_private_key(&key);
 
-        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d, None).unwrap();
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d).unwrap();
         assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
     }
 
@@ -90,12 +90,12 @@ mod tests {
 
         let message = b"Hello";
 
-        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, DigestAction::ReverseKAndDigest).unwrap();
+        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, true).unwrap();
 
         //let signature = key.sign_message(message).unwrap();
         let pub_key = PublicKey::from_private_key(&key);
 
-        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d, Some(true)).unwrap();
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d).unwrap();
         assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
     }
 
