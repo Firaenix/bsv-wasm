@@ -580,7 +580,7 @@ impl Interpreter {
     }
 }
 
-fn checksig(state: &mut State, mut txscript: &mut TxScript) -> Result<bool, InterpreterError> {
+fn checksig(state: &mut State, txscript: &mut TxScript) -> Result<bool, InterpreterError> {
     let public_key = state.stack.pop_bytes()?;
     let signature = state.stack.pop_bytes()?;
     let sighash_byte = signature.last().cloned();
@@ -589,7 +589,7 @@ fn checksig(state: &mut State, mut txscript: &mut TxScript) -> Result<bool, Inte
         Some(x) => SigHash::try_from(x).map_err(|_| InterpreterError::FailedToConvertSighash)?,
         None => return Err(InterpreterError::InvalidStackOperation("could not read Sighash flag from signature")),
     };
-    let preimage = calculate_sighash_preimage(&mut txscript, sighash, state.codeseparator_offset)?;
+    let preimage = calculate_sighash_preimage(txscript, sighash, state.codeseparator_offset)?;
     let is_signature_valid = verify_tx_signature(&preimage, txscript, &signature, &public_key)?;
     Ok(is_signature_valid)
 }

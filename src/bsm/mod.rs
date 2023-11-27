@@ -46,7 +46,7 @@ impl BSM {
         let magic_message = BSM::prepend_magic_bytes(message)?;
         // let magic_message = message;
 
-        let public_key = signature.get_public_key(&magic_message, SigningHash::Sha256d, None)?;
+        let public_key = signature.get_public_key(&magic_message, SigningHash::Sha256d)?;
         let verify_p2pkh = P2PKHAddress::from_pubkey_impl(&public_key)?;
 
         let verify_address = verify_p2pkh.to_string_impl()?;

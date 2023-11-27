@@ -1,14 +1,13 @@
 use crate::get_hash_digest;
 use crate::hash::sha256d_digest::Sha256d;
 use crate::BSVErrors;
-use crate::HashBuffer;
+use crate::DigestBytes;
 use crate::PrivateKey;
 use crate::RecoveryInfo;
 use crate::Sha256r;
 use crate::Signature;
 use crate::SigningHash;
 use crate::ECDSA;
-use digest::consts::U32;
 use digest::generic_array::GenericArray;
 use digest::{Digest, FixedOutput};
 use ecdsa::hazmat::{rfc6979_generate_k, SignPrimitive};
@@ -23,7 +22,7 @@ use sha2::Sha256;
 impl ECDSA {
     fn sign_preimage_deterministic_k<D>(priv_key: &SecretKey, digest: D, reverse_endian_k: bool) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors>
     where
-        D: FixedOutput<OutputSize = U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
+        D: FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest,
     {
         let priv_scalar = priv_key.to_nonzero_scalar();
         let final_digest = digest.finalize_fixed();
@@ -45,7 +44,7 @@ impl ECDSA {
         Ok((sig, Some(id.into())))
     }
 
-    fn sign_digest_bytes_deterministic_k(priv_key: &SecretKey, digest_bytes: HashBuffer) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors> {
+    fn sign_digest_bytes_deterministic_k(priv_key: &SecretKey, digest_bytes: DigestBytes) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors> {
         let priv_scalar = priv_key.to_nonzero_scalar();
         let msg_scalar = <Scalar as Reduce<U256>>::from_be_bytes_reduced(digest_bytes);
 
@@ -111,7 +110,7 @@ impl ECDSA {
     /**
      * Signs the preimage hash digest directly. I hope you know what you're doing!
      */
-    pub(crate) fn sign_digest_with_deterministic_k_impl(private_key: &PrivateKey, digest: &HashBuffer) -> Result<Signature, BSVErrors> {
+    pub(crate) fn sign_digest_with_deterministic_k_impl(private_key: &PrivateKey, digest: &DigestBytes) -> Result<Signature, BSVErrors> {
         let (sig, recovery) = ECDSA::sign_digest_bytes_deterministic_k(&private_key.secret_key, *digest)?;
 
         Ok(Signature {

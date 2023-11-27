@@ -1,4 +1,5 @@
-use crate::{get_hash_digest, BSVErrors, PublicKey, ReversibleDigest, SigHash, SigningHash, ECDSA};
+use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
+use digest::generic_array::GenericArray;
 use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
@@ -54,7 +55,7 @@ impl Signature {
         Signature::from_der_impl(&bytes)
     }
 
-    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
+    pub fn get_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         let recovery = match &self.recovery {
             Some(v) => v,
             None => {
@@ -69,10 +70,7 @@ impl Signature {
         let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
 
         let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
-        let message_digest = match reverse_digest.unwrap_or(false) {
-            true => get_hash_digest(hash_algo, message).reverse(),
-            false => get_hash_digest(hash_algo, message),
-        };
+        let message_digest = get_hash_digest(hash_algo, message);
         let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
             Ok(v) => v,
             Err(e) => {
@@ -85,7 +83,7 @@ impl Signature {
         Ok(pub_key)
     }
 
-    pub fn get_public_key_from_digest(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
+    pub fn get_public_key_from_digest(&self, digest: &[u8]) -> Result<PublicKey, BSVErrors> {
         let recovery = match &self.recovery {
             Some(v) => v,
             None => {
@@ -100,11 +98,7 @@ impl Signature {
         let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
 
         let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
-        let message_digest = match reverse_digest.unwrap_or(false) {
-            true => get_hash_digest(hash_algo, message).reverse(),
-            false => get_hash_digest(hash_algo, message),
-        };
-        let verify_key = match recoverable_sig.recover_verify_key_from_digest(message_digest) {
+        let verify_key = match recoverable_sig.recover_verify_key_from_digest_bytes(GenericArray::from_slice(digest)) {
             Ok(v) => v,
             Err(e) => {
                 return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_der_hex(), recovery), e));
@@ -260,10 +254,10 @@ impl Signature {
     }
 
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
-        Signature::get_public_key(self, message, hash_algo, Some(false))
+        Signature::get_public_key(self, message, hash_algo)
     }
 
-    pub fn _recover_public_key(&self, message: &[u8], hash_algo: SigningHash, reverse_digest: Option<bool>) -> Result<PublicKey, BSVErrors> {
-        Signature::get_public_key(self, message, hash_algo, reverse_digest)
+    pub fn recover_public_key_from_digest(&self, digest: &[u8]) -> Result<PublicKey, BSVErrors> {
+        Signature::get_public_key_from_digest(self, digest)
     }
 }

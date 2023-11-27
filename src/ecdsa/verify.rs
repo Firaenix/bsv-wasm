@@ -1,7 +1,5 @@
 use crate::BSVErrors;
-use crate::HashBuffer;
-use crate::HashDigest;
-use crate::ReversibleDigest;
+use crate::DigestBytes;
 use crate::Signature;
 use crate::{get_hash_digest, PublicKey, SigningHash, ECDSA};
 use digest::generic_array::GenericArray;
@@ -23,7 +21,7 @@ impl ECDSA {
         Ok(true)
     }
 
-    pub(crate) fn verify_hashbuf_impl(digest: HashBuffer, pub_key: &PublicKey, signature: &Signature) -> Result<bool, BSVErrors> {
+    pub(crate) fn verify_hashbuf_impl(digest: DigestBytes, pub_key: &PublicKey, signature: &Signature) -> Result<bool, BSVErrors> {
         let pub_key_bytes = pub_key.to_bytes_impl()?;
         let z = <Scalar as Reduce<U256>>::from_be_bytes_reduced(digest);
         let point = EncodedPoint::from_bytes(pub_key_bytes).map_err(|e| BSVErrors::CustomECDSAError(e.to_string()))?;

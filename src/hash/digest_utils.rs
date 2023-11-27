@@ -1,6 +1,7 @@
-use crate::{ReversibleDigest, Sha256r, SigningHash};
+use crate::{Sha256r, SigningHash};
 use digest::consts::U32;
-use digest::{generic_array::GenericArray, Digest, FixedOutput};
+use digest::generic_array::GenericArray;
+use digest::{Digest, FixedOutput};
 // Reenable this when trait aliases become stable
 // pub trait Digest32 = digest::FixedOutput<OutputSize = digest::consts::U32> + digest::BlockInput + Clone + Default + digest::Reset + digest::Update + crate::ReversibleDigest;
 
@@ -8,7 +9,7 @@ pub trait HashDigest: FixedOutput<OutputSize = U32> + digest::BlockInput + Clone
 
 impl HashDigest for Sha256r {}
 
-pub type HashBuffer = GenericArray<u8, U32>;
+pub type DigestBytes = GenericArray<u8, U32>;
 
 pub fn get_hash_digest(hash_algo: SigningHash, preimage: &[u8]) -> impl HashDigest {
     match hash_algo {
