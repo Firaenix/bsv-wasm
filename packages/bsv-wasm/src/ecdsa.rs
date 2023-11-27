@@ -51,11 +51,19 @@ impl ECDSA {
         Ok(Signature(BSVECDSA::sign_with_deterministic_k(&private_key.0, preimage, hash_algo.into(), reverse_k)?))
     }
 
+    pub fn sign_digest_with_deterministic_k(private_key: &PrivateKey, digest: &[u8]) -> Result<Signature, wasm_bindgen::JsError> {
+        Ok(Signature(BSVECDSA::sign_digest_with_deterministic_k(&private_key.0, digest)?))
+    }
+
     pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, wasm_bindgen::JsError> {
         Ok(Signature(BSVECDSA::sign_with_k(&private_key.0, &ephemeral_key.0, preimage, hash_algo.into())?))
     }
 
     pub fn verify_digest(message: &[u8], pub_key: &PublicKey, signature: &Signature, hash_algo: SigningHash) -> Result<bool, wasm_bindgen::JsError> {
         Ok(BSVECDSA::verify_digest(message, &pub_key.0, &signature.0, hash_algo.into())?)
+    }
+
+    pub fn verify_hashbuf(digest: &[u8], pub_key: &PublicKey, signature: &Signature) -> Result<bool, wasm_bindgen::JsError> {
+        Ok(BSVECDSA::verify_hashbuf(digest, &pub_key.0, &signature.0)?)
     }
 }
