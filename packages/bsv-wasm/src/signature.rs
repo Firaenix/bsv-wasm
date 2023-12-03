@@ -56,6 +56,10 @@ impl Signature {
         Ok(PublicKey(self.0.recover_public_key(message, hash_algo.into())?))
     }
 
+    pub fn recover_public_key_from_digest(&self, digest: &[u8]) -> Result<PublicKey, wasm_bindgen::JsError> {
+        Ok(PublicKey(self.0.recover_public_key_from_digest(digest)?))
+    }
+
     pub fn to_der_hex(&self) -> String {
         BSVSignature::to_der_hex(&self.0)
     }

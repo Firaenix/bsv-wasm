@@ -70,6 +70,32 @@ mod tests {
     }
 
     #[test]
+    fn recover_pub_key_from_signature_sha256d() {
+        let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
+        let message = b"Hello";
+
+        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, false).unwrap();
+
+        let pub_key = PublicKey::from_private_key(&key);
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d).unwrap();
+
+        assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
+    }
+
+    #[test]
+    fn recover_pub_key_from_signature_sha256d_reverse_k() {
+        let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
+        let message = b"Hello";
+
+        let signature = ECDSA::sign_with_deterministic_k(&key, message, SigningHash::Sha256d, true).unwrap();
+
+        let pub_key = PublicKey::from_private_key(&key);
+        let recovered_pub_key = signature.recover_public_key(message, SigningHash::Sha256d).unwrap();
+
+        assert_eq!(pub_key.to_hex().unwrap(), recovered_pub_key.to_hex().unwrap());
+    }
+
+    #[test]
     fn to_compact_test() {
         let key = PrivateKey::from_wif("L4rGfRz3Q994Xns9wWti75K2CjxrCuzCqUAwN6yW7ia9nj4SDG32").unwrap();
 

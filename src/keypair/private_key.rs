@@ -184,7 +184,7 @@ impl PrivateKey {
     }
 
     /**
-     * Standard ECDSA Message Signing using SHA256 as the digestg
+     * Standard ECDSA Message Signing using SHA256 as the digest.
      */
     pub fn sign_message(&self, msg: &[u8]) -> Result<Signature, BSVErrors> {
         PrivateKey::sign_message_impl(self, msg)

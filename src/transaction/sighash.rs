@@ -1,10 +1,13 @@
+use crate::get_hash_digest;
 use crate::BSVErrors;
+use crate::ReversibleDigest;
 use crate::ECDSA;
 use std::convert::TryFrom;
 use std::io::Write;
 
 use crate::{transaction::*, Hash, PrivateKey, PublicKey, Script, Signature};
 use byteorder::{LittleEndian, WriteBytesExt};
+use digest::FixedOutput;
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumString;
@@ -325,6 +328,15 @@ impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
         ECDSA::verify_digest_impl(&sig.sighash_buffer, pub_key, &sig.signature, crate::SigningHash::Sha256d).unwrap_or(false)
     }
+
+    pub fn _verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_k: bool) -> bool {
+        let digest = get_hash_digest(crate::SigningHash::Sha256d, &sig.sighash_buffer);
+        let hashbuf = match reverse_k {
+            true => digest.reverse().finalize_fixed(),
+            false => digest.finalize_fixed(),
+        };
+        ECDSA::verify_hashbuf_impl(hashbuf, pub_key, &sig.signature).unwrap_or(false)
+    }
 }
 
 impl Transaction {
@@ -364,7 +376,8 @@ impl SighashSignature {
     }
 
     pub(crate) fn from_bytes_impl(bytes: &[u8], sighash_buffer: &[u8]) -> Result<Self, BSVErrors> {
-        let signature = Signature::from_der_impl(&bytes[..bytes.len() - 1])?;
+        let der_bytes = if bytes.len() <= 72 { bytes } else { &bytes[..bytes.len() - 1] };
+        let signature = Signature::from_der_impl(der_bytes)?;
         let sighash_type: SigHash = bytes
             .last()
             .cloned()

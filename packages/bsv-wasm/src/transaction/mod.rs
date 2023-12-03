@@ -276,4 +276,8 @@ impl Transaction {
     pub fn verify(&self, pub_key: &PublicKey, sig: &SighashSignature) -> bool {
         self.0.verify(&pub_key.0, &sig.0)
     }
+
+    pub fn _verify(&self, pub_key: &PublicKey, sig: &SighashSignature, reverse_digest: bool) -> bool {
+        self.0._verify(&pub_key.0, &sig.0, reverse_digest)
+    }
 }
