@@ -1,6 +1,6 @@
 [package]
 name = "bsv"
-version = "2.1.0"
+version = "2.1.1"
 authors = ["Firaenix <Nick.Carton@gmail.com>"]
 edition = "2021"
 description = "A Bitcoin stdlib"
