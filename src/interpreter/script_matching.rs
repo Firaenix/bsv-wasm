@@ -41,6 +41,7 @@ impl Interpreter {
                 self.state.executed_opcodes.push(*size);
                 self.state.clone()
             }
+            ScriptBit::NonScriptData(_) => return Err(InterpreterError::NonScriptData),
             ScriptBit::If { code, pass, fail } => {
                 let predicate = self.state.stack.pop_bool()?;
                 self.state.executed_opcodes.push(*code);

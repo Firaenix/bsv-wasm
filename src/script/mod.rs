@@ -45,6 +45,7 @@ impl Script {
                     true => format!("{} {} {}", code, bytes.len(), hex::encode(bytes)),
                     false => hex::encode(bytes),
                 },
+                ScriptBit::NonScriptData(bytes) => format!("non-script-data:{}", hex::encode(bytes)),
                 ScriptBit::OpCode(code) => code.to_string(),
                 ScriptBit::If { code, pass, fail } => {
                     let mut string_parts = vec![];
@@ -96,6 +97,11 @@ impl Script {
                     pushbytes.extend(bytes);
                     pushbytes
                 }
+                ScriptBit::NonScriptData(bytes) => {
+                    let mut pushbytes = vec![];
+                    pushbytes.extend(bytes);
+                    pushbytes
+                }
                 ScriptBit::If { code, pass, fail } => {
                     let mut bytes = vec![*code as u8];
 
@@ -116,6 +122,30 @@ impl Script {
         bytes
     }
 
+    fn check_script_bits(codes: &[ScriptBit]) -> () {
+        if codes.len() == 0 {
+            return;
+        }
+        let mut is_non_script_data = false;
+        for (i, scriptbit) in codes.iter().enumerate() {
+            match scriptbit {
+                ScriptBit::OpCode(OpCodes::OP_RETURN) => {
+                    is_non_script_data = true;
+                }
+                ScriptBit::NonScriptData(_) => {
+                    if is_non_script_data != true {
+                        panic!("NonScriptData can only appear after OP_RETURN");
+                    }
+
+                    if i != codes.len() - 1 {
+                        panic!("NonScriptData can only appear at the end of the script!");
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+
     pub fn to_asm_string_impl(&self, extended: bool) -> String {
         Script::script_bits_to_asm_string(&self.0, extended)
     }
@@ -128,11 +158,43 @@ impl Script {
         let mut cursor = Cursor::new(bytes);
 
         let mut bit_accumulator = vec![];
+        let mut scope_level = 0;
         while let Ok(byte) = cursor.read_u8() {
+            if byte.eq(&(OpCodes::OP_IF as u8)) || byte.eq(&(OpCodes::OP_NOTIF as u8)) {
+                scope_level += 1;
+            } else if byte.eq(&(OpCodes::OP_ENDIF as u8)) {
+                scope_level -= 1;
+            } else if byte.eq(&(OpCodes::OP_RETURN as u8)) && scope_level == 0 {
+                bit_accumulator.push(ScriptBit::OpCode(OpCodes::OP_RETURN));
+
+                let len = cursor.get_ref().len();
+
+                let non_script_data_length = len - cursor.position() as usize;
+
+                if non_script_data_length > 0 {
+                    let mut data: Vec<u8> = vec![0; non_script_data_length as usize];
+
+                    match cursor.read(&mut data) {
+                        Ok(_) => {
+                            bit_accumulator.push(ScriptBit::NonScriptData(data));
+                        }
+                        Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
+                    }
+                }
+
+                break;
+            }
+
             if byte.ne(&(OpCodes::OP_0 as u8)) && byte.lt(&(OpCodes::OP_PUSHDATA1 as u8)) {
                 let mut data: Vec<u8> = vec![0; byte as usize];
                 match cursor.read(&mut data) {
-                    Ok(len) => bit_accumulator.push(ScriptBit::Push(data[..len].to_vec())),
+                    Ok(len) => {
+                        if len == byte as usize {
+                            bit_accumulator.push(ScriptBit::Push(data));
+                        } else {
+                            return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data")));
+                        }
+                    }
                     Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
                 }
                 continue;
@@ -147,11 +209,17 @@ impl Script {
                     };
 
                     let mut data = vec![0; data_length];
-                    if let Err(e) = cursor.read(&mut data) {
-                        return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSHDATA data {}", e)));
-                    }
 
-                    ScriptBit::PushData(v, data)
+                    match cursor.read(&mut data) {
+                        Ok(len) => {
+                            if len == data_length as usize {
+                                ScriptBit::PushData(v, data)
+                            } else {
+                                return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data")));
+                            }
+                        }
+                        Err(e) => return Err(BSVErrors::DeserialiseScript(format!("Failed to read OP_PUSH data {}", e))),
+                    }
                 }
                 Some(v) => ScriptBit::OpCode(v),
                 None => return Err(BSVErrors::DeserialiseScript(format!("Unknown opcode {}", byte))),
@@ -169,8 +237,9 @@ impl Script {
         Ok(Script(vec![ScriptBit::Coinbase(bytes.to_vec())]))
     }
 
-    fn map_string_to_script_bit(code: &str) -> Result<ScriptBit, BSVErrors> {
+    fn map_string_to_script_bit(code: &str, is_non_script_data: bool) -> Result<ScriptBit, BSVErrors> {
         let code = code.trim();
+
         // Number OP_CODES
         match code {
             "0" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
@@ -196,6 +265,15 @@ impl Script {
         // Standard OP_CODES
         if let Ok(opcode) = OpCodes::from_str(code) {
             return Ok(ScriptBit::OpCode(opcode));
+        }
+
+        if code.starts_with("non-script-data:") {
+            if is_non_script_data {
+                let non_script_data = hex::decode(code.trim_start_matches("non-script-data:"))?;
+                return Ok(ScriptBit::NonScriptData(non_script_data));
+            } else {
+                return Err(BSVErrors::InvalidNonScriptData());
+            }
         }
 
         // PUSHDATA OP_CODES
@@ -263,11 +341,78 @@ impl Script {
         Ok(nested_bits)
     }
 
-    pub fn from_asm_string(asm: &str) -> Result<Script, BSVErrors> {
-        let bits: Result<Vec<ScriptBit>, _> = asm.split(' ').filter(|x| !(x.is_empty() || x == &"\n" || x == &"\r")).map(Script::map_string_to_script_bit).collect();
-        let bits = Script::if_statement_pass(&mut bits?.iter())?;
+    /**
+     * Ordinary ASM, (for example, OP_RETURN 01 01) does not contain ScriptBit::NonScriptData after being converted into ScriptBit.
+     * This function wraps all ScriptBit after OP_RETURN with ScriptBit::NonScriptData.
+     */
+    fn wrap_with_non_script_data(bits_iter: &mut Iter<ScriptBit>, non_script_data_index: usize) -> Vec<ScriptBit> {
+        let mut bits = vec![];
+        let mut non_script_data_bits = vec![];
+        let mut index: usize = 0;
+        while let Some(thing) = bits_iter.next() {
+            if index >= non_script_data_index {
+                match thing {
+                    ScriptBit::NonScriptData(b) => bits.push(ScriptBit::NonScriptData(b.to_vec())),
+                    o => non_script_data_bits.push(o.clone()),
+                }
+            } else {
+                bits.push(thing.clone())
+            }
+            index += 1;
+        }
 
-        Ok(Script(bits))
+        if non_script_data_bits.len() > 0 {
+            bits.push(ScriptBit::NonScriptData(Script::script_bits_to_bytes(&non_script_data_bits)))
+        }
+
+        bits
+    }
+
+    pub fn from_asm_string(asm: &str) -> Result<Script, BSVErrors> {
+        let mut scope_level = 0;
+
+        let mut is_non_script_data = false;
+
+        let mut non_script_data_index: usize = usize::MAX;
+
+        let bits: Result<Vec<ScriptBit>, _> = asm
+            .split(' ')
+            .filter(|x| !(x.is_empty() || x == &"\n" || x == &"\r"))
+            .enumerate()
+            .map(|(i, x)| match Script::map_string_to_script_bit(x, is_non_script_data) {
+                Ok(bit) => {
+                    match bit {
+                        ScriptBit::OpCode(_v @ (OpCodes::OP_IF | OpCodes::OP_NOTIF | OpCodes::OP_VERIF | OpCodes::OP_VERNOTIF)) => {
+                            scope_level += 1;
+                        }
+                        ScriptBit::OpCode(OpCodes::OP_ENDIF) => {
+                            scope_level -= 1;
+                        }
+                        ScriptBit::OpCode(OpCodes::OP_RETURN) => {
+                            if scope_level == 0 {
+                                is_non_script_data = true;
+                                non_script_data_index = i + 1;
+                            }
+                        }
+                        _ => (),
+                    }
+                    Ok(bit)
+                }
+                Err(e) => Err(e),
+            })
+            .collect();
+
+        if non_script_data_index != usize::MAX {
+            let bits = Script::wrap_with_non_script_data(&mut bits?.iter(), non_script_data_index);
+
+            let bits = Script::if_statement_pass(&mut bits.iter())?;
+
+            return Ok(Script(bits));
+        } else {
+            let bits = Script::if_statement_pass(&mut bits?.iter())?;
+
+            return Ok(Script(bits));
+        }
     }
 
     pub fn get_pushdata_prefix_bytes(length: usize) -> Result<Vec<u8>, BSVErrors> {
@@ -332,6 +477,7 @@ impl Script {
     }
 
     pub fn from_script_bits(bits: Vec<ScriptBit>) -> Script {
+        Script::check_script_bits(&bits);
         Script(bits)
     }
 
