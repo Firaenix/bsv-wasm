@@ -1,4 +1,6 @@
 use crate::{get_hash_digest, BSVErrors, PublicKey, SigHash, SigningHash, ECDSA};
+use digest::generic_array::GenericArray;
+use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::{ecdsa::recoverable, ecdsa::Signature as SecpSignature, FieldBytes};
 use num_traits::FromPrimitive;
 
@@ -76,7 +78,34 @@ impl Signature {
             }
         };
 
-        let pub_key = PublicKey::from_bytes_impl(&verify_key.to_bytes())?;
+        let pub_key = PublicKey::from_bytes(verify_key.to_encoded_point(recovery.is_pubkey_compressed).as_bytes())?;
+
+        Ok(pub_key)
+    }
+
+    pub fn get_public_key_from_digest(&self, digest: &[u8]) -> Result<PublicKey, BSVErrors> {
+        let recovery = match &self.recovery {
+            Some(v) => v,
+            None => {
+                return Err(BSVErrors::PublicKeyRecoveryError(
+                    "No recovery info is provided in this signature, unable to recover private key. Use compact byte serialisation instead.".into(),
+                    ecdsa::Error::new(),
+                ))
+            }
+        };
+
+        let id = ecdsa::RecoveryId::new(recovery.is_y_odd, recovery.is_x_reduced);
+        let k256_recovery = id.try_into().map_err(|e| BSVErrors::PublicKeyRecoveryError("".into(), e))?;
+
+        let recoverable_sig = recoverable::Signature::new(&self.sig, k256_recovery)?;
+        let verify_key = match recoverable_sig.recover_verify_key_from_digest_bytes(GenericArray::from_slice(digest)) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(BSVErrors::PublicKeyRecoveryError(format!("Signature Hex: {} Id: {:?}", self.to_der_hex(), recovery), e));
+            }
+        };
+
+        let pub_key = PublicKey::from_bytes(verify_key.to_encoded_point(recovery.is_pubkey_compressed).as_bytes())?;
 
         Ok(pub_key)
     }
@@ -226,5 +255,9 @@ impl Signature {
 
     pub fn recover_public_key(&self, message: &[u8], hash_algo: SigningHash) -> Result<PublicKey, BSVErrors> {
         Signature::get_public_key(self, message, hash_algo)
+    }
+
+    pub fn recover_public_key_from_digest(&self, digest: &[u8]) -> Result<PublicKey, BSVErrors> {
+        Signature::get_public_key_from_digest(self, digest)
     }
 }

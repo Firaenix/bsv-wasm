@@ -1,19 +1,20 @@
 use crate::get_hash_digest;
 use crate::hash::sha256d_digest::Sha256d;
 use crate::BSVErrors;
+use crate::DigestBytes;
 use crate::PrivateKey;
 use crate::RecoveryInfo;
+use crate::Sha256r;
 use crate::Signature;
 use crate::SigningHash;
 use crate::ECDSA;
+use digest::generic_array::GenericArray;
 use digest::{Digest, FixedOutput};
 use ecdsa::hazmat::{rfc6979_generate_k, SignPrimitive};
 use ecdsa::RecoveryId;
 use elliptic_curve::ops::Reduce;
-use k256::ecdsa::recoverable;
-use k256::FieldBytes;
-use k256::U256;
-use k256::{ecdsa::Signature as SecpSignature, Scalar, SecretKey};
+use k256::ecdsa::{recoverable, Signature as SecpSignature};
+use k256::{FieldBytes, Scalar, SecretKey, U256};
 use rand_core::OsRng;
 use rand_core::RngCore;
 use sha2::Sha256;
@@ -33,6 +34,22 @@ impl ECDSA {
         let k = rfc6979_generate_k::<_, D>(&priv_scalar, &k_digest, &[]);
 
         let msg_scalar = <Scalar as Reduce<U256>>::from_be_bytes_reduced(final_digest);
+        let (signature, recid) = priv_scalar.try_sign_prehashed(**k, msg_scalar)?;
+        let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
+        let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;
+
+        let id = rec_sig.recovery_id();
+        let sig = SecpSignature::from(rec_sig);
+
+        Ok((sig, Some(id.into())))
+    }
+
+    fn sign_digest_bytes_deterministic_k(priv_key: &SecretKey, digest_bytes: DigestBytes) -> Result<(SecpSignature, Option<RecoveryId>), BSVErrors> {
+        let priv_scalar = priv_key.to_nonzero_scalar();
+        let msg_scalar = <Scalar as Reduce<U256>>::from_be_bytes_reduced(digest_bytes);
+
+        let k = rfc6979_generate_k::<_, Sha256r>(&priv_scalar, &msg_scalar, &[]);
+
         let (signature, recid) = priv_scalar.try_sign_prehashed(**k, msg_scalar)?;
         let recoverable_id = recid.ok_or_else(ecdsa::Error::new)?.try_into()?;
         let rec_sig = recoverable::Signature::new(&signature, recoverable_id)?;
@@ -91,6 +108,18 @@ impl ECDSA {
     }
 
     /**
+     * Signs the preimage hash digest directly. I hope you know what you're doing!
+     */
+    pub(crate) fn sign_digest_with_deterministic_k_impl(private_key: &PrivateKey, digest: &DigestBytes) -> Result<Signature, BSVErrors> {
+        let (sig, recovery) = ECDSA::sign_digest_bytes_deterministic_k(&private_key.secret_key, *digest)?;
+
+        Ok(Signature {
+            sig,
+            recovery: recovery.map(|x| RecoveryInfo::new(x.is_y_odd(), x.is_x_reduced(), private_key.is_pub_key_compressed)),
+        })
+    }
+
+    /**
      * Hashes the preimage with the specified Hashing algorithm and then signs the specified message.
      * Secp256k1 signature inputs must be 32 bytes in length - SigningAlgo will output a 32 byte buffer.
      * HASH+HMAC can be reversed for K generation if necessary.
@@ -134,5 +163,9 @@ impl ECDSA {
 
     pub fn sign_with_k(private_key: &PrivateKey, ephemeral_key: &PrivateKey, preimage: &[u8], hash_algo: SigningHash) -> Result<Signature, BSVErrors> {
         ECDSA::sign_with_k_impl(private_key, ephemeral_key, preimage, hash_algo)
+    }
+
+    pub fn sign_digest_with_deterministic_k(private_key: &PrivateKey, digest: &[u8]) -> Result<Signature, BSVErrors> {
+        ECDSA::sign_digest_with_deterministic_k_impl(private_key, GenericArray::from_slice(digest))
     }
 }
