@@ -1,4 +1,4 @@
-use crate::OpCodes::OP_0;
+use crate::OpCodes::{OP_0,OP_1};
 use std::str::FromStr;
 
 use crate::{BSVErrors, OpCodes, PublicKey, Script, ScriptBit, Signature, VarInt};
@@ -64,6 +64,8 @@ pub struct ScriptTemplate(Vec<MatchToken>);
 
 impl ScriptTemplate {
     fn map_string_to_match_token(code: &str) -> Result<MatchToken, ScriptTemplateErrors> {
+        let code = code.trim();
+
         // Number OP_CODES
         if code.len() < 3 {
             if let Ok(num_code) = u8::from_str(code) {
@@ -73,6 +75,12 @@ impl ScriptTemplate {
                     _ => (),
                 }
             }
+        }
+
+        match code {
+            "OP_FALSE" => return Ok(MatchToken::OpCode(OP_0)),
+            "OP_TRUE" => return Ok(MatchToken::OpCode(OP_1)),
+            _ => (),
         }
 
         // Standard OP_CODES

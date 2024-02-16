@@ -174,7 +174,11 @@ impl Script {
         // Number OP_CODES
         match code {
             "0" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
+            "00" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
+            "OP_FALSE" => return Ok(ScriptBit::OpCode(OpCodes::OP_0)),
             "1" => return Ok(ScriptBit::OpCode(OpCodes::OP_1)),
+            "01" => return Ok(ScriptBit::OpCode(OpCodes::OP_1)),
+            "OP_TRUE" => return Ok(ScriptBit::OpCode(OpCodes::OP_1)),
             "2" => return Ok(ScriptBit::OpCode(OpCodes::OP_2)),
             "3" => return Ok(ScriptBit::OpCode(OpCodes::OP_3)),
             "4" => return Ok(ScriptBit::OpCode(OpCodes::OP_4)),
