@@ -25,13 +25,65 @@ pub use script_template::*;
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script(pub(crate) Vec<ScriptBit>);
 
+pub struct ScriptIter<'a> {
+    scriptbit_iter: Vec<Iter<'a, ScriptBit>>,
+}
+
+impl<'a> Iterator for ScriptIter<'a> {
+    type Item = &'a ScriptBit;
+
+    fn next(&mut self) -> Option<&'a ScriptBit> {
+        let next = loop {
+            match self.scriptbit_iter.last_mut() {
+                None => return None,
+                Some(last) => {
+                    match last.next() {
+                        Some(next) => break next,
+                        _ => ()
+                    }
+                }
+            }
+            self.scriptbit_iter.pop();
+        };
+        match next {
+            ScriptBit::If { code, pass, fail } => {
+                static SCRIPTBITS_ENDIF: &'static [ScriptBit; 1] = &[ScriptBit::OpCode(OpCodes::OP_ENDIF)];
+                self.scriptbit_iter.push(SCRIPTBITS_ENDIF.iter());
+                if let Some(fail) = fail {
+                    self.scriptbit_iter.push(fail.iter());
+                    static SCRIPTBITS_ELSE: &'static [ScriptBit; 1] = &[ScriptBit::OpCode(OpCodes::OP_ELSE)];
+                    self.scriptbit_iter.push(SCRIPTBITS_ELSE.iter());
+                }
+                self.scriptbit_iter.push(pass.iter());
+                match *code {
+                    OpCodes::OP_IF => Some(&ScriptBit::OpCode(OpCodes::OP_IF)),
+                    OpCodes::OP_NOTIF => Some(&ScriptBit::OpCode(OpCodes::OP_NOTIF)),
+                    OpCodes::OP_VERIF => Some(&ScriptBit::OpCode(OpCodes::OP_VERIF)),
+                    OpCodes::OP_VERNOTIF => Some(&ScriptBit::OpCode(OpCodes::OP_VERNOTIF)),
+                    _ =>  Some(&ScriptBit::OpCode(OpCodes::OP_NOP)) // error?
+                }
+            },
+            x => Some(x)
+        }
+    }
+}
+
 /**
  * Serialise Methods
  */
 impl Script {
+    fn script_bits_iter(codes: &[ScriptBit]) -> ScriptIter {
+        ScriptIter {
+            scriptbit_iter: vec!(codes.iter()),
+        }
+    }
+
+    pub fn iter(&self) -> ScriptIter {
+        Script::script_bits_iter(&self.0)
+    }
+
     fn script_bits_to_asm_string(codes: &[ScriptBit], extended: bool) -> String {
-        codes
-            .iter()
+        Script::script_bits_iter(codes)
             .map(|x| match x {
                 ScriptBit::OpCode(OP_0) => match extended {
                     true => OP_0.to_string(),
@@ -46,28 +98,7 @@ impl Script {
                     false => hex::encode(bytes),
                 },
                 ScriptBit::OpCode(code) => code.to_string(),
-                ScriptBit::If { code, pass, fail } => {
-                    let mut string_parts = vec![];
-
-                    string_parts.push(code.to_string());
-
-                    let pass_string = Script::script_bits_to_asm_string(pass, extended);
-                    if !pass_string.is_empty() {
-                        string_parts.push(pass_string);
-                    }
-
-                    if let Some(fail) = fail {
-                        string_parts.push(OpCodes::OP_ELSE.to_string());
-                        let fail_string = Script::script_bits_to_asm_string(fail, extended);
-                        if !fail_string.is_empty() {
-                            string_parts.push(fail_string);
-                        }
-                    }
-
-                    string_parts.push(OpCodes::OP_ENDIF.to_string());
-
-                    string_parts.join(" ")
-                }
+                ScriptBit::If { code:_, pass:_, fail:_ } => "".to_string(), // "iter" removes ScriptBit::If
                 ScriptBit::Coinbase(bytes) => hex::encode(bytes),
             })
             .collect::<Vec<String>>()
@@ -75,8 +106,7 @@ impl Script {
     }
 
     pub fn script_bits_to_bytes(codes: &[ScriptBit]) -> Vec<u8> {
-        let bytes = codes
-            .iter()
+        let bytes = Script::script_bits_iter(codes)
             .flat_map(|x| match x {
                 ScriptBit::OpCode(code) => vec![*code as u8],
                 ScriptBit::Push(bytes) => {
@@ -96,19 +126,7 @@ impl Script {
                     pushbytes.extend(bytes);
                     pushbytes
                 }
-                ScriptBit::If { code, pass, fail } => {
-                    let mut bytes = vec![*code as u8];
-
-                    bytes.extend_from_slice(&Script::script_bits_to_bytes(pass));
-
-                    if let Some(fail) = fail {
-                        bytes.push(OpCodes::OP_ELSE as u8);
-                        bytes.extend_from_slice(&Script::script_bits_to_bytes(fail));
-                    }
-                    bytes.push(OpCodes::OP_ENDIF as u8);
-
-                    bytes
-                }
+                ScriptBit::If { code:_, pass:_, fail:_ } => vec!(), // "iter" removes ScriptBit::If
                 ScriptBit::Coinbase(bytes) => bytes.to_vec(),
             })
             .collect();
