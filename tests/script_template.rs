@@ -15,6 +15,31 @@ mod script_template_tests {
     }
 
     #[test]
+    fn op_false_op_zero_and_zero_script_does_match_template() {
+        let script = Script::from_asm_string("0 OP_0 OP_FALSE 00").unwrap();
+        let script_template = ScriptTemplate::from_asm_string("OP_FALSE OP_FALSE 0 00").unwrap();
+        println!("f {:?} {:?}", script, script_template);
+        assert_eq!(script.is_match(&script_template), true);
+    }
+
+    #[test]
+    fn op_true_and_op_one_script_does_match_template() {
+        let script = Script::from_asm_string("OP_1 OP_TRUE").unwrap();
+        let script_template = ScriptTemplate::from_asm_string("OP_1 OP_TRUE").unwrap();
+        assert_eq!(script.is_match(&script_template), true);
+    }
+
+    #[test]
+    fn op_zero_and_zero_zero_script_does_not_match_template() {
+        let script = Script::from_asm_string("0").unwrap();
+        let script_template = ScriptTemplate::from_asm_string("00").unwrap();
+        assert_eq!(script.is_match(&script_template), false);
+        let script = Script::from_asm_string("00").unwrap();
+        let script_template = ScriptTemplate::from_asm_string("0").unwrap();
+        assert_eq!(script.is_match(&script_template), false);
+    }
+
+    #[test]
     fn exact_script_template_matches_script_without_extracting_data() {
         let script =
             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")

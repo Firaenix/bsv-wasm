@@ -1,9 +1,7 @@
-use crate::OpCodes::OP_0;
 use std::str::FromStr;
 
 use crate::{BSVErrors, OpCodes, PublicKey, Script, ScriptBit, Signature, VarInt};
 use hex::FromHexError;
-use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use thiserror::Error;
@@ -64,15 +62,28 @@ pub struct ScriptTemplate(Vec<MatchToken>);
 
 impl ScriptTemplate {
     fn map_string_to_match_token(code: &str) -> Result<MatchToken, ScriptTemplateErrors> {
-        // Number OP_CODES
-        if code.len() < 3 {
-            if let Ok(num_code) = u8::from_str(code) {
-                match num_code {
-                    0 => return Ok(MatchToken::OpCode(OP_0)),
-                    v @ 1..=16 => return Ok(MatchToken::OpCode(OpCodes::from_u8(v + 80).unwrap())),
-                    _ => (),
-                }
-            }
+        match code {
+            "-1" => return Ok(MatchToken::OpCode(OpCodes::OP_1NEGATE)),
+            "0" => return Ok(MatchToken::OpCode(OpCodes::OP_0)),
+            "OP_FALSE" => return Ok(MatchToken::OpCode(OpCodes::OP_0)),
+            "1" => return Ok(MatchToken::OpCode(OpCodes::OP_1)),
+            "OP_TRUE" => return Ok(MatchToken::OpCode(OpCodes::OP_1)),
+            "2" => return Ok(MatchToken::OpCode(OpCodes::OP_2)),
+            "3" => return Ok(MatchToken::OpCode(OpCodes::OP_3)),
+            "4" => return Ok(MatchToken::OpCode(OpCodes::OP_4)),
+            "5" => return Ok(MatchToken::OpCode(OpCodes::OP_5)),
+            "6" => return Ok(MatchToken::OpCode(OpCodes::OP_6)),
+            "7" => return Ok(MatchToken::OpCode(OpCodes::OP_7)),
+            "8" => return Ok(MatchToken::OpCode(OpCodes::OP_8)),
+            "9" => return Ok(MatchToken::OpCode(OpCodes::OP_9)),
+            "10" => return Ok(MatchToken::OpCode(OpCodes::OP_10)),
+            "11" => return Ok(MatchToken::OpCode(OpCodes::OP_11)),
+            "12" => return Ok(MatchToken::OpCode(OpCodes::OP_12)),
+            "13" => return Ok(MatchToken::OpCode(OpCodes::OP_13)),
+            "14" => return Ok(MatchToken::OpCode(OpCodes::OP_14)),
+            "15" => return Ok(MatchToken::OpCode(OpCodes::OP_15)),
+            "16" => return Ok(MatchToken::OpCode(OpCodes::OP_16)),
+            _ => (),
         }
 
         // Standard OP_CODES
