@@ -519,4 +519,14 @@ mod script_tests {
 
         assert_eq!(&script.to_asm_string(), "OP_RETURN 0 01 0 00 00 00 00 00 00 00 00 00000000")
     }
+
+    #[test]
+    fn byte_serialization_with_if() {
+        let asm = "OP_1 OP_IF OP_1 OP_ELSE OP_0 OP_ENDIF OP_DROP";
+        let script = Script::from_asm_string(&asm).unwrap();
+        let script_bytes = script.to_bytes();
+        let script2 = Script::from_bytes(&script_bytes).unwrap();
+        let script2_asm = script2.to_extended_asm_string();
+        assert_eq!(asm, script2_asm);
+    }
 }

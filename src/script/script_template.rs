@@ -166,13 +166,16 @@ impl ScriptTemplate {
  */
 impl Script {
     pub fn match_impl(&self, script_template: &ScriptTemplate) -> Result<Vec<(MatchDataTypes, Vec<u8>)>, ScriptTemplateErrors> {
-        if self.0.len() != script_template.0.len() {
-            return Err(ScriptTemplateErrors::LengthsDiffer);
-        }
-
         let mut matches = vec![];
+        let mut script_iter = self.iter();
+        let mut template_iter = script_template.0.iter().enumerate();
 
-        for (i, (template, script)) in script_template.0.iter().zip(self.0.iter()).enumerate() {
+        loop {
+            let (i, template, script) = match (template_iter.next(), script_iter.next()) {
+                (Some((i,t)),Some(s)) => (i,t,s),
+                (None,None) => break,
+                _ => return Err(ScriptTemplateErrors::LengthsDiffer)
+            };
             let is_match = match (template, script) {
                 (MatchToken::OpCode(tmpl_code), ScriptBit::OpCode(op_code)) => Ok(tmpl_code == op_code),
                 (MatchToken::Push(tmpl_data), ScriptBit::Push(data)) => Ok(*tmpl_data == *data),

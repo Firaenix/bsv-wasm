@@ -15,6 +15,15 @@ mod script_template_tests {
     }
 
     #[test]
+    fn op_if_does_match_template() {
+        let asm = "OP_1 OP_IF OP_1 OP_ELSE OP_0 OP_ENDIF OP_DROP";
+        let script = Script::from_asm_string(&asm).unwrap();
+        let script_template = ScriptTemplate::from_asm_string(&asm).unwrap();
+        println!("ref {:?} {:?}", script, script_template);
+        assert_eq!(script.is_match(&script_template), true);
+    }
+
+    #[test]
     fn exact_script_template_matches_script_without_extracting_data() {
         let script =
             Script::from_asm_string("d26f2b12ee0a5923dab7314e533917f2ab5b50da5ce302d3d60941f0ee8000a2 21e8 OP_SIZE OP_4 OP_PICK OP_SHA256 OP_SWAP OP_SPLIT OP_DROP OP_EQUALVERIFY OP_DROP OP_CHECKSIG")
